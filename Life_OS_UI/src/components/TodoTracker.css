@@ -1,0 +1,41 @@
+.todo-tracker-container {
+  margin-top: 4rem;
+  text-align: center;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.module-card {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.module-card h3 {
+  margin-top: 0;
+  color: #FFD700; /* Gold */
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.module-card ul {
+  list-style-type: '✅';
+  padding-left: 1.5rem;
+}
+
+.module-card li {
+  margin-bottom: 0.75rem;
+  color: #ccc;
+}
+
+.module-card li::marker {
+  margin-right: 0.5rem;
+}

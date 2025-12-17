@@ -1,0 +1,12 @@
+.page-container {
+  padding: 80px 2rem 2rem 2rem; /* Top padding for fixed navbar */
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.landing-header {
+  text-align: center;
+  margin: 2rem 0;
+}

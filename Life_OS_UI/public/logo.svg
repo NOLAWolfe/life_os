@@ -1,0 +1,16 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Deep Purple Background -->
+  <rect width="200" height="200" rx="30" fill="#2A0A4A"/>
+  
+  <!-- Sky Blue Accent Circle -->
+  <circle cx="100" cy="100" r="70" stroke="#87CEEB" stroke-width="4" fill="none" stroke-opacity="0.8"/>
+  
+  <!-- Gold Arrow with a slight gradient -->
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M100 60 L135 105 L110 105 L110 140 L90 140 L90 105 L65 105 Z" fill="url(#goldGradient)"/>
+</svg>

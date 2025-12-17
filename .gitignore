@@ -1,0 +1,29 @@
+# Dependencies
+/node_modules
+/Life_OS_UI/node_modules
+/DJ_World/Dj_World_App/node_modules
+/Software_Projects/plaid-assistant/ai-fin-tracker/venv
+
+# Environment variables
+.env
+*.env
+
+# VS Code
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Generated files
+/DJ_World/Dj_World_App/library_snapshot.json
+/DJ_World/Dj_World_App/ai_crate_proposal.json
+
+# Python
+__pycache__/
+*.pyc
