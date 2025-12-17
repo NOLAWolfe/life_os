@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import FinancialDashboard from './pages/FinancialDashboard';
+import WorkoutPage from './pages/WorkoutPage';
+import MealPlannerPage from './pages/MealPlannerPage';
 import './App.css';
 import './pages/Page.css'; // Import shared page styles
 
@@ -25,6 +27,8 @@ function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/workout" element={<WorkoutPage />} />
+          <Route path="/meal-planner" element={<MealPlannerPage />} />
           <Route path="/finance" element={<FinancialDashboard />} />
           <Route path="/health" element={<PlaceholderPage title="Health Hub" />} />
           <Route path="/creative" element={<PlaceholderPage title="Creative & Social" />} />

@@ -13,7 +13,13 @@ const Navbar = () => {
       </div>
       <ul className="navbar-links">
         <li><NavLink to="/finance">Finance</NavLink></li>
-        <li><NavLink to="/health">Health</NavLink></li>
+        <li className="dropdown">
+          <a href="#health" className="dropbtn">Health & Fitness</a>
+          <div className="dropdown-content">
+            <NavLink to="/workout">Workout Tracker</NavLink>
+            <NavLink to="/meal-planner">Meal Planner</NavLink>
+          </div>
+        </li>
         <li><NavLink to="/creative">Creative</NavLink></li>
       </ul>
     </nav>

@@ -1,4 +1,35 @@
 {
-  "workouts": {},
-  "logs": []
+  "workout_templates": {
+    "Push Day 1": {
+      "exercises": ["Bench Press", "Overhead Press", "Tricep Pushdown"]
+    },
+    "Leg Day 1": {
+      "exercises": ["Squat", "Leg Press", "Calf Raise"]
+    }
+  },
+  "workout_logs": [
+    {
+      "id": "log_20251217103000",
+      "template_name": "Push Day 1",
+      "date": "2025-12-17",
+      "duration_minutes": 60,
+      "exercises": [
+        {
+          "name": "Bench Press",
+          "sets": [
+            { "set": 1, "reps": 12, "weight_lbs": 180, "intensity": 2 },
+            { "set": 2, "reps": 10, "weight_lbs": 180, "intensity": 1 },
+            { "set": 3, "reps": 8, "weight_lbs": 185, "intensity": 3 }
+          ]
+        },
+        {
+          "name": "Overhead Press",
+          "sets": [
+            { "set": 1, "reps": 10, "weight_lbs": 95, "intensity": 2 },
+            { "set": 2, "reps": 8, "weight_lbs": 95, "intensity": 1 }
+          ]
+        }
+      ]
+    }
+  ]
 }
