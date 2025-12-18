@@ -14,6 +14,9 @@
 # MacOS
 .DS_Store
 
+# CSV Files
+*.csv
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
