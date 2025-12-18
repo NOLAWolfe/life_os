@@ -1,0 +1,58 @@
+.setlist-critic-widget {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.setlist-critic-widget h3 {
+    margin-top: 0;
+}
+
+.setlist-critic-widget textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.setlist-critic-widget button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.setlist-critic-widget button:hover {
+    background-color: #0056b3;
+}
+
+.setlist-critic-widget button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+.feedback-container {
+    margin-top: 20px;
+}
+
+.feedback-container h4 {
+    margin-bottom: 10px;
+}
+
+.feedback-container ul {
+    list-style-type: '⚠️ ';
+    padding-left: 20px;
+}
+
+.feedback-container li {
+    margin-bottom: 5px;
+    color: #d9534f;
+}

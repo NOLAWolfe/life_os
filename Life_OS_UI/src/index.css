@@ -3,16 +3,27 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* Global Colors & Accents */
+  --primary-color: #646cff;
+  --primary-hover: #747bff;
+  --secondary-color: #4a5568;
+  --accent-color: #2575fc;
+  --success-color: #2e7d32;
+  --warning-color: #fbc02d;
+  --error-color: #d32f2f;
+
   /* Base Dark Theme Palette */
-  --page-background: #242424;
-  --card-background: #1a1a1a;
-  --text-color: rgba(255, 255, 255, 0.87);
-  --heading-color: #ffffff;
-  --border-color: #444444;
-  --link-color: #646cff;
+  --page-background: #121212;
+  --card-background: #1e1e1e;
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --border-color: #333333;
+  --input-bg: #2d2d2d;
+  --hover-overlay: rgba(255, 255, 255, 0.05);
 
   color-scheme: light dark;
-  color: var(--text-color);
+  color: var(--text-primary);
   background-color: var(--page-background);
 
   font-synthesis: none;
@@ -24,71 +35,75 @@
 @media (prefers-color-scheme: light) {
   :root {
     /* Light Theme Palette */
-    --page-background: #ffffff;
-    --card-background: #f9f9f9;
-    --text-color: #213547;
-    --heading-color: #000000;
-    --border-color: #dddddd;
-    --link-color: #535bf2;
-
-    color: var(--text-color);
-    background-color: var(--page-background);
-  }
-
-  a:hover {
-    color: #747bff;
-  }
-
-  button {
-    background-color: var(--card-background);
+    --page-background: #f4f7f6;
+    --card-background: #ffffff;
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    --text-primary: #1a202c;
+    --text-secondary: #4a5568;
+    --border-color: #e2e8f0;
+    --input-bg: #ffffff;
+    --hover-overlay: rgba(0, 0, 0, 0.02);
+    
+    --primary-color: #535bf2;
   }
 }
 
 a {
   font-weight: 500;
-  color: var(--link-color);
+  color: var(--primary-color);
   text-decoration: inherit;
+  transition: color 0.2s;
 }
+
 a:hover {
-  color: #747bff; /* This can be a separate variable if desired */
+  color: var(--primary-hover);
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--page-background);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  margin-top: 0;
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 2.5rem;
   line-height: 1.1;
-  color: var(--heading-color);
 }
-
-h2, h3 {
-  color: var(--heading-color);
-}
-
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
   background-color: var(--card-background);
-  color: var(--text-color);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.2s ease;
 }
+
 button:hover {
-  border-color: var(--link-color);
+  border-color: var(--primary-color);
+  background-color: var(--hover-overlay);
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+input, select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem;
 }

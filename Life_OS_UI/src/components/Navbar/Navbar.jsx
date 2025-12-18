@@ -12,6 +12,7 @@ const Navbar = () => {
         </NavLink>
       </div>
       <ul className="navbar-links">
+        <li><NavLink to="/professional-hub">Professional</NavLink></li>
         <li><NavLink to="/finance">Finance</NavLink></li>
         <li className="dropdown">
           <a href="#health" className="dropbtn">Health & Fitness</a>

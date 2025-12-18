@@ -42,21 +42,22 @@
 }
 
 .navbar-links a {
-  color: var(--text-color);
+  color: var(--text-primary);
   text-decoration: none;
   font-size: 1.1rem;
   padding: 0.5rem 0;
   border-bottom: 2px solid transparent;
-  transition: color 0.3s, border-bottom-color 0.3s;
+  transition: all 0.2s ease;
+  /* transition: color 0.3s, border-bottom-color 0.3s; */
 }
 
 .navbar-links a:hover {
-  color: var(--heading-color);
+  color: var(--primary-color);
 }
 
 .navbar-links a.active {
-  color: #FFD700; /* Gold for active link */
-  border-bottom-color: #FFD700;
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
 }
 
 /* Dropdown styles */
@@ -69,39 +70,44 @@
   font-size: 1.1rem;
   border: none;
   outline: none;
-  color: var(--text-color);
+  color: var(--text-primary);
   padding: 0.5rem 0;
   background-color: inherit;
   font-family: inherit;
   margin: 0;
   border-bottom: 2px solid transparent;
+  cursor: pointer;
 }
 
 .navbar-links a:hover, .dropdown:hover .dropbtn {
-  color: var(--heading-color);
+  color: var(--primary-color);
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
   background-color: var(--card-background);
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  min-width: 180px;
+  box-shadow: var(--card-shadow);
   z-index: 1;
-  border-radius: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0;
 }
 
 .dropdown-content a {
-  color: var(--text-color);
-  padding: 12px 16px;
+  color: var(--text-primary);
+  padding: 10px 16px;
   text-decoration: none;
   display: block;
   text-align: left;
   border-bottom: none;
+  font-size: 1rem;
 }
 
 .dropdown-content a:hover {
-  background-color: var(--border-color);
+  background-color: var(--hover-overlay);
+  color: var(--primary-color);
 }
 
 .dropdown:hover .dropdown-content {

@@ -1,0 +1,52 @@
+.budget-vs-actuals-container {
+    background-color: var(--card-background);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.budget-vs-actuals-container h3 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.budget-vs-actuals-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.budget-vs-actuals-container th,
+.budget-vs-actuals-container td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.budget-vs-actuals-container th {
+    background-color: var(--hover-overlay);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.budget-vs-actuals-container .amount-header {
+    text-align: right;
+}
+
+.budget-vs-actuals-container .amount-cell {
+    text-align: right;
+    font-weight: 600;
+}
+
+.budget-vs-actuals-container .amount-cell.positive {
+    color: var(--success-color);
+}
+
+.budget-vs-actuals-container .amount-cell.negative {
+    color: var(--error-color);
+}

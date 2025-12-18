@@ -4,6 +4,8 @@ import './MealPlanner.css';
 const MealPlanner = () => {
     const [recipes, setRecipes] = useState([]);
     const [mealPlan, setMealPlan] = useState(null);
+    const [newRecipeName, setNewRecipeName] = useState('');
+    const [newRecipeIngredients, setNewRecipeIngredients] = useState('');
 
     useEffect(() => {
         fetch('/api/recipes')
@@ -23,14 +25,64 @@ const MealPlanner = () => {
         return recipe ? recipe.name : "Unknown Meal";
     };
 
+    const handleRecipeSubmit = async (e) => {
+        e.preventDefault();
+        const ingredientsArray = newRecipeIngredients.split(',').map(item => item.trim());
+        if (!newRecipeName || ingredientsArray.length === 0) {
+            alert("Please provide a recipe name and at least one ingredient.");
+            return;
+        }
+
+        const newRecipe = {
+            name: newRecipeName,
+            ingredients: ingredientsArray,
+        };
+
+        try {
+            const response = await fetch('/api/recipes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newRecipe),
+            });
+
+            if (response.ok) {
+                const savedRecipe = await response.json();
+                setRecipes([...recipes, savedRecipe.recipe]);
+                setNewRecipeName('');
+                setNewRecipeIngredients('');
+            } else {
+                console.error("Failed to save recipe");
+            }
+        } catch (error) {
+            console.error("Error saving recipe:", error);
+        }
+    };
+
+    const handleRegeneratePlan = async () => {
+        try {
+            const response = await fetch('/api/meal-plan', { method: 'PUT' });
+            if (response.ok) {
+                const data = await response.json();
+                setMealPlan(data.meal_plan);
+            } else {
+                console.error("Failed to regenerate meal plan");
+            }
+        } catch (error) {
+            console.error("Error regenerating meal plan:", error);
+        }
+    };
+
     return (
         <div className="meal-planner-container">
             <h2>This Week's Meal Plan</h2>
             {mealPlan ? (
                 <div className="meal-plan-view">
                     <div className="plan-header">
-                        <p><strong>Start Date:</strong> {mealPlan.start_date}</p>
-                        <p><strong>End Date:</strong> {mealPlan.end_date}</p>
+                        <div>
+                            <p><strong>Start Date:</strong> {mealPlan.start_date}</p>
+                            <p><strong>End Date:</strong> {mealPlan.end_date}</p>
+                        </div>
+                        <button onClick={handleRegeneratePlan} className="regenerate-btn">Regenerate Plan</button>
                     </div>
                     <div className="plan-days">
                         {mealPlan.days.map(day => (
@@ -47,6 +99,27 @@ const MealPlanner = () => {
             ) : (
                 <p>Loading meal plan...</p>
             )}
+
+            <div className="add-recipe-form">
+                <h3>Add a New Recipe</h3>
+                <form onSubmit={handleRecipeSubmit}>
+                    <input
+                        type="text"
+                        value={newRecipeName}
+                        onChange={e => setNewRecipeName(e.target.value)}
+                        placeholder="Recipe Name"
+                        required
+                    />
+                    <input
+                        type="text"
+                        value={newRecipeIngredients}
+                        onChange={e => setNewRecipeIngredients(e.target.value)}
+                        placeholder="Ingredients (comma-separated)"
+                        required
+                    />
+                    <button type="submit">Add Recipe</button>
+                </form>
+            </div>
 
             <div className="recipe-list">
                 <h3>Available Recipes</h3>

@@ -1,0 +1,60 @@
+.spending-trends-container {
+    background-color: var(--card-background);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.spending-trends-container h3 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.spending-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    align-items: center;
+    gap: 30px;
+}
+
+@media (max-width: 768px) {
+    .spending-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.spending-chart {
+    max-width: 300px;
+    margin: auto;
+}
+
+.spending-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.spending-trends-container th,
+.spending-trends-container td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.spending-trends-container th {
+    background-color: var(--hover-overlay);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.spending-trends-container .amount-header,
+.spending-trends-container .amount-cell {
+    text-align: right;
+    font-weight: 600;
+}

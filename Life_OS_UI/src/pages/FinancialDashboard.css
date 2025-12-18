@@ -1,0 +1,92 @@
+.financial-dashboard {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 1100px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dashboard-section {
+    margin-bottom: 2rem;
+}
+
+.accounts-section, .transactions-section {
+    background-color: var(--card-background);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background-color: var(--hover-overlay);
+    color: var(--text-secondary);
+}
+
+.amount-cell.credit {
+    color: var(--success-color);
+}
+
+.amount-cell.debit {
+    color: var(--error-color);
+}
+
+.tag {
+    display: inline-block;
+    background-color: var(--hover-overlay);
+    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 40px;
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    color: var(--text-secondary);
+    border: 1px dashed var(--border-color);
+}
+
+.tiller-instructions {
+    background-color: var(--card-background);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.tiller-instructions h3 {
+    margin-top: 0;
+}
+
+.tiller-instructions li {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}

@@ -1,0 +1,35 @@
+.balances-widget {
+    height: 100%;
+}
+
+.balances-widget h3 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.balances-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.balances-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.balances-list li:last-child {
+    border-bottom: none;
+}
+
+.account-name {
+    font-weight: bold;
+}
+
+.error-message {
+    color: #d9534f;
+}

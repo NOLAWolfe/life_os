@@ -75,3 +75,54 @@
 .recipe-list li:last-child {
     border-bottom: none;
 }
+
+.add-recipe-form {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.add-recipe-form form {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.add-recipe-form input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    flex-grow: 1;
+}
+
+.add-recipe-form button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #28a745;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.add-recipe-form button:hover {
+    background-color: #218838;
+}
+
+.regenerate-btn {
+    padding: 10px 20px;
+    border: 1px solid white;
+    background-color: transparent;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    align-self: center;
+}
+
+.regenerate-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
