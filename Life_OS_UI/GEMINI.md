@@ -8,11 +8,16 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
 - **State Management:** React Context (`FinancialContext.jsx`) for global financial data.
 - **Routing:** React Router (implicit in `App.jsx`).
 - **Data Ingestion:** CSV parsing for Tiller/Plaid exports via `tillerService.js`.
+- **Visualization:** `@xyflow/react` for interactive flowcharts, `chart.js` for graphs.
 - **APIs:** Integrations with `adoService` (Azure DevOps), `spotifyService`, and local Python-based health services.
 
 ## Core Components
 - **Dashboard:** A widget-based layout featuring `BalancesWidget`, `SmallWinWidget`, and `Calendar`.
-- **Financial Hub:** Advanced tools like `DebtPayoffPlanner`, `IncomeStreams`, and `SpendingTrends`.
+- **Financial Hub (The "War Room"):**
+    - `PaymentFlow`: Interactive strategy map with drift detection and node inspection.
+    - `LeakDetector`: Analyzes micro-spending and amortizes ghost bills.
+    - `IncomeStreams`: Wealth creation tool with active/passive classification and 10X targets.
+    - `DebtPayoffPlanner`: Strategic debt reduction calculator.
 - **Professional Hub:** QA-focused tools for user story and bug tracking.
 - **Creative Page:** DJ-specific utilities and creative planning tools.
 - **Health/Workout:** Trackers for meals and exercises.
@@ -26,5 +31,20 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
 ## Key Files
 - `src/App.jsx`: Main routing and layout.
 - `src/contexts/FinancialContext.jsx`: Central hub for financial data parsed from CSVs.
-- `src/services/tillerService.js`: Logic for processing Tiller CSV exports.
-- `docs/GEMINI_LOG.md`: Detailed session-by-session history of AI-assisted changes.
+- `src/services/tillerService.js`: Logic for processing Tiller CSV exports (includes robust header deduplication).
+- `src/pages/FinancialDashboard.jsx`: The main tabbed interface (Strategy, Analytics, Data).
+
+## Session Log (Dec 19, 2025)
+- **Financial Strategy Overhaul:**
+    - Created **Payment Strategy Flowchart** (`@xyflow/react`) to visualize money movement.
+    - Implemented **Drift Detection**: Flags bills paid from the wrong account based on user-defined rules.
+    - Added **Money Flow Stats**: Nodes now display live account balances and monthly bill costs.
+    - Built **Leak Detector**: Identifies "Death by 1000 Cuts" and "Habitual Spenders".
+- **Wealth Creation:**
+    - Enhanced **Income Streams** to support Active/Side/Passive classification.
+    - Added **Transaction Drill-down** to audit income sources.
+    - Implemented "Ignored" streams to clean up transfer noise.
+- **Infrastructure:**
+    - Refactored `FinancialDashboard` into a unified **Tabbed Card** interface (Strategy / Analytics / Data).
+    - Hardened `tillerService.js` to handle **Duplicate CSV Headers** and use smart value hunting (`findVal`).
+    - Fixed connectivity issues with `BudgetVsActuals` and `SpendingTrends` by improving data parsing.
