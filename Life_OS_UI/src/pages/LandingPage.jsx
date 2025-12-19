@@ -1,9 +1,13 @@
-import React from 'react';
-import Calendar from '../components/Calendar/Calendar';
-import BalancesWidget from '../components/BalancesWidget/BalancesWidget';
-import ObsidianConnector from '../components/ObsidianConnector/ObsidianConnector';
-import SmallWinWidget from '../components/SmallWinWidget/SmallWinWidget';
-import './LandingPage.css';
+import React from "react";
+import Calendar from "../components/Calendar/Calendar";
+import BalancesWidget from "../components/BalancesWidget/BalancesWidget";
+import ObsidianConnector from "../components/ObsidianConnector/ObsidianConnector";
+import SmallWinWidget from "../components/SmallWinWidget/SmallWinWidget";
+import WealthTargets from "../components/WealthTargets/WealthTargets";
+import WealthMentor from "../components/WealthMentor/WealthMentor";
+import DailyReads from "../components/DailyReads/DailyReads";
+import ToDoTracker from "../components/TodoTracker/TodoTracker";
+import "./LandingPage.css";
 
 const LandingPage = () => {
   return (
@@ -12,20 +16,29 @@ const LandingPage = () => {
         <h1>Your Daily Dashboard</h1>
         <p>A quick view of your life.</p>
       </div>
-      <div className="dashboard-grid">
-        <div className="dashboard-widget widget-calendar">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <WealthTargets />
+          <WealthMentor />
+        </div>
+        <div>
+          <DailyReads />
+        </div>
+        <div className="lg:row-span-2">
           <Calendar />
         </div>
-        <div className="dashboard-widget widget-small-win">
+        <div>
           <SmallWinWidget />
         </div>
-        <div className="dashboard-widget widget-balances">
+        <div>
           <BalancesWidget />
         </div>
-        <div className="dashboard-widget widget-obsidian">
+        <div className="lg:col-span-2">
           <ObsidianConnector />
         </div>
-        {/* Other widgets will go here */}
+        <div className="lg:col-span-2">
+          <ToDoTracker />
+        </div>
       </div>
     </div>
   );

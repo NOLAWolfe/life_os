@@ -12,30 +12,136 @@
 }
 
 .module-card {
-  background-color: #1e1e1e;
-  border: 1px solid #333;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
 }
 
 .module-card h3 {
-  margin-top: 0;
+  margin: 0;
   color: #FFD700; /* Gold */
-  border-bottom: 1px solid #444;
-  padding-bottom: 0.5rem;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.progress-bar-bg {
+    height: 6px;
+    background-color: var(--input-bg);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--success-color);
+    transition: width 0.3s ease;
 }
 
 .module-card ul {
-  list-style-type: '✅';
-  padding-left: 1.5rem;
+  list-style-type: none; /* Remove default marker */
+  padding-left: 0;
+  margin: 0;
+  flex-grow: 1; /* Pushes add-section down */
 }
 
 .module-card li {
   margin-bottom: 0.75rem;
-  color: #ccc;
+  color: var(--text-primary);
+  transition: opacity 0.2s;
 }
 
-.module-card li::marker {
-  margin-right: 0.5rem;
+.module-card li.completed {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.todo-item input[type="checkbox"] {
+    margin-top: 0.25rem;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.todo-text {
+    line-height: 1.4;
+}
+
+/* Add Task Section */
+.add-task-section {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--border-color);
+}
+
+.show-add-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+.show-add-btn:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+    background: none;
+}
+
+.add-task-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.add-task-input-group input {
+    flex: 1;
+    font-size: 0.9rem;
+    padding: 0.4rem;
+}
+
+.add-btn {
+    padding: 0.4rem 0.8rem;
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+}
+
+.add-btn:hover {
+    background-color: #27632a; /* Darker green */
+}
+
+.cancel-btn {
+    padding: 0.4rem 0.6rem;
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.cancel-btn:hover {
+    background-color: var(--hover-overlay);
+    color: var(--error-color);
 }

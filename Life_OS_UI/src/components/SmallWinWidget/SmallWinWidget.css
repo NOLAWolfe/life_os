@@ -1,27 +1,29 @@
 .small-win-widget {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
-    color: white;
-    padding: 0.4rem;
+    background: var(--card-background);
+    padding: 1.5rem;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(37, 117, 252, 0.3);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
 }
 
-.small-win-widget.empty {
-    background: var(--hover-overlay);
-    color: var(--text-secondary);
-    border: 2px dashed var(--border-color);
-    box-shadow: none;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+.small-win-widget.aggressive {
+    border-left: 6px solid #10b981; /* Green for aggressive paydown */
 }
 
-.small-win-widget.empty h4 {
-    margin-bottom: 0.5rem;
+.small-win-widget.warning {
+    border-left: 6px solid #ef4444; /* Red for warning */
+    background: #fef2f2;
 }
+
+/* Light mode specific adjustment for warning background inside dark theme apps is tricky, 
+   but since we have CSS variables, we can stick to standard card background or make it subtle. 
+   Overriding background in dark mode might look bad. Let's keep it simple. 
+*/
+:root[class~="dark"] .small-win-widget.warning {
+    background: #2d1a1a; /* Darker red tint */
+}
+
 
 .widget-header {
     display: flex;
@@ -32,43 +34,34 @@
 
 .widget-header h4 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .badge {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 2px 8px;
-    border-radius: 4px;
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
     font-size: 0.7rem;
-    font-weight: 600;
-}
-
-.win-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.win-content p {
-    margin: 0;
-    font-size: 0.9rem;
-    opacity: 0.9;
+    font-weight: bold;
 }
 
 .debt-name {
-    margin: 0.5rem 0 1rem 0;
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+    color: var(--text-primary);
 }
 
 .win-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    display: flex;
+    gap: 1.5rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--hover-overlay);
+    border-radius: 8px;
 }
 
 .stat {
@@ -78,19 +71,47 @@
 
 .stat .label {
     font-size: 0.75rem;
-    opacity: 0.8;
+    color: var(--text-secondary);
 }
 
 .stat .value {
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: bold;
+    color: var(--text-primary);
 }
 
 .recommendation {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 0.8rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
+    color: var(--text-primary);
     line-height: 1.4;
-    border-left: 3px solid #fff;
+}
+
+.recommendation strong {
+    color: var(--success-color);
+    font-size: 1.3rem;
+}
+
+.small-win-widget.warning .recommendation strong {
+    color: var(--text-primary); /* Don't highlight payment amount in green if warning */
+}
+
+.rec-note {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.small-win-widget.warning .rec-note {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.small-win-widget.empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--text-secondary);
 }

@@ -8,10 +8,20 @@ const SingleDropzone = ({ onFileUpload, title }) => {
     const onDrop = useCallback(async (acceptedFiles) => {
         if (acceptedFiles.length > 0) {
             const file = acceptedFiles[0];
+            const headers = {};
             try {
                 Papa.parse(file, {
                     header: true,
                     skipEmptyLines: true,
+                    transformHeader: (header) => {
+                        const cleanHeader = header.trim();
+                        if (headers[cleanHeader]) {
+                            headers[cleanHeader]++;
+                            return `${cleanHeader}_${headers[cleanHeader]}`;
+                        }
+                        headers[cleanHeader] = 1;
+                        return cleanHeader;
+                    },
                     complete: (results) => {
                         onFileUpload(results.data);
                     },

@@ -10,11 +10,24 @@ export const useFinancials = () => {
 export const FinancialProvider = ({ children }) => {
     const [accounts, setAccounts] = useState([]); // Master accounts list
     const [transactions, setTransactions] = useState([]);
+    const [incomeStreams, setIncomeStreams] = useState([]);
+    const [cashFlow, setCashFlow] = useState({ monthlyIncome: 0, monthlyExpenses: 0, surplus: 0 });
     const [categories, setCategories] = useState([]);
     const [debtAccounts, setDebtAccounts] = useState([]);
     const [summaryBalances, setSummaryBalances] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Update income streams and cash flow whenever transactions change
+    useEffect(() => {
+        if (transactions.length > 0) {
+            const streams = tillerService.processIncomeData(transactions);
+            setIncomeStreams(streams);
+            
+            const flow = tillerService.calculateCashFlow(transactions);
+            setCashFlow(flow);
+        }
+    }, [transactions]);
 
     // Auto-load files on mount for troubleshooting
     useEffect(() => {
@@ -38,7 +51,7 @@ export const FinancialProvider = ({ children }) => {
                 loadFile('Accounts', '/Accounts.csv', setAccounts, tillerService.processAccountsData),
                 loadFile('Transactions', '/Transactions.csv', (processed) => setTransactions(processed.transactions), tillerService.processTillerData),
                 loadFile('Debt Payoff', '/Debt Payoff Planner.csv', setDebtAccounts, tillerService.processDebtData, false), // hasHeader = false
-                loadFile('Categories', '/Categories.csv', setCategories),
+                loadFile('Categories', '/Categories.csv', setCategories, tillerService.processCategoriesData),
                 loadFile('Balances', '/Balances.csv', setSummaryBalances)
             ]);
 
@@ -82,7 +95,17 @@ export const FinancialProvider = ({ children }) => {
     };
 
     const handleCategoriesUpload = (data) => {
-        setCategories(data);
+        setLoading(true);
+        try {
+            const processedCategories = tillerService.processCategoriesData(data);
+            setCategories(processedCategories || []);
+            setError(null);
+        } catch (e) {
+            setError(e.message);
+            console.error("Error processing Tiller categories data:", e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDebtUpload = (data) => {
@@ -102,6 +125,8 @@ export const FinancialProvider = ({ children }) => {
     const value = {
         accounts,
         transactions,
+        incomeStreams,
+        cashFlow,
         categories,
         debtAccounts,
         summaryBalances,

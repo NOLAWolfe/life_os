@@ -45,10 +45,12 @@ const ProfessionalHubPage = () => {
 
     return (
         <div className="page-container">
-            <h1>Professional Hub (QA Co-Pilot)</h1>
-            <p>Your centralized workspace for QA tasks and Azure DevOps integration.</p>
+            <header className="mb-8">
+                <h1>Professional Hub (QA Co-Pilot)</h1>
+                <p>Your centralized workspace for QA tasks and Azure DevOps integration.</p>
+            </header>
 
-            <div className="professional-grid">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="work-item-section">
                     <h3>My User Stories (Mock)</h3>
                     <div className="work-item-list">

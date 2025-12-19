@@ -1,5 +1,11 @@
 .balances-widget {
     height: 100%;
+    background-color: var(--card-background);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
 }
 
 .balances-widget h3 {
@@ -7,6 +13,20 @@
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
     margin-bottom: 15px;
+}
+
+.account-group {
+    margin-bottom: 20px;
+}
+
+.group-header {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 10px 0 5px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .balances-list {
@@ -18,16 +38,32 @@
 .balances-list li {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    padding: 8px 0;
 }
 
-.balances-list li:last-child {
-    border-bottom: none;
+.account-info {
+    display: flex;
+    flex-direction: column;
 }
 
 .account-name {
-    font-weight: bold;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.institution-name {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.account-balance {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 600;
+}
+
+.account-balance.negative {
+    color: var(--error-color);
 }
 
 .error-message {
