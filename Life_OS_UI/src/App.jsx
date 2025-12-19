@@ -28,7 +28,7 @@ function App() {
     <FinancialProvider>
       <div className="App">
         <Navbar />
-        <main className="main-content">
+        <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-[1440px] mx-auto w-full box-border">
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/professional-hub" element={<ProfessionalHubPage />} />

@@ -1,8 +1,9 @@
 .obsidian-connector-container {
     background-color: var(--card-background);
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
 }
 
 .obsidian-connector-container h3 {

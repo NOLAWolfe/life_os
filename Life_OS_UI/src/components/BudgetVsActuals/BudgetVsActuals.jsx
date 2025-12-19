@@ -12,7 +12,23 @@ const BudgetVsActuals = () => {
 
         const currentMonth = new Date().toLocaleString('default', { month: 'short' });
         const currentYear = new Date().getFullYear();
-        const budgetColumn = `${currentMonth} ${currentYear}`; // e.g., "Dec 2025"
+
+        // Helper to find the budget column for the current month
+        const findBudgetAmount = (categoryRow, month, year) => {
+            // Tiller formats: "Jan 2025", "1/1/2025", "2025-01"
+            const patterns = [
+                `${month} ${year}`, // "Dec 2025"
+                `${new Date().getMonth() + 1}/1/${year}`, // "12/1/2025"
+                month // Just "Dec" (unlikely but possible)
+            ];
+
+            for (const pattern of patterns) {
+                // Check exact match and suffixes
+                const val = categoryRow[pattern] || categoryRow[`${pattern}_1`] || categoryRow[`${pattern}_2`];
+                if (val !== undefined) return parseFloat(val.replace(/[^0-9.-]+/g, "") || 0);
+            }
+            return 0;
+        };
 
         // Calculate actual spending by category for the current month
         const actuals = {};
@@ -28,9 +44,10 @@ const BudgetVsActuals = () => {
         return categories
             .filter(cat => cat.Type === 'Expense') // Only include expense categories
             .map(cat => {
-                const budgetAmount = parseFloat(cat[budgetColumn]?.replace(/[^0-9.-]+/g, "") || 0);
+                const budgetAmount = findBudgetAmount(cat, currentMonth, currentYear);
                 const actualAmount = actuals[cat.Category] || 0;
                 const difference = budgetAmount - actualAmount;
+                
                 return {
                     category: cat.Category,
                     budget: budgetAmount,

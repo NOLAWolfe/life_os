@@ -1,6 +1,30 @@
 .calendar-container {
-    background-color: #fff;
+    background-color: var(--card-background);
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+/* Override react-big-calendar defaults for dark mode if needed */
+.rbc-calendar {
+    color: var(--text-primary);
+}
+
+.rbc-off-range-bg {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.rbc-today {
+    background-color: var(--hover-overlay);
+}
+
+.rbc-header {
+    color: var(--text-secondary);
+}
+
+.rbc-button-link {
+    color: var(--text-primary);
 }

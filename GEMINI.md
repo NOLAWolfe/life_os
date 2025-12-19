@@ -38,6 +38,16 @@ The project has evolved into a robust financial management and personal producti
     *   **Status:** Completed (Phase 1)
     *   **Current:** Interactive `WorkoutTracker` and `MealPlanner` integrated with a Node.js/Express backend.
 
+4.  **The Future Vision: "The Useful Assistant Suite"**
+    Beyond the current modules, Life.io is evolving into a collection of specialized, local-first AI assistants.
+    *   **Core Principles:** Personal-First, Local-First/Privacy-Respecting, and Decision Simplification.
+    *   **Planned Assistants:**
+        *   **Life Admin Assistant:** Handles logistics (bills, insurance, warranties).
+        *   **Knowledge Memory (RAG):** A personal knowledge base for notes, PDFs, and snippets.
+        *   **Decision Journal:** Tracks decisions and context to improve judgment quality.
+        *   **Goal Decomposition:** Converts high-level goals into realistic weekly plans.
+        *   **Home/Asset Manager:** Maintenance schedules and repair histories.
+
 ---
 
 **Life.io Architectural Strategy: The Dual-Path**
