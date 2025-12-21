@@ -7,6 +7,7 @@ const TransactionMapper = () => {
     const { transactions } = useFinancials();
     const [mappingRules, setMappingRules] = useState({});
     const [nodes, setNodes] = useState([]);
+    const [edges, setEdges] = useState([]);
     
     // Load existing config from LocalStorage (Shared with PaymentFlow)
     useEffect(() => {
@@ -15,6 +16,9 @@ const TransactionMapper = () => {
 
         const savedNodes = localStorage.getItem('paymentFlowNodes');
         if (savedNodes) setNodes(JSON.parse(savedNodes));
+        
+        const savedEdges = localStorage.getItem('paymentFlowEdges');
+        if (savedEdges) setEdges(JSON.parse(savedEdges));
     }, []);
 
     const orphans = useMemo(() => {
@@ -27,6 +31,8 @@ const TransactionMapper = () => {
     const [customKeyword, setCustomKeyword] = useState('');
     const [isCreatingNewNode, setIsCreatingNewNode] = useState(false);
     const [newNodeName, setNewNodeName] = useState('');
+    const [sourceAccountFilter, setSourceAccountFilter] = useState('All');
+    const [payFromAccountId, setPayFromAccountId] = useState('');
 
     // Handlers
     const handleSelectOrphan = (orphan) => {
@@ -35,12 +41,20 @@ const TransactionMapper = () => {
         setTargetNodeId('');
         setIsCreatingNewNode(false);
         setNewNodeName(orphan.name.split(' ').slice(0, 2).join(' ')); // Default new name
+        
+        // Auto-select "Pay From" based on transaction source
+        const matchingAccountNode = nodes.find(n => 
+            (n.className?.includes('node-account') || n.className?.includes('node-hub')) &&
+            orphan.accountList.some(acc => n.data.label.toLowerCase().includes(acc.toLowerCase()))
+        );
+        setPayFromAccountId(matchingAccountNode ? matchingAccountNode.id : '');
     };
 
     const handleSaveMapping = () => {
         if (!selectedOrphan || !customKeyword) return;
 
         let finalNodeId = targetNodeId;
+        let updatedEdges = [...edges];
 
         // 1. If Creating New Node
         if (isCreatingNewNode) {
@@ -59,6 +73,19 @@ const TransactionMapper = () => {
             setNodes(updatedNodes);
             localStorage.setItem('paymentFlowNodes', JSON.stringify(updatedNodes));
             finalNodeId = newNodeId;
+            
+            // If "Pay From" is selected, create the edge
+            if (payFromAccountId) {
+                const newEdge = {
+                    id: `e-${payFromAccountId}-${newNodeId}-${Date.now()}`,
+                    source: payFromAccountId,
+                    target: newNodeId,
+                    animated: false
+                };
+                updatedEdges.push(newEdge);
+                setEdges(updatedEdges);
+                localStorage.setItem('paymentFlowEdges', JSON.stringify(updatedEdges));
+            }
         }
 
         if (!finalNodeId) return alert('Please select a target bill.');
@@ -77,59 +104,128 @@ const TransactionMapper = () => {
         setSelectedOrphan(null);
     };
 
+    // Derived Lists
     const eligibleNodes = nodes.filter(n => n.className?.includes('node-bill'));
+    const eligibleAccountNodes = nodes.filter(n => n.className?.includes('node-account') || n.className?.includes('node-hub'));
+    
+    const uniqueSourceAccounts = useMemo(() => {
+        const accs = new Set();
+        orphans.forEach(o => o.accountList.forEach(a => accs.add(a)));
+        return Array.from(accs).sort();
+    }, [orphans]);
+
+    const filteredOrphans = useMemo(() => {
+        if (sourceAccountFilter === 'All') return orphans;
+        return orphans.filter(o => o.accountList.includes(sourceAccountFilter));
+    }, [orphans, sourceAccountFilter]);
 
     return (
         <div className="transaction-mapper widget-card">
-            <header className="widget-header mb-4">
-                <h2 className="widget-title">🎩 The Sorting Hat (Transaction Mapper)</h2>
-                <p className="text-sm text-[var(--text-secondary)]">
-                    Found {orphans.length} unassigned transaction groups. Map them to bills to improve accuracy.
-                </p>
+            <header className="widget-header mb-4 flex justify-between items-end">
+                <div>
+                    <h2 className="widget-title">🎩 The Sorting Hat</h2>
+                    <p className="text-sm text-[var(--text-secondary)]">
+                        Unassigned transactions: {orphans.length}
+                    </p>
+                </div>
+                
+                {/* Account Filter */}
+                <div className="flex flex-col items-end">
+                    <label className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-1">Filter Source</label>
+                    <select 
+                        className="bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xs rounded px-2 py-1"
+                        value={sourceAccountFilter}
+                        onChange={(e) => setSourceAccountFilter(e.target.value)}
+                    >
+                        <option value="All">All Accounts</option>
+                        {uniqueSourceAccounts.map(acc => (
+                            <option key={acc} value={acc}>{acc}</option>
+                        ))}
+                    </select>
+                </div>
             </header>
 
             <div className="mapper-container grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* LIST COLUMN */}
                 <div className="orphans-list col-span-1 border-r border-[var(--border-color)] pr-4 max-h-[500px] overflow-y-auto">
-                    {orphans.slice(0, 50).map((orphan, idx) => (
+                    {filteredOrphans.slice(0, 50).map((orphan, idx) => (
                         <div 
                             key={idx} 
                             className={`orphan-item p-3 mb-2 rounded cursor-pointer border transition-colors ${selectedOrphan?.name === orphan.name ? 'border-[var(--accent-color)] bg-[var(--bg-secondary)]' : 'border-transparent hover:bg-[var(--bg-secondary)]'}`}
                             onClick={() => handleSelectOrphan(orphan)}
                         >
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-between items-start mb-1">
                                 <span className="font-medium text-sm truncate w-3/4" title={orphan.name}>{orphan.name}</span>
                                 <span className="text-xs bg-gray-700 px-1.5 py-0.5 rounded">{orphan.count}</span>
                             </div>
-                            <div className="flex justify-between mt-1 text-xs text-[var(--text-secondary)]">
-                                <span>~${Math.round(orphan.averageAmount)}</span>
-                                <span>Last: {orphan.lastDate}</span>
+                            <div className="flex justify-between items-center text-xs text-[var(--text-secondary)]">
+                                <div className="flex flex-col">
+                                    <span className="font-mono text-[var(--text-primary)]">~${Math.round(orphan.averageAmount)}</span>
+                                </div>
+                                <div className="text-right max-w-[50%] truncate">
+                                    <span title={orphan.accountList.join(', ')}>{orphan.accountList[0]}</span>
+                                </div>
                             </div>
                         </div>
                     ))}
-                    {orphans.length === 0 && <p className="text-center text-gray-500 py-10">All clean! No orphans found.</p>}
+                    {filteredOrphans.length === 0 && <p className="text-center text-gray-500 py-10">All clean! No orphans found.</p>}
                 </div>
 
                 {/* ACTION COLUMN */}
                 <div className="mapping-action col-span-2 flex flex-col justify-center items-center p-6 bg-[var(--bg-secondary)] rounded-lg min-h-[300px]">
                     {selectedOrphan ? (
-                        <div className="w-full max-w-md space-y-6">
-                            <div className="text-center mb-6">
-                                <h3 className="text-lg font-bold mb-1">Mapping: "{selectedOrphan.name}"</h3>
-                                <p className="text-sm text-[var(--text-secondary)]">
-                                    Appears {selectedOrphan.count} times. Avg: ${Math.round(selectedOrphan.averageAmount)}
-                                </p>
+                        <div className="w-full max-w-lg space-y-6">
+                            
+                            {/* Detailed Info Card */}
+                            <div className="bg-[var(--bg-primary)] p-4 rounded border border-[var(--border-color)] mb-6">
+                                <h3 className="text-lg font-bold mb-2 text-center text-[var(--accent-color)]">{selectedOrphan.name}</h3>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p className="text-[10px] text-[var(--text-secondary)] uppercase">Source Account</p>
+                                        <p className="font-medium flex items-center gap-2">
+                                            🏦 {selectedOrphan.accountList.join(', ')}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-[var(--text-secondary)] uppercase">Avg Amount</p>
+                                        <p className="font-medium font-mono">${Math.round(selectedOrphan.averageAmount)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-[var(--text-secondary)] uppercase">Last Seen</p>
+                                        <p>{new Date(selectedOrphan.lastDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-[var(--text-secondary)] uppercase">Occurrences</p>
+                                        <p>{selectedOrphan.count} times</p>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Step 1: Assign to Node */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase text-[var(--text-secondary)]">1. Assign to Bill</label>
-                                <div className="flex gap-2">
+                            <div className="space-y-3 p-4 border border-[var(--border-color)] rounded bg-[var(--bg-primary)]">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-xs font-bold uppercase text-[var(--text-secondary)]">1. Assign to Bill</label>
+                                    <div className="flex bg-[var(--bg-secondary)] p-1 rounded">
+                                        <button 
+                                            className={`px-3 py-1 text-xs rounded ${!isCreatingNewNode ? 'bg-[var(--accent-color)] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                                            onClick={() => setIsCreatingNewNode(false)}
+                                        >
+                                            Existing
+                                        </button>
+                                        <button 
+                                            className={`px-3 py-1 text-xs rounded ${isCreatingNewNode ? 'bg-[var(--accent-color)] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                                            onClick={() => setIsCreatingNewNode(true)}
+                                        >
+                                            Create New
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {!isCreatingNewNode ? (
                                     <select 
-                                        className={`flex-1 p-2 rounded bg-[var(--bg-primary)] border ${isCreatingNewNode ? 'border-gray-700 text-gray-500' : 'border-[var(--accent-color)]'}`}
+                                        className="w-full p-2 rounded bg-[var(--bg-secondary)] border border-[var(--accent-color)] focus:ring-2 focus:ring-blue-500"
                                         value={targetNodeId}
-                                        disabled={isCreatingNewNode}
                                         onChange={(e) => setTargetNodeId(e.target.value)}
                                     >
                                         <option value="">Select Existing Bill...</option>
@@ -137,43 +233,55 @@ const TransactionMapper = () => {
                                             <option key={n.id} value={n.id}>{n.data.label}</option>
                                         ))}
                                     </select>
-                                    <div className="flex items-center text-xs text-gray-400">OR</div>
-                                    <button 
-                                        className={`px-3 py-2 rounded text-xs border ${isCreatingNewNode ? 'bg-[var(--accent-color)] border-[var(--accent-color)] text-white' : 'border-gray-600 hover:border-gray-400'}`}
-                                        onClick={() => setIsCreatingNewNode(!isCreatingNewNode)}
-                                    >
-                                        {isCreatingNewNode ? 'Creating New...' : 'Create New'}
-                                    </button>
-                                </div>
-                                
-                                {isCreatingNewNode && (
-                                    <input 
-                                        className="w-full p-2 mt-2 rounded bg-[var(--bg-primary)] border border-[var(--accent-color)]"
-                                        placeholder="New Bill Name (e.g. Netflix)"
-                                        value={newNodeName}
-                                        onChange={(e) => setNewNodeName(e.target.value)}
-                                        autoFocus
-                                    />
+                                ) : (
+                                    <div className="space-y-3 animate-fade-in">
+                                        <div>
+                                            <p className="text-[10px] mb-1 text-[var(--text-secondary)]">New Bill Name</p>
+                                            <input 
+                                                className="w-full p-2 rounded bg-[var(--bg-secondary)] border border-[var(--accent-color)]"
+                                                placeholder="e.g. Netflix"
+                                                value={newNodeName}
+                                                onChange={(e) => setNewNodeName(e.target.value)}
+                                                autoFocus
+                                            />
+                                        </div>
+                                        
+                                        <div>
+                                            <p className="text-[10px] mb-1 text-[var(--text-secondary)]">Pay From Account (Creates Logic Flow)</p>
+                                            <select 
+                                                className="w-full p-2 rounded bg-[var(--bg-secondary)] border border-gray-600"
+                                                value={payFromAccountId}
+                                                onChange={(e) => setPayFromAccountId(e.target.value)}
+                                            >
+                                                <option value="">Select Source Account...</option>
+                                                {eligibleAccountNodes.map(n => (
+                                                    <option key={n.id} value={n.id}>{n.data.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
 
                             {/* Step 2: Define Keyword */}
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-[var(--text-secondary)]">2. Keyword Match Rule</label>
-                                <input 
-                                    className="w-full p-2 rounded bg-[var(--bg-primary)] border border-gray-600 focus:border-[var(--accent-color)]"
-                                    value={customKeyword}
-                                    onChange={(e) => setCustomKeyword(e.target.value)}
-                                    placeholder="e.g. netflix"
-                                />
-                                <p className="text-[10px] text-gray-400">Any future transaction containing this text will be mapped to this bill.</p>
+                                <div className="flex gap-2">
+                                    <input 
+                                        className="flex-1 p-2 rounded bg-[var(--bg-primary)] border border-gray-600 focus:border-[var(--accent-color)]"
+                                        value={customKeyword}
+                                        onChange={(e) => setCustomKeyword(e.target.value)}
+                                        placeholder="e.g. netflix"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-400">Transactions containing this text will be mapped to the selected bill.</p>
                             </div>
 
                             <button 
-                                className="w-full py-3 mt-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded shadow-lg transition-transform transform active:scale-95"
+                                className="w-full py-3 mt-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded shadow-lg transition-transform transform active:scale-95 flex justify-center items-center gap-2"
                                 onClick={handleSaveMapping}
                             >
-                                ✅ Save Rule
+                                <span>✅</span> Save Rule
                             </button>
 
                         </div>

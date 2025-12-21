@@ -36,7 +36,10 @@ export const getOrphanedTransactions = (transactions, currentRules) => {
                 count: 0,
                 totalAmount: 0,
                 dates: [],
-                example: t.name
+                accounts: new Set(),
+                institutions: new Set(),
+                example: t.name,
+                latestTransaction: t
             });
         }
         
@@ -44,6 +47,13 @@ export const getOrphanedTransactions = (transactions, currentRules) => {
         group.count += 1;
         group.totalAmount += t.amount;
         group.dates.push(t.date);
+        if (t.accountName) group.accounts.add(t.accountName);
+        if (t.institution) group.institutions.add(t.institution);
+        
+        // Update latest transaction if this one is newer
+        if (new Date(t.date) > new Date(group.latestTransaction.date)) {
+            group.latestTransaction = t;
+        }
     });
 
     // 4. Convert to Array and Score
@@ -52,7 +62,9 @@ export const getOrphanedTransactions = (transactions, currentRules) => {
         .map(item => ({
             ...item,
             averageAmount: item.totalAmount / item.count,
-            lastDate: item.dates.sort().pop()
+            lastDate: item.dates.sort().pop(),
+            accountList: Array.from(item.accounts),
+            institutionList: Array.from(item.institutions)
         }))
         // Filter out noise: single-time small transactions?
         // Let's keep them but sort them lower.

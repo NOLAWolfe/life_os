@@ -34,7 +34,7 @@ const BudgetVsActuals = () => {
         const actuals = {};
         transactions.forEach(t => {
             const transactionMonth = new Date(t.date).toLocaleString('default', { month: 'short' });
-            if (t.type === 'debit' && transactionMonth === currentMonth) {
+            if (t.type === 'debit' && transactionMonth === currentMonth && !t.isLateral) {
                 const category = t.category[0] || 'Uncategorized';
                 actuals[category] = (actuals[category] || 0) + t.amount;
             }

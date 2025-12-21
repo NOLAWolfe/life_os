@@ -16,7 +16,7 @@ const SpendingTrends = () => {
 
         const trends = {};
         transactions.forEach(transaction => {
-            if (transaction.type === 'debit') {
+            if (transaction.type === 'debit' && !transaction.isLateral) {
                 const category = transaction.category[0] || 'Uncategorized';
                 trends[category] = (trends[category] || 0) + transaction.amount;
             }
