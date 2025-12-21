@@ -48,7 +48,7 @@ const initialEdges = [
 ];
 
 const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
-    const { transactions, accounts } = useFinancials();
+    const { transactions, accounts, incomeStreams } = useFinancials();
     
     // -- State --
     // Internal viewMode state removed in favor of props
@@ -66,6 +66,68 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     const [selectedNode, setSelectedNode] = React.useState(null);
     const [newRule, setNewRule] = React.useState('');
     const [expandedRows, setExpandedRows] = React.useState({}); // Toggle state for bill rows
+
+    // -- Defensive Adapter: Dynamic Income Streams --
+    const { dynamicNodes, dynamicEdges } = useMemo(() => {
+        if (!incomeStreams || incomeStreams.length === 0) {
+            return { dynamicNodes: [], dynamicEdges: [] };
+        }
+
+        const config = JSON.parse(localStorage.getItem('incomeStreamConfig') || '{}');
+        const dns = [];
+        const des = [];
+
+        incomeStreams.forEach((stream, index) => {
+            const streamConf = config[stream.name] || {};
+            if (streamConf.type === 'ignored') return;
+
+            const id = `dynamic-income-${stream.name.replace(/\s+/g, '-').toLowerCase()}`;
+            const label = `💰 ${streamConf.alias || stream.name}`;
+            const avg = Math.round(stream.average || 0);
+
+            dns.push({
+                id,
+                data: { label: `${label} ($${avg.toLocaleString()}/mo)` },
+                // Position at the top, spread out relative to the center
+                position: { x: (index - (incomeStreams.length / 2)) * 250 + 250, y: -100 },
+                className: 'node-hub ring-2 ring-green-500/50',
+                type: 'input'
+            });
+
+            // Connect to Navy Fed (Primary Hub)
+            des.push({
+                id: `edge-${id}-navy`,
+                source: id,
+                target: 'navy-fed',
+                animated: true,
+                style: { stroke: '#10b981', strokeWidth: 2 },
+                label: 'Income'
+            });
+        });
+
+        return { dynamicNodes: dns, dynamicEdges: des };
+    }, [incomeStreams]);
+
+    // Merge State nodes with Dynamic nodes
+    const finalNodes = useMemo(() => {
+        // If we have dynamic income, filter out the static 'income' node to avoid redundancy
+        const hasDynamic = dynamicNodes.length > 0;
+        const filteredNodes = nodes.filter(n => {
+            if (hasDynamic && n.id === 'income') return false;
+            return true;
+        });
+        return [...filteredNodes, ...dynamicNodes];
+    }, [nodes, dynamicNodes]);
+
+    const finalEdges = useMemo(() => {
+        // If we have dynamic income, filter out the edge from the static 'income' node
+        const hasDynamic = dynamicEdges.length > 0;
+        const filteredEdges = edges.filter(e => {
+            if (hasDynamic && e.source === 'income') return false;
+            return true;
+        });
+        return [...filteredEdges, ...dynamicEdges];
+    }, [edges, dynamicEdges]);
 
     // Load rules from localStorage
     const [rules, setRules] = React.useState(() => {
@@ -140,13 +202,39 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         });
     };
 
+    // -- Two-Way Binding Actions --
+    const updateBillSource = (billId, newSourceId) => {
+        if (!newSourceId) return;
+        setEdges(currentEdges => {
+            // Remove any existing edge pointing to this bill
+            const filtered = currentEdges.filter(e => e.target !== billId);
+            // Add new edge
+            const newEdge = {
+                id: `e-${newSourceId}-${billId}-${Date.now()}`,
+                source: newSourceId,
+                target: billId,
+                animated: false // Standard bill flow
+            };
+            return [...filtered, newEdge];
+        });
+    };
+
+    const updateNodeData = (nodeId, field, value) => {
+        setNodes(currentNodes => currentNodes.map(n => {
+            if (n.id === nodeId) {
+                return { ...n, data: { ...n.data, [field]: value } };
+            }
+            return n;
+        }));
+    };
+
     // -- Audit Logic (Drift Detection) --
     const auditResults = useMemo(() => {
         if (!transactions) return [];
         
         const issues = [];
         const nodeToParentMap = {};
-        edges.forEach(edge => {
+        finalEdges.forEach(edge => {
             nodeToParentMap[edge.target] = edge.source;
         });
 
@@ -182,7 +270,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         });
 
         return issues;
-    }, [transactions, rules, edges]);
+    }, [transactions, rules, finalEdges]);
 
     // -- Node Statistics (Balances & Bill Costs) --
     const nodeStats = useMemo(() => {
@@ -190,7 +278,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         
         // 1. Calculate Account Balances
         if (accounts) {
-            nodes.forEach(node => {
+            finalNodes.forEach(node => {
                 if (node.className?.includes('node-account') || node.className?.includes('node-hub')) {
                     // Fuzzy match node label to account name
                     const match = accounts.find(acc => 
@@ -219,12 +307,6 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
                 if (matches.length > 0) {
                     const totalCheck = matches.reduce((sum, t) => sum + t.amount, 0);
-                    // Approximate duration in months (based on transaction range)
-                    // Quick hack: just divide total by 1 for now if we don't have full range context, 
-                    // or assume the dataset is ~1 month for the prototype. 
-                    // Better: Get range from transactions. For now, let's just sum it to show volume.
-                    // If we assume the CSV is ~90 days, we could divide by 3. 
-                    // Let's stick to "Total in View" for clarity or a simple Monthly Avg if we can.
                     
                     // Simple Average Calculation:
                     const dates = matches.map(t => new Date(t.date));
@@ -245,11 +327,11 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         }
         
         return stats;
-    }, [nodes, accounts, transactions, rules]);
+    }, [finalNodes, accounts, transactions, rules]);
 
     // Apply Audit Visuals AND Stats
     const auditedNodes = useMemo(() => {
-        return nodes.map(node => {
+        return finalNodes.map(node => {
             const hasIssue = auditResults.find(r => r.nodeId === node.id);
             const stat = nodeStats[node.id];
             
@@ -257,7 +339,10 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             
             // Append Stat to Label for visual map
             if (stat) {
-                label = `${node.data.label} (${stat.label})`;
+                // Only append if it's not already dynamic (dynamic nodes already have the amount in their label)
+                if (!node.id.startsWith('dynamic-income-')) {
+                    label = `${node.data.label} (${stat.label})`;
+                }
             }
 
             if (hasIssue) {
@@ -279,18 +364,18 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
             return node;
         });
-    }, [nodes, auditResults, nodeStats]);
+    }, [finalNodes, auditResults, nodeStats]);
 
     // -- Plan View Generator --
     const planHierarchy = useMemo(() => {
         // Find root nodes (no incoming edges)
-        const incomingEdges = new Set(edges.map(e => e.target));
-        const roots = nodes.filter(n => !incomingEdges.has(n.id));
+        const incomingEdges = new Set(finalEdges.map(e => e.target));
+        const roots = finalNodes.filter(n => !incomingEdges.has(n.id));
         
         const buildTree = (nodeId) => {
-            const childrenEdges = edges.filter(e => e.source === nodeId);
+            const childrenEdges = finalEdges.filter(e => e.source === nodeId);
             return childrenEdges.map(e => {
-                const childNode = nodes.find(n => n.id === e.target);
+                const childNode = finalNodes.find(n => n.id === e.target);
                 return {
                     edge: e,
                     node: childNode,
@@ -303,7 +388,8 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             node: root,
             children: buildTree(root.id)
         }));
-    }, [nodes, edges]);
+    }, [finalNodes, finalEdges]);
+
 
     const renderPlanItem = (item, depth = 0) => {
         const stat = nodeStats[item.node?.id];
@@ -368,7 +454,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                         <div className="flow-main">
                             <ReactFlow
                                 nodes={auditedNodes}
-                                edges={edges}
+                                edges={finalEdges}
                                 onNodesChange={onNodesChange}
                                 onEdgesChange={onEdgesChange}
                                 onConnect={onConnect}
@@ -461,27 +547,33 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                 {/* BILLS LIST VIEW */}
                 {viewMode === 'bills' && (
                     <div className="p-6 overflow-y-auto h-full bg-[var(--bg-primary)] text-[var(--text-primary)]">
-                        <h3 className="text-xl font-bold mb-6 border-b border-[var(--border-color)] pb-2">Master Bills List</h3>
+                        <h3 className="text-xl font-bold mb-6 border-b border-[var(--border-color)] pb-2">Master Bills List (Control Panel)</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-[var(--border-color)] text-[var(--text-secondary)] text-sm uppercase">
-                                        <th className="py-3 font-semibold w-1/4">Bill Name</th>
-                                        <th className="py-3 font-semibold w-1/5">Source Account</th>
-                                        <th className="py-3 font-semibold w-1/6">Total Amount</th>
-                                        <th className="py-3 font-semibold w-1/6">Est. Due Date</th>
-                                        <th className="py-3 font-semibold">Mapped Keywords</th>
+                                        <th className="py-3 font-semibold w-1/5">Bill Name</th>
+                                        <th className="py-3 font-semibold w-1/5">Source (Re-Route)</th>
+                                        <th className="py-3 font-semibold w-1/6">Method</th>
+                                        <th className="py-3 font-semibold w-1/6">Est. Cost</th>
+                                        <th className="py-3 font-semibold w-1/6">Due Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {nodes
+                                    {finalNodes
                                         .filter(n => n.className?.includes('node-bill'))
                                         .map(bill => {
                                             const stat = nodeStats[bill.id];
-                                            const parentEdge = edges.find(e => e.target === bill.id);
-                                            const parentNode = parentEdge ? nodes.find(n => n.id === parentEdge.source) : null;
+                                            const parentEdge = finalEdges.find(e => e.target === bill.id);
+                                            const parentNode = parentEdge ? finalNodes.find(n => n.id === parentEdge.source) : null;
                                             const keywords = rules[bill.id] || [];
                                             const isExpanded = expandedRows[bill.id];
+
+                                            // Potential Sources (Hubs/Accounts)
+                                            const potentialSources = finalNodes.filter(n => 
+                                                (n.className?.includes('node-hub') || n.className?.includes('node-account')) &&
+                                                !n.id.startsWith('dynamic-income') // Don't pay bills directly from income usually, but could allow
+                                            );
 
                                             // Breakdown Calculation & Date Logic
                                             let allMatches = [];
@@ -531,37 +623,54 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                                             return (
                                                 <React.Fragment key={bill.id}>
                                                     <tr 
-                                                        className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer"
-                                                        onClick={() => setExpandedRows(prev => ({ ...prev, [bill.id]: !prev[bill.id] }))}
+                                                        className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-colors"
                                                     >
-                                                        <td className="py-3 pr-4 font-medium flex items-center gap-2">
+                                                        <td className="py-3 pr-4 font-medium flex items-center gap-2 cursor-pointer" onClick={() => setExpandedRows(prev => ({ ...prev, [bill.id]: !prev[bill.id] }))}>
                                                             <span className="text-[var(--text-secondary)] text-xs transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
                                                                 ▶
                                                             </span>
-                                                            {bill.data.label}
+                                                            <input 
+                                                                className="bg-transparent border-none text-[var(--text-primary)] font-medium w-full focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                                                value={bill.data.label}
+                                                                onChange={(e) => updateNodeData(bill.id, 'label', e.target.value)}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            />
                                                         </td>
-                                                        <td className="py-3 pr-4 text-sm text-[var(--text-secondary)]">
-                                                            {parentNode ? (
-                                                                <span className="flex items-center gap-1">
-                                                                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
-                                                                    {parentNode.data.label}
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-red-400 italic">Unassigned</span>
-                                                            )}
+                                                        <td className="py-3 pr-4">
+                                                            <select 
+                                                                className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs w-full"
+                                                                value={parentNode ? parentNode.id : ''}
+                                                                onChange={(e) => updateBillSource(bill.id, e.target.value)}
+                                                            >
+                                                                <option value="" disabled>Select Source...</option>
+                                                                {potentialSources.map(src => (
+                                                                    <option key={src.id} value={src.id}>
+                                                                        {src.data.label}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        </td>
+                                                        <td className="py-3 pr-4">
+                                                            <select
+                                                                className="bg-transparent border-none text-xs text-[var(--text-secondary)] focus:text-[var(--text-primary)] w-full cursor-pointer"
+                                                                value={bill.data.method || 'autopay'}
+                                                                onChange={(e) => updateNodeData(bill.id, 'method', e.target.value)}
+                                                            >
+                                                                <option value="autopay">🔄 Autopay</option>
+                                                                <option value="manual">👆 Manual</option>
+                                                                <option value="billpay">🏦 Bill Pay</option>
+                                                                <option value="check">✍️ Check</option>
+                                                            </select>
                                                         </td>
                                                         <td className="py-3 pr-4">
                                                             {stat ? (
-                                                                <span className="text-orange-400 font-mono font-bold text-lg">{stat.label}</span>
+                                                                <span className="text-orange-400 font-mono font-bold">{stat.label}</span>
                                                             ) : (
                                                                 <span className="text-gray-500 text-sm">-</span>
                                                             )}
                                                         </td>
-                                                        <td className="py-3 pr-4 font-medium text-[var(--text-primary)]">
+                                                        <td className="py-3 font-medium text-[var(--text-primary)]">
                                                             {dueString}
-                                                        </td>
-                                                        <td className="py-3 text-xs text-[var(--text-secondary)]">
-                                                            {keywords.length} keywords
                                                         </td>
                                                     </tr>
                                                     
@@ -570,7 +679,23 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                                                         <tr className="bg-[var(--bg-secondary)]/50">
                                                             <td colSpan="5" className="p-0">
                                                                 <div className="p-3 pl-8 border-l-4 border-[var(--accent-color)]">
-                                                                    <p className="text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Breakdown</p>
+                                                                    <div className="flex justify-between items-center mb-2">
+                                                                        <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Transaction Matches</p>
+                                                                        <div className="flex gap-2">
+                                                                            <input 
+                                                                                className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs w-64"
+                                                                                placeholder="Paste Login URL (e.g., https://netflix.com/login)"
+                                                                                value={bill.data.link || ''}
+                                                                                onChange={(e) => updateNodeData(bill.id, 'link', e.target.value)}
+                                                                            />
+                                                                            {bill.data.link && (
+                                                                                <a href={bill.data.link} target="_blank" rel="noopener noreferrer" className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded">
+                                                                                    Go ↗
+                                                                                </a>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    
                                                                     {breakdown.length > 0 ? (
                                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                                                             {breakdown.map((item, idx) => (
@@ -587,7 +712,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                                                                             ))}
                                                                         </div>
                                                                     ) : (
-                                                                        <p className="text-sm text-gray-500 italic">No transactions found matching current keywords.</p>
+                                                                        <p className="text-sm text-gray-500 italic">No transactions found matching keywords: {keywords.join(', ')}</p>
                                                                     )}
                                                                 </div>
                                                             </td>

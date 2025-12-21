@@ -38,6 +38,11 @@
     background: #2e7d32;
 }
 
+.ring-green-500\/50 {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    border: 2px solid rgba(16, 185, 129, 0.8) !important;
+}
+
 .node-leak {
     background: #d32f2f;
 }
