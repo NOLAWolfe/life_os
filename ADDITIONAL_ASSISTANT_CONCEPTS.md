@@ -298,3 +298,20 @@ These create long-term stickiness and compounding value.
 
 > Build assistants that quietly make life easier —  
 > not louder, not flashier, and not more complex.
+
+---
+
+## Incubator / Future Ideas
+
+### 📈 Stock Trading Learning Assistant
+Focus: Education and safe simulation.
+- **Context:** User has basic knowledge, wants to learn.
+- **Goal:** Provide ideas, simulate trades, track learning progress.
+- **Potential:** Paper trading simulations, strategy backtesting (simple), risk management education.
+
+### 🍸 Local Event Coordinator (The "Bar Manager")
+Focus: Business planning and revenue maximization.
+- **Context:** Helping a Bar Manager coordinate around local events.
+- **Goal:** Autonomously compile local events (Sports, Hotel Conventions, Concerts).
+- **Utility:** Predict foot traffic, plan staffing/inventory, thematic promotions.
+- **Tech:** Scrapers/APIs for local event calendars, sports schedules.
