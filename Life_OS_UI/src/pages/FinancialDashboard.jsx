@@ -8,6 +8,7 @@ import LeakDetector from '../components/LeakDetector/LeakDetector';
 import PaymentFlow from '../components/PaymentFlow/PaymentFlow';
 import IncomeStreams from '../components/IncomeStreams/IncomeStreams';
 import BankConnection from '../components/BankConnection/BankConnection';
+import TransactionMapper from '../components/TransactionMapper/TransactionMapper';
 import './FinancialDashboard.css';
 
 const FinancialDashboard = () => {
@@ -74,6 +75,7 @@ const FinancialDashboard = () => {
                         <>
                             <button className={`sub-tab-button ${subTab === 'upload' ? 'active' : ''}`} onClick={() => setSubTab('upload')}>Upload Files</button>
                             <button className={`sub-tab-button ${subTab === 'connect' ? 'active' : ''}`} onClick={() => setSubTab('connect')}>Bank Connect</button>
+                            <button className={`sub-tab-button ${subTab === 'mapper' ? 'active' : ''}`} onClick={() => setSubTab('mapper')}>🧙‍♂️ Sorting Hat</button>
                         </>
                     )}
                 </div>
@@ -154,6 +156,11 @@ const FinancialDashboard = () => {
                             {subTab === 'connect' && (
                                 <div className="h-full flex items-center justify-center">
                                     <BankConnection />
+                                </div>
+                            )}
+                            {subTab === 'mapper' && (
+                                <div className="h-full">
+                                    <TransactionMapper />
                                 </div>
                             )}
                         </div>
