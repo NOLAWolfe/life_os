@@ -23,8 +23,12 @@ const accountService = {
                 // Sanitize and Map
                 // Logic pulled from old tillerService.js
                 const cleanBalance = (val) => {
-                    if (!val) return 0;
-                    return parseFloat(String(val).replace(/[^0-9.-]+/g, ""));
+                    if (val === undefined || val === null || val === "") return 0;
+                    let strVal = String(val).trim();
+                    const isNegative = strVal.includes('(') || strVal.includes('-');
+                    const cleaned = strVal.replace(/[^0-9.]/g, "");
+                    const num = cleaned === "" ? 0 : parseFloat(cleaned);
+                    return isNegative ? -num : num;
                 };
 
                 const accountId = raw['Account Id'] || raw['Account ID'] || raw['Account #'];

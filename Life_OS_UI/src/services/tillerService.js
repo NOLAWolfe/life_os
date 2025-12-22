@@ -13,9 +13,8 @@ export const cleanNum = (val) => {
     if (!strVal) return 0;
 
     // Handle parentheses for negative numbers: (1,234.56) -> -1234.56
-    const isParenthesesNegative = strVal.startsWith('(') && strVal.endsWith(')');
-    const isMinusNegative = strVal.startsWith('-');
-    const isNegative = isParenthesesNegative || isMinusNegative;
+    // Detect negative signs anywhere in the string (handling cases like $ -50.00)
+    const isNegative = strVal.includes('(') || strVal.includes('-');
 
     // Remove everything except numbers and the decimal point
     // Note: This assumes US-style decimals (dot). 
@@ -186,15 +185,16 @@ const checkIsLateral = (t, userName, userNameAlt) => {
     const desc = (t.name || '').toLowerCase();
     const cat = (t.category && t.category[0] ? t.category[0] : '').toLowerCase();
 
-    // 1. Explicit Category
-    if (cat === 'transfers' || cat === 'credit card payment') return true;
+    // 1. Explicit Category (Tiller uses "Transfer")
+    if (cat.includes('transfer') || cat.includes('credit card payment') || cat.includes('payment')) return true;
 
     // 2. Self-Transfer (Zelle/Venmo to self)
     if (userName && desc.includes(userName)) return true;
     if (userNameAlt && desc.includes(userNameAlt)) return true;
 
     // 3. Common Bank Transfer keywords
-    if (desc.includes('online transfer') || desc.includes('transfer from') || desc.includes('transfer to')) return true;
+    const lateralKeywords = ['online transfer', 'transfer from', 'transfer to', 'internal transfer', 'zelle transfer', 'venmo transfer'];
+    if (lateralKeywords.some(kw => desc.includes(kw))) return true;
 
     return false;
 };
@@ -232,8 +232,14 @@ export const processTillerData = (data) => {
         // Process Accounts
         const accountName = account;
         if (!accountsMap.has(accountName)) {
-            const accountId = findVal(row, ['Account ID', 'Account #']) || accountName;
             const institution = findVal(row, ['Institution']) || 'N/A';
+            let accountId = findVal(row, ['Account ID', 'Account #']);
+            
+            if (!accountId) {
+                // Match deterministic ID generation in processAccountsData
+                const slug = (accountName + institution).toLowerCase().replace(/[^a-z0-9]/g, '');
+                accountId = `gen_id_${slug}`;
+            }
             
             accountsMap.set(accountName, {
                 account_id: accountId,
@@ -297,6 +303,19 @@ export const processAccountsData = (data) => {
 
         const balanceVal = findVal(row, ['Last Balance', 'Balance', 'Current Balance']);
 
+        const rawClass = findVal(row, ['Class']) || 'N/A';
+        let accountClass = rawClass.trim().toUpperCase();
+
+        // Infer Class if missing or generic
+        if (accountClass === 'N/A' || accountClass === 'OTHER') {
+            const t = type.toLowerCase();
+            if (t.includes('credit') || t.includes('loan') || t.includes('mortgage') || t.includes('liability')) {
+                accountClass = 'LIABILITY';
+            } else if (t.includes('checking') || t.includes('savings') || t.includes('investment') || t.includes('asset')) {
+                accountClass = 'ASSET';
+            }
+        }
+
         return {
             account_id: accountId,
             name: name,
@@ -307,7 +326,7 @@ export const processAccountsData = (data) => {
             },
             lastUpdate: findVal(row, ['Last Update']) || 'Unknown',
             group: findVal(row, ['Group']) || 'Other',
-            class: findVal(row, ['Class']) || 'N/A'
+            class: accountClass
         };
     }).filter(acc => {
         // Only filter if name is totally missing, which is rare

@@ -40,12 +40,14 @@ const transactionService = {
         const userNameAlt = (process.env.VITE_USER_NAME_ALT || '').toLowerCase();
 
         // 1. Explicit Category
-        if (cat === 'transfers' || cat === 'credit card payment') return true;
+        if (cat.includes('transfer') || cat.includes('credit card payment') || cat.includes('payment')) return true;
 
         // 2. Self-Transfer keywords
         if (userName && desc.includes(userName)) return true;
         if (userNameAlt && desc.includes(userNameAlt)) return true;
-        if (desc.includes('online transfer') || desc.includes('transfer from') || desc.includes('transfer to')) return true;
+        
+        const lateralKeywords = ['online transfer', 'transfer from', 'transfer to', 'internal transfer', 'zelle transfer', 'venmo transfer'];
+        if (lateralKeywords.some(kw => desc.includes(kw))) return true;
 
         return false;
     },
@@ -68,7 +70,7 @@ const transactionService = {
 
                 // Improved amount cleaning to handle (100.00) as -100.00
                 let strVal = String(amountVal).trim();
-                const isNegative = (strVal.startsWith('(') && strVal.endsWith(')')) || strVal.startsWith('-');
+                const isNegative = strVal.includes('(') || strVal.includes('-');
                 const cleaned = strVal.replace(/[^0-9.]/g, "");
                 let amount = cleaned === "" ? 0 : parseFloat(cleaned);
                 if (isNegative) amount = -amount;
