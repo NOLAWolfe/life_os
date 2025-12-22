@@ -31,13 +31,20 @@ const accountService = {
                     return isNegative ? -num : num;
                 };
 
-                const accountId = raw['Account Id'] || raw['Account ID'] || raw['Account #'];
-                if (!accountId) continue; // Skip bad rows
+                const name = raw['Account'] || raw['Name'] || 'Unnamed Account';
+                const institution = raw['Institution'] || 'N/A';
+                
+                // Robust ID generation matching frontend tillerService.js
+                let accountId = raw['Account Id'] || raw['Account ID'] || raw['Account #'];
+                if (!accountId) {
+                    const slug = (name + institution).toLowerCase().replace(/[^a-z0-9]/g, '');
+                    accountId = `gen_id_${slug}`;
+                }
 
                 const accountData = {
                     id: accountId,
-                    name: raw['Account'] || raw['Name'] || 'Unnamed Account',
-                    institution: raw['Institution'] || 'N/A',
+                    name: name,
+                    institution: institution,
                     type: (raw['Type'] || 'Other').toLowerCase(),
                     balance: cleanBalance(raw['Last Balance'] || raw['Balance'])
                 };

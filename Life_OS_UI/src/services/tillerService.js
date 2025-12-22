@@ -229,6 +229,13 @@ export const processTillerData = (data) => {
             continue;
         }
 
+        // Standardized ID generation
+        const cleanDesc = description.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const transactionId = findVal(row, ['Transaction ID']) || `tiller_${date}_${amount.toFixed(2)}_${cleanDesc}`;
+
+        // Deduplicate within the same file processing run
+        if (transactions.some(t => t.transaction_id === transactionId)) continue;
+
         // Process Accounts
         const accountName = account;
         if (!accountsMap.has(accountName)) {
@@ -255,7 +262,7 @@ export const processTillerData = (data) => {
         const categoryVal = findVal(row, ['Category']) || 'Uncategorized';
         
         const transactionObj = {
-            transaction_id: findVal(row, ['Transaction ID']) || `tiller_${date}_${amountStr}_${description}`,
+            transaction_id: transactionId,
             date: date,
             name: description,
             amount: Math.abs(amount),

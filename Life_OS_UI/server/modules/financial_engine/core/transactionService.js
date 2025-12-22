@@ -77,8 +77,9 @@ const transactionService = {
 
                 if (isNaN(amount)) continue;
 
-                // Generate ID if Tiller didn't provide one
-                const id = raw['Transaction ID'] || `tiller_${dateVal}_${amount}_${descVal.replace(/\s+/g, '')}`;
+                // Standardized ID generation matching frontend tillerService.js
+                const cleanDesc = descVal.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const id = raw['Transaction ID'] || `tiller_${dateVal}_${amount.toFixed(2)}_${cleanDesc}`;
 
                 // 2. Run Business Logic
                 const category = raw['Category'] || 'Uncategorized';
