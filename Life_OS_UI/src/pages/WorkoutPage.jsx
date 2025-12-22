@@ -1,5 +1,5 @@
 import React from 'react';
-import WorkoutTracker from '../components/WorkoutTracker/WorkoutTracker';
+import WorkoutTracker from '../components/LifeAdmin/WorkoutTracker/WorkoutTracker';
 import '../pages/Page.css';
 
 const WorkoutPage=()=> {

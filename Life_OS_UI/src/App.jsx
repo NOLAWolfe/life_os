@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar/Navbar';
+import Navbar from './components/System/Navbar/Navbar';
 import { FinancialProvider } from './contexts/FinancialContext';
 import './App.css';
 import './pages/Page.css'; // Import shared page styles

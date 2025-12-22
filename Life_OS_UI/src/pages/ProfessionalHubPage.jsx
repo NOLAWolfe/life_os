@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import adoService from '../services/adoService';
 import aiService from '../services/aiService';
-import AiAnalysis from '../components/AiAnalysis/AiAnalysis';
-import ScenarioGenerator from '../components/ScenarioGenerator/ScenarioGenerator';
-import AutomationStencil from '../components/AutomationStencil/AutomationStencil';
+import AiAnalysis from '../components/Professional/AiAnalysis/AiAnalysis';
+import ScenarioGenerator from '../components/Professional/ScenarioGenerator/ScenarioGenerator';
+import AutomationStencil from '../components/Professional/AutomationStencil/AutomationStencil';
 import '../pages/Page.css';
 import './ProfessionalHubPage.css';
 
