@@ -1,33 +1,64 @@
 # Dependencies
-/node_modules
-/Life_OS_UI/node_modules
-/DJ_World/Dj_World_App/node_modules
-/Software_Projects/plaid-assistant/ai-fin-tracker/venv
+node_modules/
+dist/
+build/
+venv/
+.venv/
+
+# AI Credentials and Cache
+.gemini/
+.aider*
+credentials.json
+service.json
+
+# Personal Knowledge Base and Data
+LifeVault/
+Personal_Goals/*.json
+*_data.json
+*tracker.json
+*reads.json
+*todo.json
 
 # Environment variables
 .env
 *.env
 .env.example
+!.env.example
 
-# VS Code
-.vscode/
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+*-journal
 
-# MacOS
+# OS Files
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
 
-# CSV Files
+# History and Cache
+.Rhistory
+.python_history
+.node_repl_history
+.npm/
+.eslintcache
+
+# CSV Data Files (Sensitive financial data)
 *.csv
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
 
-# Generated files
+# Generated AI/DJ files
 /DJ_World/Dj_World_App/library_snapshot.json
 /DJ_World/Dj_World_App/ai_crate_proposal.json
 
-# Python
-__pycache__/
-*.pyc
+# Visual Assets (Optional: remove if you want to track them)
+*.png
+*.jpg
+*.jpeg
+*.svg

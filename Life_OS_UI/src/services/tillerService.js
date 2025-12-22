@@ -479,20 +479,47 @@ export const processCategoriesData = (data) => {
 
 /**
  * API Integration: Fetch all accounts from SQLite.
+ * Normalizes DB schema to frontend expectation.
  */
 export const fetchAccountsFromDb = async () => {
     const res = await fetch('/api/finance/accounts');
     if (!res.ok) throw new Error('Failed to fetch accounts from DB');
-    return await res.json();
+    const data = await res.json();
+    
+    return data.map(acc => ({
+        account_id: acc.id,
+        name: acc.name,
+        institution: acc.institution || 'Unknown',
+        type: acc.type || 'Other',
+        balances: {
+            current: acc.balance
+        },
+        class: acc.class?.toUpperCase() || 'ASSET',
+        lastUpdate: acc.lastUpdated
+    }));
 };
 
 /**
  * API Integration: Fetch all transactions from SQLite.
+ * Normalizes DB schema to frontend expectation (description -> name).
  */
 export const fetchTransactionsFromDb = async () => {
     const res = await fetch('/api/finance/txns');
     if (!res.ok) throw new Error('Failed to fetch transactions from DB');
-    return await res.json();
+    const data = await res.json();
+
+    return data.map(t => ({
+        transaction_id: t.id,
+        date: t.date,
+        name: t.description, // Mapper expects .name
+        amount: Math.abs(t.amount), // Mapper and UI expect absolute for display
+        type: t.type,
+        category: [t.category || 'Uncategorized'],
+        accountName: t.account?.name || 'Unknown',
+        institution: t.account?.institution || 'N/A',
+        isLateral: t.isLateral,
+        isSideHustle: t.isSideHustle
+    }));
 };
 
 /**
@@ -519,6 +546,26 @@ export const uploadTransactionsToDb = async (transactions) => {
     return await res.json();
 };
 
+/**
+ * API Integration: Fetch all debt items from SQLite.
+ */
+export const fetchDebtsFromDb = async () => {
+    const res = await fetch('/api/finance/debts');
+    if (!res.ok) throw new Error('Failed to fetch debts from DB');
+    const data = await res.json();
+    
+    return data.map(d => ({
+        active: true,
+        name: d.name,
+        originalName: d.name,
+        interestRate: d.interestRate,
+        minPayment: d.minPayment,
+        currentBalance: d.balance,
+        payoffMonth: d.dueDate || 'Unknown',
+        priority: d.priority
+    }));
+};
+
 const tillerService = {
     getTillerData,
     processTillerData,
@@ -531,6 +578,7 @@ const tillerService = {
     getRawCsvData,
     fetchAccountsFromDb,
     fetchTransactionsFromDb,
+    fetchDebtsFromDb, // Added
     uploadAccountsToDb,
     uploadTransactionsToDb
 };

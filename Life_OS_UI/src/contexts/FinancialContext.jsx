@@ -22,13 +22,15 @@ export const FinancialProvider = ({ children }) => {
     const refreshFromDb = useCallback(async () => {
         try {
             console.log("Syncing with modular backend...");
-            const [dbAccounts, dbTxns] = await Promise.all([
+            const [dbAccounts, dbTxns, dbDebts] = await Promise.all([
                 tillerService.fetchAccountsFromDb(),
-                tillerService.fetchTransactionsFromDb()
+                tillerService.fetchTransactionsFromDb(),
+                tillerService.fetchDebtsFromDb()
             ]);
             
             if (dbAccounts) setAccounts(dbAccounts);
             if (dbTxns) setTransactions(dbTxns);
+            if (dbDebts) setDebtAccounts(dbDebts);
             
             console.log("Backend sync complete.");
         } catch (err) {
@@ -52,26 +54,7 @@ export const FinancialProvider = ({ children }) => {
         const init = async () => {
             setLoading(true);
             
-            // 1. Try to load local fallback files (for troubleshooting/offline)
-            const loadFile = async (name, url, setter, processor, hasHeader = true) => {
-                try {
-                    const data = await tillerService.fetchAndParseCsv(url, hasHeader);
-                    if (data) {
-                        const processed = processor ? processor(data) : data;
-                        setter(processed);
-                    }
-                } catch (err) { /* Silent fail for auto-load */ }
-            };
-
-            await Promise.all([
-                loadFile('Accounts', '/Accounts.csv', setAccounts, tillerService.processAccountsData),
-                loadFile('Transactions', '/Transactions.csv', (processed) => setTransactions(processed.transactions), tillerService.processTillerData),
-                loadFile('Debt Payoff', '/Debt Payoff Planner.csv', setDebtAccounts, tillerService.processDebtData, false),
-                loadFile('Categories', '/Categories.csv', setCategories, tillerService.processCategoriesData),
-                loadFile('Balances', '/Balances.csv', setSummaryBalances)
-            ]);
-
-            // 2. Refresh from the modular backend (Source of Truth)
+            // Refresh from the modular backend (Source of Truth)
             await refreshFromDb();
 
             setLoading(false);

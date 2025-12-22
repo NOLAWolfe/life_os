@@ -72,6 +72,7 @@ model IncomeStreamConfig {
 model UserStory {
   id                Int      @id @default(autoincrement())
   title             String
+  description       String?  // Rich context, mimicking ADO/Jira "Description"
   state             String   @default("New") // New, Active, Closed
   assignedTo        String?
   acceptanceCriteria String?

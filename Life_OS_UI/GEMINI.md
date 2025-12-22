@@ -49,16 +49,29 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
     - Hardened `tillerService.js` to handle **Duplicate CSV Headers** and use smart value hunting (`findVal`).
     - Fixed connectivity issues with `BudgetVsActuals` and `SpendingTrends` by improving data parsing.
 
-## Session Log (Dec 21, 2025)
-- **Data Audit & UX Polish:**
-    - Organized **Master Bills List** and **Written Plan** by Source Account (e.g., Chase, Navy Fed).
-    - Fixed **Grouped Bill Visibility**: Bills nested in "Buckets" now correctly appear in the Bills List and Sorting Hat.
-    - Implemented **Data Debugger**: A new tool to inspect raw CSV headers and parser errors.
-    - Enhanced **Drift Detection**: Now recursively audits bills within group nodes.
+## Session Log (Dec 22, 2025)
+- **The "Enterprise" Refactor:**
+    - **SQLite Core:** Migrated `FinancialContext` and `adoService` to fully rely on the local SQLite database. Removed legacy JSON/CSV dependency.
+    - **Professional Engine:** Replaced `professional_data.json` with a robust `UserStory` and `Bug` Prisma schema.
+    - **Agile Board:** Upgraded `ProfessionalHubPage` with a Kanban-style board and rich descriptions for "Demo Mode".
+- **The "Sorting Hat" & Debt:**
+    - **Live Debt Sync:** Bypassed Tiller header errors to extract *actual* Interest Rates and Min Payments from the "Debt Payoff Planner" sheet.
+    - **Normalized Data:** Updated `tillerService` to map DB fields (`description` -> `name`) for seamless UI integration.
+- **Security & Organization:**
+    - **PII Cleanup:** Removed all `.env.example` and `public/*.csv` files to prevent data leaks.
+    - **Documentation:** Created "Enterprise Growth Strategy" in Obsidian to map the path from "Tool" to "SaaS".
 - **System Optimization:**
-    - **Database Indexing:** Added Prisma indexes to `Transaction` and `FinancialAccount` for faster queries.
-    - **State Memoization:** Optimized `FinancialContext` with `useMemo` to prevent unnecessary re-renders.
-    - **Code Splitting:** Implemented lazy loading for all pages and dashboard widgets to improve load times.
-    - **Structured Logging:** Created a centralized `logger` service for consistent error tracking.
-- **Process Upgrade:**
-    - Established the **"Council of Three"** protocol (Analyst, Dev, Tester) for all feature planning and audits.
+    - **Frontend Build:** Verified `vite build` passes successfully.
+    - **Synthetic Data:** Seeded the database with realistic "Enterprise" tickets for immediate demo value.
+
+## Development Conventions
+- **Component Structure:** Each component has its own folder containing `.jsx` and `.css` files.
+- **Service Layer:** API calls and data processing logic are encapsulated in `src/services/`.
+- **Theming:** Use CSS variables (e.g., `--primary-color`, `--bg-dark`) defined in `index.css` for consistent styling.
+- **Mocking:** **DEPRECATED**. Use Synthetic Data seeding (`scripts/seed_qa_data.js`) for demo scenarios.
+
+## Key Files
+- `src/App.jsx`: Main routing and layout.
+- `src/contexts/FinancialContext.jsx`: Central hub for financial data (now SQLite-first).
+- `server/modules/`: Modular backend engines (`financial_engine`, `professional_engine`).
+- `src/pages/FinancialDashboard.jsx`: The main tabbed interface (Strategy, Analytics, Data).

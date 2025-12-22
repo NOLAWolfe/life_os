@@ -11,6 +11,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useFinancials } from '../../contexts/FinancialContext';
 import { getAllBillNodes } from '../../services/mappingService';
+import strategyService, { STRATEGY_TIERS } from '../../services/strategyService';
 import BillNode from './BillNode'; // Import Custom Node
 import BillGroupNode from './BillGroupNode';
 import './PaymentFlow.css';
@@ -79,115 +80,20 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     useEffect(() => {
         if (!accounts || accounts.length === 0) return;
 
-        setNodes(currentNodes => {
-            const newNodes = [...currentNodes];
-            let hasChanges = false;
-
-            accounts.forEach(acc => {
-                const type = (acc.type || '').toLowerCase();
-                const group = (acc.group || '').toLowerCase();
-                const className = (acc.class || '').toLowerCase();
-                
-                // 1. Identify Node Type
-                let isHub = false;
-                let isLiability = false;
-
-                if (className === 'asset' || type.includes('checking') || type.includes('savings')) {
-                    isHub = true;
-                } else if (type.includes('credit') || group.includes('credit')) {
-                    isLiability = true;
-                }
-
-                // Skip if not a relevant account type (e.g. ignore random assets like 'House Value' for now unless explicitly desired)
-                if (!isHub && !isLiability) return;
-                
-                // Special Case: Ignore Student Loans here (handled by debtAccounts)
-                if (acc.name?.toLowerCase().includes('student') || type.includes('student')) return;
-
-                // Check for existence
-                const exists = currentNodes.some(n => 
-                    n.id === acc.account_id || 
-                    n.data.label.toLowerCase().includes(acc.name.toLowerCase()) ||
-                    (acc.account_id && n.id.includes(acc.account_id)) // robust check
-                );
-
-                if (!exists) {
-                    hasChanges = true;
-                    // Deterministic ID
-                    const fallbackId = `node-${isHub ? 'hub' : 'liab'}-${acc.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
-                    
-                    newNodes.push({
-                        id: acc.account_id || fallbackId,
-                        data: { label: isHub ? `🏦 ${acc.name}` : `💳 ${acc.name}` },
-                        position: { x: isHub ? 250 : 450, y: isHub ? 150 : 300 }, // Tier 1 (Hub) vs Tier 2 (Liability)
-                        className: isHub ? 'node-hub' : 'node-account'
-                    });
-                }
-            });
-
-            return hasChanges ? newNodes : currentNodes;
-        });
+        const { hasChanges, newNodes } = strategyService.generateAccountNodes(accounts, nodes);
+        if (hasChanges) {
+            setNodes(currentNodes => [...currentNodes, ...newNodes]);
+        }
     }, [accounts]);
 
     // -- Auto-Populate Debt Liabilities (Tier 3) --
     useEffect(() => {
         if (!debtAccounts || debtAccounts.length === 0) return;
 
-        setNodes(currentNodes => {
-            const newNodes = [...currentNodes];
-            let hasChanges = false;
-            
-            // We'll also track if we need to add edges for these new nodes
-            const newEdges = []; 
-
-            debtAccounts.forEach((debt, index) => {
-                if (!debt.active || debt.currentBalance <= 0) return;
-
-                // Check if node exists (by name or fuzzy match)
-                const exists = currentNodes.find(n => 
-                    n.data.label.toLowerCase().includes(debt.name.toLowerCase()) ||
-                    (debt.originalName && n.data.label.toLowerCase().includes(debt.originalName.toLowerCase()))
-                );
-
-                if (exists) {
-                    // Update existing node data with Debt info if needed
-                    // (Optional: could update label or metadata here)
-                    return;
-                }
-
-                hasChanges = true;
-                const isCard = debt.name.toLowerCase().includes('visa') || debt.name.toLowerCase().includes('card') || debt.name.toLowerCase().includes('amex');
-                
-                // If it's a card, it might have been missed by Accounts load, or it's a pure liability
-                // If it's a loan (Student, Auto), make it a Bill node
-                const type = isCard ? 'default' : 'bill';
-                const className = isCard ? 'node-account' : ''; // Bill nodes use custom component, no class needed usually
-                const tierY = isCard ? 300 : 450;
-                
-                // Deterministic ID: debt-index-sanitizedName
-                const nodeId = `debt-${index}-${debt.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
-                
-                newNodes.push({
-                    id: nodeId,
-                    type: type,
-                    data: { 
-                        label: debt.name,
-                        subtext: `Min: $${debt.minPayment}`, // For BillNode
-                        minPayment: debt.minPayment,
-                        payoffDate: debt.payoffMonth
-                    },
-                    position: { x: 100 + (index * 120), y: tierY },
-                    className: className
-                });
-
-                // Auto-link to Hub (Navy Fed) if creating new
-                // Check if edge exists is tricky here since we don't have edges state in this scope easily
-                // For now, we just add the node. The user can link it.
-                // OR we can try to append to edges in a separate effect. 
-            });
-
-            return hasChanges ? newNodes : currentNodes;
-        });
+        const { hasChanges, newNodes } = strategyService.generateDebtNodes(debtAccounts, nodes);
+        if (hasChanges) {
+            setNodes(currentNodes => [...currentNodes, ...newNodes]);
+        }
     }, [debtAccounts]);
 
     // -- Defensive Adapter: Dynamic Income Streams (Tier 0) --
@@ -242,57 +148,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
     // -- Node Statistics (Balances & Bill Costs) --
     const { nodeStats, totalMonthlyCommitments } = useMemo(() => {
-        const stats = {};
-        let totalCommitments = 0;
-        
-        // 1. Calculate Account Balances
-        if (accounts) {
-            nodes.forEach(node => {
-                if (node.className?.includes('node-account') || node.className?.includes('node-hub')) {
-                    const match = accounts.find(acc => 
-                        node.data.label.toLowerCase().includes(acc.name.toLowerCase()) || 
-                        acc.name.toLowerCase().includes(node.data.label.toLowerCase())
-                    );
-                    if (match) {
-                        stats[node.id] = { 
-                            type: 'balance', 
-                            value: match.balances.current,
-                            label: `$${match.balances.current.toLocaleString()}`
-                        };
-                    }
-                }
-            });
-        }
-
-        // 2. Calculate Bill Costs (Avg Monthly)
-        if (transactions && rules) {
-            Object.entries(rules).forEach(([nodeId, keywords]) => {
-                const matches = transactions.filter(t => 
-                    t.type === 'debit' &&
-                    keywords.some(k => t.name.toLowerCase().includes(k))
-                );
-
-                if (matches.length > 0) {
-                    const totalCheck = matches.reduce((sum, t) => sum + t.amount, 0);
-                    const dates = matches.map(t => new Date(t.date));
-                    const minDate = new Date(Math.min(...dates));
-                    const maxDate = new Date(Math.max(...dates));
-                    const daysDiff = (maxDate - minDate) / (1000 * 60 * 60 * 24);
-                    const months = Math.max(daysDiff / 30, 1);
-                    
-                    const avgMonthly = totalCheck / months;
-                    totalCommitments += avgMonthly;
-
-                    stats[nodeId] = {
-                        type: 'bill',
-                        value: avgMonthly,
-                        label: `-$${Math.round(avgMonthly).toLocaleString()}/mo`
-                    };
-                }
-            });
-        }
-        
-        return { nodeStats: stats, totalMonthlyCommitments: totalCommitments };
+        return strategyService.calculateNodeStats(nodes, accounts, transactions, rules);
     }, [nodes, accounts, transactions, rules]);
 
     // -- The Big Picture: Remaining Funds Node (Tier 4) --
@@ -305,7 +161,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             data: { 
                 label: `🌟 Remaining Funds\n$${Math.round(remaining).toLocaleString()}/mo` 
             },
-            position: { x: 250, y: 650 }, // Tier 4 (Bottom)
+            position: { x: 250, y: STRATEGY_TIERS.REMAINING }, // Tier 4 (Bottom)
             className: `node-remaining ${isHealthy ? 'healthy' : 'tight'}`, // Corrected class name
             type: 'output',
             draggable: false
@@ -361,10 +217,10 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         // Automatically snap nodes to their designated tiers for "The Sorting Hat" effect
         setNodes(nds => nds.map(node => {
             let y = 0;
-            if (node.id === 'income' || node.id.startsWith('dynamic-income')) y = 0;
-            else if (node.className?.includes('node-hub')) y = 150;
-            else if (node.className?.includes('node-account')) y = 300;
-            else if (node.type === 'bill' || node.className?.includes('node-bill')) y = 450;
+            if (node.id === 'income' || node.id.startsWith('dynamic-income')) y = STRATEGY_TIERS.INCOME;
+            else if (node.className?.includes('node-hub')) y = STRATEGY_TIERS.HUB;
+            else if (node.className?.includes('node-account')) y = STRATEGY_TIERS.LIABILITY;
+            else if (node.type === 'bill' || node.className?.includes('node-bill')) y = STRATEGY_TIERS.BILL;
             
             return {
                 ...node,
@@ -425,159 +281,24 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
     // -- Grouping Logic --
     const groupSelectedNodes = () => {
-        // We need to know which nodes are selected. React Flow controls selection state internally usually,
-        // but we can filter nodes by `selected: true` if we are passing onNodesChange correctly.
-        // Let's check nodes state.
-        const selectedNodes = nodes.filter(n => n.selected);
-        if (selectedNodes.length < 2) {
-            alert('Select at least 2 nodes to group.');
-            return;
+        const result = strategyService.groupNodes(nodes, edges, nodeStats);
+        if (result) {
+            setNodes(result.nodes);
+            setEdges(result.edges);
         }
-        
-        // Validation: Only group Bill nodes for now to avoid breaking hierarchy
-        const invalid = selectedNodes.some(n => n.type !== 'bill' && !n.className?.includes('node-bill'));
-        if (invalid) {
-            alert('Only Bill nodes can be grouped currently.');
-            return;
-        }
-
-        // Calculate aggregate data
-        const totalAmount = selectedNodes.reduce((sum, n) => {
-            const stat = nodeStats[n.id];
-            return sum + (stat ? stat.value : 0);
-        }, 0);
-
-        // Center position
-        const avgX = selectedNodes.reduce((sum, n) => sum + n.position.x, 0) / selectedNodes.length;
-        const avgY = selectedNodes.reduce((sum, n) => sum + n.position.y, 0) / selectedNodes.length;
-
-        // Create Group Node
-        const groupId = `group-${Date.now()}`;
-        const groupNode = {
-            id: groupId,
-            type: 'billGroup',
-            position: { x: avgX, y: avgY },
-            data: { 
-                label: 'Bill Bucket', 
-                billCount: selectedNodes.length, 
-                totalAmount: totalAmount,
-                containedNodes: selectedNodes // Store original nodes
-            },
-            selected: true
-        };
-
-        // Re-route edges: Find edges pointing to any of the selected nodes
-        // and make them point to the new group node.
-        // NOTE: We only handle incoming edges from Hub/Account -> Group.
-        // We might drop edges between bills if any?
-        const newEdges = edges.map(e => {
-            if (selectedNodes.some(n => n.id === e.target)) {
-                return { ...e, target: groupId };
-            }
-            return e;
-        }).filter(e => !selectedNodes.some(n => n.id === e.source)); // Remove edges starting from grouped nodes
-
-        // Deduplicate edges (if multiple bills had same source, we only need one edge to group)
-        const uniqueEdges = [];
-        const seenEdges = new Set();
-        newEdges.forEach(e => {
-            const key = `${e.source}-${e.target}`;
-            if (!seenEdges.has(key)) {
-                seenEdges.add(key);
-                uniqueEdges.push(e);
-            }
-        });
-
-        // Update State: Remove original nodes, add group node
-        const remainingNodes = nodes.filter(n => !selectedNodes.some(s => s.id === n.id));
-        setNodes([...remainingNodes, groupNode]);
-        setEdges(uniqueEdges);
     };
 
     const ungroupNode = () => {
         if (!selectedNode || selectedNode.type !== 'billGroup') return;
-
-        const groupNode = selectedNode;
-        const containedNodes = groupNode.data.containedNodes || [];
-
-        if (containedNodes.length === 0) {
-            // Just delete the empty group
-            setNodes(nodes.filter(n => n.id !== groupNode.id));
-            return;
-        }
-
-        // Restore Nodes
-        // We might want to offset their positions slightly so they don't stack perfectly?
-        // For now, restore original positions.
-        
-        // Restore Edges
-        // We need to re-connect them.
-        // Assumption: The edge that connected to the Group Node should be distributed to all children?
-        // OR we rely on the user to re-link? 
-        // Better: Check who the Group was connected to.
-        const parentEdge = edges.find(e => e.target === groupNode.id);
-        const parentId = parentEdge ? parentEdge.source : null;
-
-        let restoredEdges = [...edges.filter(e => e.target !== groupNode.id && e.source !== groupNode.id)];
-        
-        if (parentId) {
-            const newLinks = containedNodes.map(n => ({
-                id: `e-${parentId}-${n.id}-${Date.now()}`,
-                source: parentId,
-                target: n.id,
-                animated: false
-            }));
-            restoredEdges = [...restoredEdges, ...newLinks];
-        }
-
-        setNodes([...nodes.filter(n => n.id !== groupNode.id), ...containedNodes]);
-        setEdges(restoredEdges);
+        const result = strategyService.ungroupNode(selectedNode, nodes, edges);
+        setNodes(result.nodes);
+        setEdges(result.edges);
         setSelectedNode(null);
     };
 
     // -- Audit Logic (Drift Detection) --
     const auditResults = useMemo(() => {
-        if (!transactions) return [];
-        const issues = [];
-        const nodeToParentMap = {};
-        
-        finalEdges.forEach(edge => { 
-            // Map the direct target
-            nodeToParentMap[edge.target] = edge.source;
-            
-            // If target is a group, also map all contained nodes to this source
-            const targetNode = finalNodes.find(n => n.id === edge.target);
-            if (targetNode?.type === 'billGroup' && targetNode.data.containedNodes) {
-                targetNode.data.containedNodes.forEach(cn => {
-                    nodeToParentMap[cn.id] = edge.source;
-                });
-            }
-        });
-
-        const accountMapping = {
-            'chase-8211': ['chase', '8211'],
-            'navy-fed': ['navy federal', 'navy fed']
-        };
-
-        Object.entries(rules).forEach(([nodeId, keywords]) => {
-            const parentId = nodeToParentMap[nodeId];
-            if (!parentId || !accountMapping[parentId]) return;
-            const expectedKeywords = accountMapping[parentId];
-            const matchedTransactions = transactions.filter(t => keywords.some(k => t.name.toLowerCase().includes(k)));
-
-            matchedTransactions.forEach(t => {
-                const actualAccount = t.accountName.toLowerCase();
-                const isCorrect = expectedKeywords.some(ek => actualAccount.includes(ek));
-                if (!isCorrect) {
-                    issues.push({
-                        nodeId: nodeId,
-                        message: `Drift: ${t.name} ($${t.amount}) found in ${t.accountName}. Expected: ${parentId}`,
-                        severity: 'error'
-                    });
-                }
-            });
-        });
-        return issues;
+        return strategyService.detectDrift(transactions, rules, finalNodes, finalEdges);
     }, [transactions, rules, finalEdges, finalNodes]);
 
     // Apply Visuals
@@ -610,22 +331,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     }, [finalNodes, auditResults, nodeStats]);
 
     const planHierarchy = useMemo(() => {
-        const hubs = finalNodes.filter(n => (n.className?.includes('node-hub') || n.className?.includes('node-account')) && !n.id.startsWith('dynamic-income'));
-        
-        return hubs.map(hub => {
-            const incomingIncomes = finalEdges
-                .filter(e => e.target === hub.id && e.source.startsWith('dynamic-income'))
-                .map(e => finalNodes.find(n => n.id === e.source));
-            
-            const children = finalEdges
-                .filter(e => e.source === hub.id)
-                .map(e => {
-                    const childNode = finalNodes.find(n => n.id === e.target);
-                    return { edge: e, node: childNode };
-                });
-
-            return { hub, incomingIncomes, children };
-        });
+        return strategyService.getPlanHierarchy(finalNodes, finalEdges);
     }, [finalNodes, finalEdges]);
 
     const renderPlanItem = (item) => {

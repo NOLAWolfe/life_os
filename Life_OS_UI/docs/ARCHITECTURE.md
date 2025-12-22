@@ -10,7 +10,7 @@ Life.io uses a "CSV-as-Database" architecture, primarily ingesting data exported
 erDiagram
     CSV_FILES ||--o{ TILLER_SERVICE : "parsed by"
     TILLER_SERVICE ||--o{ FINANCIAL_CONTEXT : "populates"
-    
+
     FINANCIAL_CONTEXT {
         Array accounts
         Array transactions
@@ -52,19 +52,19 @@ The Professional Hub leverages AI to accelerate the QA lifecycle by transforming
 graph TD
     A[ADO Service] -->|Fetch| B(User Stories / Bugs)
     B -->|Select Item| C{User Action}
-    
+
     C -->|Analyze| D[AI: Summarize Requirements]
     D -->|Refine| E[AI: Generate Scenarios]
     E -->|Approve| F[AI: Generate Automation Stencil]
-    
+
     F -->|Output| G[Playwright Spec Code]
-    
+
     subgraph AI Processing Layer
     D
     E
     F
     end
-    
+
     subgraph Engineering Output
     G
     end
@@ -78,25 +78,25 @@ Visualizing how the React application is structured and how state flows through 
 graph TD
     Root[main.jsx] --> App[App.jsx]
     App --> Prov[FinancialProvider]
-    
+
     subgraph Global State Wrapper
     Prov
     end
-    
+
     Prov --> Nav[Navbar]
     Prov --> Routes[React Router]
-    
+
     Routes --> LP[Landing Page]
     Routes --> FD[Financial Dashboard]
     Routes --> PH[Professional Hub]
-    
+
     subgraph Landing Page Widgets
     LP --> Cal[Calendar]
     LP --> SWW[Small Win Widget]
     LP --> BW[Balances Widget]
     LP --> OC[Obsidian Connector]
     end
-    
+
     subgraph Financial Dashboard
     FD --> DU[CSV Uploader]
     FD --> DPP[Debt Payoff Planner]
@@ -114,7 +114,7 @@ sequenceDiagram
     participant UI as Debt Planner UI
     participant DS as debtService.js
     participant AI as Strategic Logic
-    
+
     UI->>DS: calculatePayoff(accounts, extra, strategy)
     DS->>DS: Sort by Strategy (Avalanche/Snowball)
     DS->>AI: Check for Predatory Structures

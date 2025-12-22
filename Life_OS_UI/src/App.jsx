@@ -28,7 +28,7 @@ const PlaceholderPage = ({ title }) => (
 // Loading fallback
 const PageLoader = () => (
   <div className="flex items-center justify-center h-[60vh]">
-    <div className="text-lg font-medium text-[var(--text-secondary)] animate-pulse">Loading Life.io Module...</div>
+    <div className="text-lg font-medium text--text-secondary animate-pulse">Loading Life.io Module...</div>
   </div>
 );
 
@@ -37,7 +37,7 @@ function App() {
     <FinancialProvider>
       <div className="App">
         <Navbar />
-        <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-[1440px] mx-auto w-full box-border">
+        <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-360 mx-auto w-full box-border">
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
