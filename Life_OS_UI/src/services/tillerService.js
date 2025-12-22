@@ -261,14 +261,23 @@ export const processAccountsData = (data) => {
         const rawType = findVal(row, ['Type']) || 'Other';
         const type = rawType.trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 
-        const accountId = findVal(row, ['Account Id', 'Account ID', 'Account #', 'Unique Account Identifier']);
         const name = findVal(row, ['Account', 'Name']) || 'Unnamed Account';
-        const balanceVal = findVal(row, ['Last Balance', 'Balance']);
+        const institution = findVal(row, ['Institution']) || 'N/A';
+        
+        // Robust ID generation
+        let accountId = findVal(row, ['Account Id', 'Account ID', 'Account #', 'Unique Account Identifier']);
+        if (!accountId) {
+            // Generate deterministic ID if missing from CSV
+            const slug = (name + institution).toLowerCase().replace(/[^a-z0-9]/g, '');
+            accountId = `gen_id_${slug}`;
+        }
+
+        const balanceVal = findVal(row, ['Last Balance', 'Balance', 'Current Balance']);
 
         return {
             account_id: accountId,
             name: name,
-            institution: findVal(row, ['Institution']) || 'N/A',
+            institution: institution,
             type: type,
             balances: { 
                 current: cleanNum(balanceVal) 
@@ -278,7 +287,8 @@ export const processAccountsData = (data) => {
             class: findVal(row, ['Class']) || 'N/A'
         };
     }).filter(acc => {
-        const isValid = acc.name && acc.account_id;
+        // Only filter if name is totally missing, which is rare
+        const isValid = acc.name && acc.name !== 'Unnamed Account';
         if (!isValid) console.warn("Invalid Account Row:", acc);
         return isValid;
     });
