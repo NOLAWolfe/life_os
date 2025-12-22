@@ -38,6 +38,36 @@
     background: #2e7d32;
 }
 
+/* The Big Picture: Remaining Funds */
+.node-remaining {
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-width: 3px !important;
+    white-space: pre-wrap;
+    min-width: 200px;
+}
+
+.node-remaining.healthy {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    border-color: #10b981 !important;
+    color: #d1fae5;
+}
+
+.node-remaining.tight {
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+    border-color: #ef4444 !important;
+    color: #fee2e2;
+}
+
+.ring-green-500\/50 {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    border: 2px solid rgba(16, 185, 129, 0.8) !important;
+}
+
 .node-leak {
     background: #d32f2f;
 }

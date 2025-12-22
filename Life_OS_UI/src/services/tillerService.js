@@ -1,4 +1,29 @@
 import Papa from 'papaparse';
+import logger from './logger/logger';
+
+/**
+ * Robustly cleans a string representation of a number, handling currency symbols, 
+ * thousands separators, and parentheses for negative values.
+ */
+export const cleanNum = (val) => {
+    if (val === undefined || val === null || val === "") return 0;
+    if (typeof val === 'number') return val;
+    
+    let strVal = String(val).trim();
+    if (!strVal) return 0;
+
+    // Handle parentheses for negative numbers: (1,234.56) -> -1234.56
+    // Detect negative signs anywhere in the string (handling cases like $ -50.00)
+    const isNegative = strVal.includes('(') || strVal.includes('-');
+
+    // Remove everything except numbers and the decimal point
+    // Note: This assumes US-style decimals (dot). 
+    // If European (comma), more complex logic would be needed.
+    const cleaned = strVal.replace(/[^0-9.]/g, "");
+    const num = cleaned === "" ? 0 : parseFloat(cleaned);
+    
+    return isNegative ? -num : num;
+};
 
 /**
  * Fetches and parses the Tiller CSV data from the Google Sheet export.
@@ -6,14 +31,14 @@ import Papa from 'papaparse';
 export const getTillerData = async (file) => {
     return new Promise((resolve, reject) => {
         Papa.parse(file, {
-            download: false, // Changed to false as we're now passing a File object
+            download: false,
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
                 resolve(results.data);
             },
             error: (error) => {
-                console.error("Error parsing Tiller CSV:", error);
+                logger.error("Error parsing Tiller CSV", { error });
                 reject(error);
             }
         });
@@ -37,7 +62,7 @@ const findVal = (row, keys) => {
  * Fetches and parses a Tiller CSV from a URL (e.g., in the public folder).
  * Supports optional header disabling for complex templates.
  */
-export const fetchAndParseCsv = async (url, hasHeader = true) => {
+export const fetchAndParseCsv = async (url, hasHeader = true, returnRaw = false) => {
     return new Promise((resolve, reject) => {
         const headers = {};
         Papa.parse(url, {
@@ -56,10 +81,14 @@ export const fetchAndParseCsv = async (url, hasHeader = true) => {
                 return cleanHeader;
             },
             complete: (results) => {
-                resolve(results.data);
+                if (returnRaw) {
+                    resolve(results);
+                } else {
+                    resolve(results.data);
+                }
             },
             error: (error) => {
-                console.error(`Error fetching/parsing CSV from ${url}:`, error);
+                logger.error(`Error fetching/parsing CSV from ${url}`, { url, error });
                 reject(error);
             }
         });
@@ -67,57 +96,68 @@ export const fetchAndParseCsv = async (url, hasHeader = true) => {
 };
 
 /**
+ * Specifically for the Data Debugger: Fetches raw data with headers.
+ */
+export const getRawCsvData = async (url) => {
+    return fetchAndParseCsv(url, true, true);
+};
+
+/**
  * Processes the raw Tiller Debt Payoff data.
- * This template is complex, so we look for the specific table starting with "Account" header.
+ * Dynamic column mapping for robustness.
  */
 export const processDebtData = (data) => {
     const debtAccounts = [];
-    let isDebtTable = false;
+    let headerMap = null;
 
     for (const row of data) {
-        // Data is now an array because we'll parse without headers
         const values = Array.isArray(row) ? row : Object.values(row);
-        
-        // Find the start of the debt table
-        // We look for the row that has "Account" in column 1 and "Interest Rate" in column 3
-        if (values[1] === "Account" && (values[3] === "Interest Rate" || values[4] === "Min Monthly Payment")) {
-            isDebtTable = true;
-            continue;
+
+        // Detect Header Row
+        if (!headerMap && values.includes("Account") && (values.includes("Interest Rate") || values.includes("Min Monthly Payment"))) {
+            headerMap = {};
+            values.forEach((header, index) => {
+                if (header) headerMap[header.trim()] = index;
+            });
+            continue; 
         }
 
-        if (isDebtTable) {
-            // If the first column (TRUE/FALSE) and second column (Account) are empty, we've reached the end
-            if ((!values[0] || values[0] === "") && (!values[1] || values[1] === "")) {
-                if (debtAccounts.length > 0) break; // End of table
-                continue;
-            }
-
-            const accountName = values[1];
-            if (accountName === "Account" || !accountName) continue;
-
-            // Helper to clean currency/percentage strings
-            const cleanNum = (val) => {
-                if (val === undefined || val === null || val === "") return 0;
-                // If it's already a number, return it
-                if (typeof val === 'number') return val;
-                // Clean string and parse
-                const cleaned = String(val).replace(/[^0-9.-]+/g, "");
-                return cleaned === "" ? 0 : parseFloat(cleaned);
+        if (headerMap) {
+            const getVal = (colName) => {
+                const idx = headerMap[colName];
+                return idx !== undefined ? values[idx] : undefined;
             };
 
-            // Mapping based on the observed CSV structure for the primary debt table (columns 0-12)
+            const accountName = getVal("Account");
+            if (!accountName || accountName === "Account") continue;
+
+            // Stop if we hit an empty row after data starts
+            if (!accountName && debtAccounts.length > 0) break;
+
+            // Clean "Group Id:" names
+            let displayName = accountName;
+            if (accountName.startsWith("Group Id:")) {
+                // "Group Id:Ae - xxxx79ae (BDB5)" -> "Student Loan (Group Ae)"
+                const groupPart = accountName.split('-')[0].replace("Group Id:", "").trim();
+                displayName = `Student Loan (Group ${groupPart})`;
+            }
+
+            // Checkmark column is often unnamed or the first column
+            const activeVal = values[0]; 
+
             debtAccounts.push({
-                active: String(values[0]).toUpperCase() === "TRUE" || values[0] === "✅",
-                name: accountName,
-                interestRate: cleanNum(values[3]),
-                minPayment: cleanNum(values[4]),
-                rank: cleanNum(values[5]),
-                startingBalance: cleanNum(values[6]),
-                currentBalance: cleanNum(values[7]),
-                monthlyInterest: cleanNum(values[9]),
-                payoffMonth: values[10],
-                totalInterest: cleanNum(values[11]),
-                recommendedPayment: cleanNum(values[12])
+                active: String(activeVal).toUpperCase() === "TRUE" || activeVal === "✅",
+                name: displayName,
+                originalName: accountName,
+                interestRate: cleanNum(getVal("Interest Rate")),
+                minPayment: cleanNum(getVal("Min Monthly Payment")),
+                rank: cleanNum(getVal("Rank")),
+                startingBalance: cleanNum(getVal("Starting Balance")),
+                currentBalance: cleanNum(getVal("Current Balance")),
+                monthlyInterest: cleanNum(getVal("Monthly Interest")),
+                payoffMonth: getVal("Paid Off Month"), // Tiller's projection
+                totalInterest: cleanNum(getVal("Est Total Interest")),
+                recommendedPayment: cleanNum(getVal("Recommended Payment"))
             });
         }
     }
@@ -125,14 +165,52 @@ export const processDebtData = (data) => {
     return debtAccounts;
 };
 
+// --- Transaction Identification Helpers ---
+
+const checkIsSideHustle = (t) => {
+    const desc = (t.name || '').toLowerCase();
+    const acc = (t.accountName || '').toLowerCase();
+    const inst = (t.institution || '').toLowerCase();
+    
+    // Navy Federal + Cash App/Venmo = Likely DJ Income
+    if (inst.includes('navy federal') || acc.includes('navy federal')) {
+        if (desc.includes('cash app') || desc.includes('venmo')) {
+            return true;
+        }
+    }
+    return false;
+};
+
+const checkIsLateral = (t, userName, userNameAlt) => {
+    const desc = (t.name || '').toLowerCase();
+    const cat = (t.category && t.category[0] ? t.category[0] : '').toLowerCase();
+
+    // 1. Explicit Category (Tiller uses "Transfer")
+    if (cat.includes('transfer') || cat.includes('credit card payment') || cat.includes('payment')) return true;
+
+    // 2. Self-Transfer (Zelle/Venmo to self)
+    if (userName && desc.includes(userName)) return true;
+    if (userNameAlt && desc.includes(userNameAlt)) return true;
+
+    // 3. Common Bank Transfer keywords
+    const lateralKeywords = ['online transfer', 'transfer from', 'transfer to', 'internal transfer', 'zelle transfer', 'venmo transfer'];
+    if (lateralKeywords.some(kw => desc.includes(kw))) return true;
+
+    return false;
+};
+
 /**
  * Processes the raw Tiller data into a more usable format.
  * - Extracts unique accounts and their balances.
  * - Returns a list of transactions with more detail.
+ * - Flags transactions as Side Hustle or Lateral Transfer.
  */
 export const processTillerData = (data) => {
     const accountsMap = new Map();
     const transactions = [];
+
+    const userName = import.meta.env.VITE_USER_NAME?.toLowerCase();
+    const userNameAlt = import.meta.env.VITE_USER_NAME_ALT?.toLowerCase();
 
     for (const row of data) {
         const date = findVal(row, ['Date']);
@@ -140,54 +218,72 @@ export const processTillerData = (data) => {
         const account = findVal(row, ['Account']);
         const description = findVal(row, ['Description', 'Full Description']);
         
-        // Skip rows that don't have essential data
         if (!date || !amountStr || !account || !description) {
             continue;
         }
 
-        const rawAmount = amountStr.replace(/[^0-9.-]+/g, ""); // Clean amount string
-        const amount = parseFloat(rawAmount);
+        const amount = cleanNum(amountStr);
 
         if (isNaN(amount)) {
-            console.warn("Skipping row due to invalid amount:", row);
+            logger.warn("Skipping row due to invalid amount", { row, amountStr });
             continue;
         }
+
+        // Standardized ID generation
+        const cleanDesc = description.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const transactionId = findVal(row, ['Transaction ID']) || `tiller_${date}_${amount.toFixed(2)}_${cleanDesc}`;
+
+        // Deduplicate within the same file processing run
+        if (transactions.some(t => t.transaction_id === transactionId)) continue;
 
         // Process Accounts
         const accountName = account;
         if (!accountsMap.has(accountName)) {
-            const accountId = findVal(row, ['Account ID', 'Account #']) || accountName;
             const institution = findVal(row, ['Institution']) || 'N/A';
+            let accountId = findVal(row, ['Account ID', 'Account #']);
+            
+            if (!accountId) {
+                // Match deterministic ID generation in processAccountsData
+                const slug = (accountName + institution).toLowerCase().replace(/[^a-z0-9]/g, '');
+                accountId = `gen_id_${slug}`;
+            }
             
             accountsMap.set(accountName, {
                 account_id: accountId,
                 name: accountName,
                 institution: institution,
                 balances: { current: 0 },
-                subtype: 'checking', // Default subtype, can be enhanced
+                subtype: 'checking', 
             });
         }
         accountsMap.get(accountName).balances.current += amount;
 
         // Process Transactions
         const categoryVal = findVal(row, ['Category']) || 'Uncategorized';
-        transactions.push({
-            transaction_id: findVal(row, ['Transaction ID']) || `tiller_${date}_${amountStr}_${description}`,
+        
+        const transactionObj = {
+            transaction_id: transactionId,
             date: date,
             name: description,
             amount: Math.abs(amount),
             category: [categoryVal],
-            tags: [], // Tags not directly in this CSV, keep empty for now
+            tags: [], 
             note: row.Note || '', 
             type: amount < 0 ? 'debit' : 'credit',
             accountName: accountName,
             institution: findVal(row, ['Institution']) || 'N/A',
-        });
+        };
+
+        // Determine Meta-Types
+        transactionObj.isSideHustle = checkIsSideHustle(transactionObj);
+        transactionObj.isLateral = checkIsLateral(transactionObj, userName, userNameAlt);
+
+        transactions.push(transactionObj);
     }
 
     return {
         accounts: Array.from(accountsMap.values()),
-        transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)), // Sort by most recent
+        transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)), 
     };
 };
 
@@ -195,99 +291,88 @@ export const processTillerData = (data) => {
  * Processes the raw Tiller Accounts data.
  */
 export const processAccountsData = (data) => {
-    console.log("Processing Accounts Data, raw rows:", data.length);
+    logger.info("Processing Accounts Data", { rawRows: data.length });
 
     const processed = data.map(row => {
-        // Clean amount string
-        const cleanNum = (val) => {
-            if (!val) return 0;
-            const strVal = String(val);
-            return parseFloat(strVal.replace(/[^0-9.-]+/g, ""));
-        };
-
         const rawType = findVal(row, ['Type']) || 'Other';
         const type = rawType.trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 
-        // Fix: Define accountId and name from the row
-        const accountId = findVal(row, ['Account Id', 'Account ID', 'Account #', 'Unique Account Identifier']);
         const name = findVal(row, ['Account', 'Name']) || 'Unnamed Account';
-        const balanceVal = findVal(row, ['Last Balance', 'Balance']);
+        const institution = findVal(row, ['Institution']) || 'N/A';
+        
+        // Robust ID generation
+        let accountId = findVal(row, ['Account Id', 'Account ID', 'Account #', 'Unique Account Identifier']);
+        if (!accountId) {
+            // Generate deterministic ID if missing from CSV
+            const slug = (name + institution).toLowerCase().replace(/[^a-z0-9]/g, '');
+            accountId = `gen_id_${slug}`;
+        }
+
+        const balanceVal = findVal(row, ['Last Balance', 'Balance', 'Current Balance']);
+
+        const rawClass = findVal(row, ['Class']) || 'N/A';
+        let accountClass = rawClass.trim().toUpperCase();
+
+        // Infer Class if missing or generic
+        if (accountClass === 'N/A' || accountClass === 'OTHER') {
+            const t = type.toLowerCase();
+            if (t.includes('credit') || t.includes('loan') || t.includes('mortgage') || t.includes('liability')) {
+                accountClass = 'LIABILITY';
+            } else if (t.includes('checking') || t.includes('savings') || t.includes('investment') || t.includes('asset')) {
+                accountClass = 'ASSET';
+            }
+        }
 
         return {
             account_id: accountId,
             name: name,
-            institution: findVal(row, ['Institution']) || 'N/A',
+            institution: institution,
             type: type,
             balances: { 
                 current: cleanNum(balanceVal) 
             },
             lastUpdate: findVal(row, ['Last Update']) || 'Unknown',
             group: findVal(row, ['Group']) || 'Other',
-            class: findVal(row, ['Class']) || 'N/A' // Class often duplicated, this helper is crucial
+            class: accountClass
         };
     }).filter(acc => {
-        const isValid = acc.name && acc.account_id;
-        if (!isValid) console.warn("Invalid Account Row:", acc);
+        // Only filter if name is totally missing, which is rare
+        const isValid = acc.name && acc.name !== 'Unnamed Account';
+        if (!isValid) logger.warn("Invalid Account Row", { acc });
         return isValid;
     });
 
-    console.log("Processed Accounts:", processed.length);
+    logger.info("Processed Accounts", { count: processed.length });
     return processed;
 };
 
 /**
  * Extracts income streams from transactions.
- * Income is defined as transactions with type 'credit' (positive amounts).
- * Excludes internal transfers and credit card payments.
- * Smartly categorizes Side Hustle income (e.g. DJ Business).
+ * Uses pre-calculated isSideHustle and isLateral flags.
+ * Calculates True Monthly Average (Total / Months in Dataset).
  */
 export const processIncomeData = (transactions) => {
-    if (!transactions || !Array.isArray(transactions)) return [];
+    if (!transactions || !Array.isArray(transactions) || transactions.length === 0) return [];
 
-    const userName = import.meta.env.VITE_USER_NAME?.toLowerCase();
-    const userNameAlt = import.meta.env.VITE_USER_NAME_ALT?.toLowerCase();
-
-    // Helper to detect Side Hustle
-    const isSideHustle = (t) => {
-        const desc = (t.name || '').toLowerCase();
-        const acc = (t.accountName || '').toLowerCase();
-        const inst = (t.institution || '').toLowerCase();
-        
-        // Navy Federal + Cash App/Venmo = Likely DJ Income
-        if (inst.includes('navy federal') || acc.includes('navy federal')) {
-            if (desc.includes('cash app') || desc.includes('venmo')) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    // Helper to detect Self-Transfer
-    const isSelfTransfer = (t) => {
-        const desc = (t.name || '').toLowerCase();
-        
-        // Filter Zelle self-transfers using both primary and alt names
-        if (userName && desc.includes(userName)) return true;
-        if (userNameAlt && desc.includes(userNameAlt)) return true;
-        
-        return false;
-    };
+    // Calculate Date Range in Months
+    const dates = transactions.map(t => new Date(t.date)).filter(d => !isNaN(d));
+    let monthsDivisor = 1;
+    if (dates.length > 1) {
+        const newest = new Date(Math.max(...dates));
+        const oldest = new Date(Math.min(...dates));
+        const diffInMs = newest - oldest;
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+        monthsDivisor = Math.max(diffInDays / 30.44, 1);
+    }
 
     const incomeTransactions = transactions.filter(t => {
         if (t.type !== 'credit') return false;
 
         // 1. Always keep detected Side Hustles (even if they were labeled 'Transfer')
-        if (isSideHustle(t)) return true;
+        if (t.isSideHustle) return true;
 
-        // 2. Filter out explicit Transfers
-        if (t.category.includes('Transfers') || t.category.includes('Credit Card Payment')) {
-            return false;
-        }
-
-        // 3. Filter out Self-Transfers based on PII Name
-        if (isSelfTransfer(t)) {
-            return false;
-        }
+        // 2. Filter out Lateral Transfers
+        if (t.isLateral) return false;
 
         return true;
     });
@@ -297,8 +382,7 @@ export const processIncomeData = (transactions) => {
     incomeTransactions.forEach(t => {
         let source = t.category[0] || 'Uncategorized Income';
 
-        // Override Category for Side Hustles
-        if (isSideHustle(t)) {
+        if (t.isSideHustle) {
             source = 'DJ Business / Side Hustle';
         }
         
@@ -320,24 +404,21 @@ export const processIncomeData = (transactions) => {
     return Array.from(streamsMap.values())
         .map(stream => ({
             ...stream,
-            average: stream.total / stream.count
+            average: stream.total / stream.count, // Avg per transaction
+            monthlyAvg: stream.total / monthsDivisor // True Monthly Avg
         }))
         .sort((a, b) => b.total - a.total);
 };
 
 /**
- * Calculates monthly cash flow (Income vs Expenses) based on the transaction date range.
- * Returns annualized numbers and monthly averages.
+ * Calculates monthly cash flow (Income vs Expenses).
+ * Explicitly excludes Lateral Transfers from both columns.
  */
 export const calculateCashFlow = (transactions) => {
     if (!transactions || transactions.length === 0) {
         return { income: 0, expenses: 0, surplus: 0, months: 0 };
     }
 
-    const userName = import.meta.env.VITE_USER_NAME?.toLowerCase();
-    const userNameAlt = import.meta.env.VITE_USER_NAME_ALT?.toLowerCase();
-
-    // 1. Determine Date Range
     const dates = transactions.map(t => new Date(t.date)).filter(d => !isNaN(d));
     if (dates.length < 2) return { income: 0, expenses: 0, surplus: 0, months: 1 };
 
@@ -347,37 +428,24 @@ export const calculateCashFlow = (transactions) => {
     const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
     const months = Math.max(diffInDays / 30.44, 1);
 
-    // 2. Sum Income and Expenses
     let totalIncome = 0;
     let totalExpenses = 0;
 
     transactions.forEach(t => {
-        const desc = (t.name || '').toLowerCase();
-        const acc = (t.accountName || '').toLowerCase();
-        const inst = (t.institution || '').toLowerCase();
-        const isTransferCat = t.category.includes('Transfers') || t.category.includes('Credit Card Payment');
-        
-        // Smart Logic Re-used
-        const isSideHustle = (inst.includes('navy federal') || acc.includes('navy federal')) && 
-                             (desc.includes('cash app') || desc.includes('venmo'));
-        
-        const isSelfTransfer = (userName && desc.includes(userName)) || 
-                               (userNameAlt && desc.includes(userNameAlt));
-
         if (t.type === 'credit') {
-            if (isSideHustle) {
-                totalIncome += t.amount; // Always count side hustle
-            } else if (!isTransferCat && !isSelfTransfer) {
-                totalIncome += t.amount; // Count other legitimate income
+            if (t.isSideHustle) {
+                totalIncome += t.amount;
+            } else if (!t.isLateral) {
+                totalIncome += t.amount;
             }
         } else if (t.type === 'debit') {
-            if (!isTransferCat) {
+            // Only count if NOT a lateral transfer
+            if (!t.isLateral) {
                 totalExpenses += t.amount;
             }
         }
     });
 
-    // 3. Calculate Averages
     const monthlyIncome = totalIncome / months;
     const monthlyExpenses = totalExpenses / months;
 
@@ -398,15 +466,104 @@ export const processCategoriesData = (data) => {
         if (!category) return null;
 
         return {
-            ...row, // Spread original row to preserve "Jan 2025", "Feb 2025" etc. columns
+            ...row, 
             category: category,
-            Category: category, // Uppercase alias for component compatibility
+            Category: category,
             group: findVal(row, ['Group']) || 'Uncategorized',
             type: findVal(row, ['Type']) || 'Expense',
-            Type: findVal(row, ['Type']) || 'Expense', // Uppercase alias
+            Type: findVal(row, ['Type']) || 'Expense',
             isHidden: (findVal(row, ['Hide', 'Hide From Reports']) || '').toLowerCase() === 'hide'
         };
     }).filter(c => c !== null);
+};
+
+/**
+ * API Integration: Fetch all accounts from SQLite.
+ * Normalizes DB schema to frontend expectation.
+ */
+export const fetchAccountsFromDb = async () => {
+    const res = await fetch('/api/finance/accounts');
+    if (!res.ok) throw new Error('Failed to fetch accounts from DB');
+    const data = await res.json();
+    
+    return data.map(acc => ({
+        account_id: acc.id,
+        name: acc.name,
+        institution: acc.institution || 'Unknown',
+        type: acc.type || 'Other',
+        balances: {
+            current: acc.balance
+        },
+        class: acc.class?.toUpperCase() || 'ASSET',
+        lastUpdate: acc.lastUpdated
+    }));
+};
+
+/**
+ * API Integration: Fetch all transactions from SQLite.
+ * Normalizes DB schema to frontend expectation (description -> name).
+ */
+export const fetchTransactionsFromDb = async () => {
+    const res = await fetch('/api/finance/txns');
+    if (!res.ok) throw new Error('Failed to fetch transactions from DB');
+    const data = await res.json();
+
+    return data.map(t => ({
+        transaction_id: t.id,
+        date: t.date,
+        name: t.description, // Mapper expects .name
+        amount: Math.abs(t.amount), // Mapper and UI expect absolute for display
+        type: t.type,
+        category: [t.category || 'Uncategorized'],
+        accountName: t.account?.name || 'Unknown',
+        institution: t.account?.institution || 'N/A',
+        isLateral: t.isLateral,
+        isSideHustle: t.isSideHustle
+    }));
+};
+
+/**
+ * API Integration: Upload parsed account data to backend.
+ */
+export const uploadAccountsToDb = async (accounts) => {
+    const res = await fetch('/api/finance/accounts/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accounts)
+    });
+    return await res.json();
+};
+
+/**
+ * API Integration: Upload parsed transaction data to backend.
+ */
+export const uploadTransactionsToDb = async (transactions) => {
+    const res = await fetch('/api/finance/txns/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transactions)
+    });
+    return await res.json();
+};
+
+/**
+ * API Integration: Fetch all debt items from SQLite.
+ */
+export const fetchDebtsFromDb = async () => {
+    const res = await fetch('/api/finance/debts');
+    if (!res.ok) throw new Error('Failed to fetch debts from DB');
+    const data = await res.json();
+    
+    return data.map(d => ({
+        active: true,
+        name: d.name,
+        originalName: d.name,
+        interestRate: d.interestRate,
+        minPayment: d.minPayment,
+        currentBalance: d.balance,
+        payoffMonth: d.dueDate || 'Unknown',
+        priority: d.priority
+    }));
 };
 
 const tillerService = {
@@ -417,7 +574,13 @@ const tillerService = {
     processCategoriesData,
     processIncomeData,
     calculateCashFlow,
-    fetchAndParseCsv
+    fetchAndParseCsv,
+    getRawCsvData,
+    fetchAccountsFromDb,
+    fetchTransactionsFromDb,
+    fetchDebtsFromDb, // Added
+    uploadAccountsToDb,
+    uploadTransactionsToDb
 };
 
 export default tillerService;

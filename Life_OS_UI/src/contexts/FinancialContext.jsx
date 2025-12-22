@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import tillerService from '../services/tillerService';
 
 const FinancialContext = createContext();
@@ -8,89 +8,96 @@ export const useFinancials = () => {
 };
 
 export const FinancialProvider = ({ children }) => {
-    const [accounts, setAccounts] = useState([]); // Master accounts list
+    const [accounts, setAccounts] = useState([]); 
     const [transactions, setTransactions] = useState([]);
-    const [incomeStreams, setIncomeStreams] = useState([]);
-    const [cashFlow, setCashFlow] = useState({ monthlyIncome: 0, monthlyExpenses: 0, surplus: 0 });
     const [categories, setCategories] = useState([]);
     const [debtAccounts, setDebtAccounts] = useState([]);
     const [summaryBalances, setSummaryBalances] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Update income streams and cash flow whenever transactions change
-    useEffect(() => {
-        if (transactions.length > 0) {
-            const streams = tillerService.processIncomeData(transactions);
-            setIncomeStreams(streams);
+    /**
+     * Master Sync: Fetches latest data from the modular backend.
+     */
+    const refreshFromDb = useCallback(async () => {
+        try {
+            console.log("Syncing with modular backend...");
+            const [dbAccounts, dbTxns, dbDebts] = await Promise.all([
+                tillerService.fetchAccountsFromDb(),
+                tillerService.fetchTransactionsFromDb(),
+                tillerService.fetchDebtsFromDb()
+            ]);
             
-            const flow = tillerService.calculateCashFlow(transactions);
-            setCashFlow(flow);
+            if (dbAccounts) setAccounts(dbAccounts);
+            if (dbTxns) setTransactions(dbTxns);
+            if (dbDebts) setDebtAccounts(dbDebts);
+            
+            console.log("Backend sync complete.");
+        } catch (err) {
+            console.warn("Backend sync failed. Using local state only.", err);
         }
+    }, []);
+
+    // Update income streams and cash flow whenever transactions change
+    const incomeStreams = useMemo(() => {
+        if (transactions.length === 0) return [];
+        return tillerService.processIncomeData(transactions);
     }, [transactions]);
 
-    // Auto-load files on mount for troubleshooting
-    useEffect(() => {
-        const loadInitialData = async () => {
-            setLoading(true);
-            const loadFile = async (name, url, setter, processor, hasHeader = true) => {
-                try {
-                    const data = await tillerService.fetchAndParseCsv(url, hasHeader);
-                    if (data) {
-                        const processed = processor ? processor(data) : data;
-                        setter(processed);
-                        console.log(`${name} auto-loaded successfully`);
-                    }
-                } catch (err) {
-                    console.warn(`Failed to auto-load ${name}:`, err);
-                    // We don't set a global error here to allow manual recovery
-                }
-            };
+    const cashFlow = useMemo(() => {
+        if (transactions.length === 0) return { monthlyIncome: 0, monthlyExpenses: 0, surplus: 0 };
+        return tillerService.calculateCashFlow(transactions);
+    }, [transactions]);
 
-            await Promise.all([
-                loadFile('Accounts', '/Accounts.csv', setAccounts, tillerService.processAccountsData),
-                loadFile('Transactions', '/Transactions.csv', (processed) => setTransactions(processed.transactions), tillerService.processTillerData),
-                loadFile('Debt Payoff', '/Debt Payoff Planner.csv', setDebtAccounts, tillerService.processDebtData, false), // hasHeader = false
-                loadFile('Categories', '/Categories.csv', setCategories, tillerService.processCategoriesData),
-                loadFile('Balances', '/Balances.csv', setSummaryBalances)
-            ]);
+    // Initial Load Sequence
+    useEffect(() => {
+        const init = async () => {
+            setLoading(true);
+            
+            // Refresh from the modular backend (Source of Truth)
+            await refreshFromDb();
 
             setLoading(false);
         };
 
-        loadInitialData();
-    }, []);
+        init();
+    }, [refreshFromDb]);
 
-    const handleTransactionsUpload = (data) => {
+    const handleTransactionsUpload = async (data) => {
         setLoading(true);
         try {
-            const { transactions: processedTransactions } = tillerService.processTillerData(data);
-            setTransactions(processedTransactions || []);
+            // Send raw CSV JSON to backend for processing and storage
+            const result = await tillerService.uploadTransactionsToDb(data);
+            console.log("Transaction upload result:", result);
+            
+            // Refresh state from DB to get normalized data
+            await refreshFromDb();
             setError(null);
         } catch (e) {
             setError(e.message);
-            console.error("Error processing Tiller transactions data:", e);
+            console.error("Error uploading transactions:", e);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAccountsUpload = (data) => {
+    const handleAccountsUpload = async (data) => {
         setLoading(true);
         try {
-            const processedAccounts = tillerService.processAccountsData(data);
-            setAccounts(processedAccounts || []);
+            const result = await tillerService.uploadAccountsToDb(data);
+            console.log("Account upload result:", result);
+            
+            await refreshFromDb();
             setError(null);
         } catch (e) {
             setError(e.message);
-            console.error("Error processing Tiller accounts data:", e);
+            console.error("Error uploading accounts:", e);
         } finally {
             setLoading(false);
         }
     };
 
     const handleBalancesUpload = (data) => {
-        // Balances.csv is mostly summary info
         setSummaryBalances(data);
     };
 
@@ -122,7 +129,7 @@ export const FinancialProvider = ({ children }) => {
         }
     };
 
-    const value = {
+    const value = useMemo(() => ({
         accounts,
         transactions,
         incomeStreams,
@@ -137,7 +144,19 @@ export const FinancialProvider = ({ children }) => {
         handleBalancesUpload,
         handleCategoriesUpload,
         handleDebtUpload,
-    };
+        refreshFromDb
+    }), [
+        accounts,
+        transactions,
+        incomeStreams,
+        cashFlow,
+        categories,
+        debtAccounts,
+        summaryBalances,
+        loading,
+        error,
+        refreshFromDb
+    ]);
 
     return (
         <FinancialContext.Provider value={value}>

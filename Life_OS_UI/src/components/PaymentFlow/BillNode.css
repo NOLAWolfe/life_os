@@ -1,0 +1,95 @@
+.bill-node-wrapper {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    min-width: 140px;
+    max-width: 180px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.bill-node-wrapper:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: var(--accent-color);
+}
+
+.bill-node-wrapper.selected {
+    border-color: var(--accent-color);
+    ring: 2px solid var(--accent-color);
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.bill-node-wrapper.drifting {
+    border-color: #ef4444; /* Red-500 */
+    box-shadow: 0 0 0 2px #ef4444;
+}
+
+.bill-node-content {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    gap: 8px;
+    background: linear-gradient(to bottom right, rgba(255,255,255,0.05), transparent);
+}
+
+.bill-icon-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(46, 125, 50, 0.2); /* Green tint */
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+}
+
+.bill-icon {
+    font-size: 14px;
+}
+
+.bill-text-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.bill-name {
+    font-size: 0.75rem; /* 12px */
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bill-amount {
+    font-family: monospace;
+    font-size: 10px;
+    color: #fbbf24; /* Amber-400 */
+}
+
+/* Group Node Styles */
+.bill-node-wrapper.group-node {
+    background-color: #1e3a8a; /* Blue-900 */
+    border-color: #60a5fa; /* Blue-400 */
+    border-width: 2px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.bill-node-wrapper.group-node:hover {
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+}
+
+.group-icon {
+    background-color: rgba(96, 165, 250, 0.2);
+    border-right: 1px solid #60a5fa;
+}
+
+.bill-handle {
+    width: 8px !important;
+}

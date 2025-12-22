@@ -7,7 +7,16 @@ const BalancesWidget = () => {
 
     // Grouping by Class (Asset vs Liability) then by Type
     const groupedByClass = accounts.reduce((acc, account) => {
-        const className = account.class || 'Other';
+        // Normalizing class name (Asset, Liability)
+        let className = account.class ? account.class.charAt(0).toUpperCase() + account.class.slice(1).toLowerCase() : 'Other';
+        
+        // Fallback: Infer from type if class is missing
+        if (className === 'Other' && account.type) {
+            const t = account.type.toLowerCase();
+            if (t.includes('check') || t.includes('save') || t.includes('invest') || t.includes('cash')) className = 'Asset';
+            else if (t.includes('card') || t.includes('loan') || t.includes('debt')) className = 'Liability';
+        }
+
         if (!acc[className]) {
             acc[className] = [];
         }

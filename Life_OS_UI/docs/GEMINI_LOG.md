@@ -1,3 +1,23 @@
+# Session Update: Dec 21, 2025
+## Mission: Unified Wealth Map & Interactive Control Panel
+
+### 1. Visualizer Upgrade (The "Offense" Map)
+- **Dynamic Income Integration:** The `PaymentFlow` strategy map now ingests `IncomeStreams` from `Transactions.csv`.
+- **Merged Layout Adapter:** Implemented a "Defensive Adapter" that safely merges dynamic income nodes with the user's saved layout, preventing crashes if data is missing.
+- **Visuals:** Added a "Green Glow" effect to income nodes and animated edges to visualize "Offense" feeding "Defense".
+
+### 2. Control Panel Pivot (The "Instruction Manual")
+- **Two-Way Binding:** Transformed the Master Bills List into an interactive Control Panel.
+    - **Re-Routing:** Changing a bill's "Source Account" in the list instantly updates the Visualizer graph.
+- **Automation Stencil:** Added fields for "Method" (Autopay/Manual) and "Link" (Direct Login URL).
+- **Execution Speed:** Users can now click "Go ↗" directly from the dashboard to log in and update their bill settings.
+
+### 3. Incubator Additions
+- Added **Stock Trading Learning Assistant** and **Local Event Coordinator** concepts to the project vision.
+
+## Next Steps
+- **The "Sorting Hat":** Build a Transaction Mapper tool to classify "Unassigned Transactions" and feed accurate amounts into the Visualizer nodes.
+
 # Session Update: Dec 18, 2025
 ## Mission: Wealth Creation (The 10X Pivot)
 

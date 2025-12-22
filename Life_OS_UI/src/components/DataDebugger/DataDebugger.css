@@ -1,0 +1,26 @@
+.data-debugger {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.data-debugger .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.data-debugger pre {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.data-debugger pre::-webkit-scrollbar {
+    height: 6px;
+}
+
+.data-debugger pre::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
