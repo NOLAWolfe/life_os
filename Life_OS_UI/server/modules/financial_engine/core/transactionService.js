@@ -37,12 +37,14 @@ const transactionService = {
         const desc = (name || '').toLowerCase();
         const cat = (category || '').toLowerCase();
         const userName = (process.env.VITE_USER_NAME || '').toLowerCase(); 
+        const userNameAlt = (process.env.VITE_USER_NAME_ALT || '').toLowerCase();
 
         // 1. Explicit Category
         if (cat === 'transfers' || cat === 'credit card payment') return true;
 
         // 2. Self-Transfer keywords
         if (userName && desc.includes(userName)) return true;
+        if (userNameAlt && desc.includes(userNameAlt)) return true;
         if (desc.includes('online transfer') || desc.includes('transfer from') || desc.includes('transfer to')) return true;
 
         return false;
@@ -64,7 +66,13 @@ const transactionService = {
                 
                 if (!dateVal || !amountVal || !descVal) continue;
 
-                const amount = parseFloat(String(amountVal).replace(/[^0-9.-]+/g, ""));
+                // Improved amount cleaning to handle (100.00) as -100.00
+                let strVal = String(amountVal).trim();
+                const isNegative = (strVal.startsWith('(') && strVal.endsWith(')')) || strVal.startsWith('-');
+                const cleaned = strVal.replace(/[^0-9.]/g, "");
+                let amount = cleaned === "" ? 0 : parseFloat(cleaned);
+                if (isNegative) amount = -amount;
+
                 if (isNaN(amount)) continue;
 
                 // Generate ID if Tiller didn't provide one
