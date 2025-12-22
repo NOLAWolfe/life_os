@@ -1,4 +1,30 @@
 import Papa from 'papaparse';
+import logger from './logger/logger';
+
+/**
+ * Robustly cleans a string representation of a number, handling currency symbols, 
+ * thousands separators, and parentheses for negative values.
+ */
+export const cleanNum = (val) => {
+    if (val === undefined || val === null || val === "") return 0;
+    if (typeof val === 'number') return val;
+    
+    let strVal = String(val).trim();
+    if (!strVal) return 0;
+
+    // Handle parentheses for negative numbers: (1,234.56) -> -1234.56
+    const isParenthesesNegative = strVal.startsWith('(') && strVal.endsWith(')');
+    const isMinusNegative = strVal.startsWith('-');
+    const isNegative = isParenthesesNegative || isMinusNegative;
+
+    // Remove everything except numbers and the decimal point
+    // Note: This assumes US-style decimals (dot). 
+    // If European (comma), more complex logic would be needed.
+    const cleaned = strVal.replace(/[^0-9.]/g, "");
+    const num = cleaned === "" ? 0 : parseFloat(cleaned);
+    
+    return isNegative ? -num : num;
+};
 
 /**
  * Fetches and parses the Tiller CSV data from the Google Sheet export.
@@ -13,7 +39,7 @@ export const getTillerData = async (file) => {
                 resolve(results.data);
             },
             error: (error) => {
-                console.error("Error parsing Tiller CSV:", error);
+                logger.error("Error parsing Tiller CSV", { error });
                 reject(error);
             }
         });
@@ -37,7 +63,7 @@ const findVal = (row, keys) => {
  * Fetches and parses a Tiller CSV from a URL (e.g., in the public folder).
  * Supports optional header disabling for complex templates.
  */
-export const fetchAndParseCsv = async (url, hasHeader = true) => {
+export const fetchAndParseCsv = async (url, hasHeader = true, returnRaw = false) => {
     return new Promise((resolve, reject) => {
         const headers = {};
         Papa.parse(url, {
@@ -56,14 +82,25 @@ export const fetchAndParseCsv = async (url, hasHeader = true) => {
                 return cleanHeader;
             },
             complete: (results) => {
-                resolve(results.data);
+                if (returnRaw) {
+                    resolve(results);
+                } else {
+                    resolve(results.data);
+                }
             },
             error: (error) => {
-                console.error(`Error fetching/parsing CSV from ${url}:`, error);
+                logger.error(`Error fetching/parsing CSV from ${url}`, { url, error });
                 reject(error);
             }
         });
     });
+};
+
+/**
+ * Specifically for the Data Debugger: Fetches raw data with headers.
+ */
+export const getRawCsvData = async (url) => {
+    return fetchAndParseCsv(url, true, true);
 };
 
 /**
@@ -97,13 +134,6 @@ export const processDebtData = (data) => {
 
             // Stop if we hit an empty row after data starts
             if (!accountName && debtAccounts.length > 0) break;
-
-            const cleanNum = (val) => {
-                if (val === undefined || val === null || val === "") return 0;
-                if (typeof val === 'number') return val;
-                const cleaned = String(val).replace(/[^0-9.-]+/g, "");
-                return cleaned === "" ? 0 : parseFloat(cleaned);
-            };
 
             // Clean "Group Id:" names
             let displayName = accountName;
@@ -192,11 +222,10 @@ export const processTillerData = (data) => {
             continue;
         }
 
-        const rawAmount = amountStr.replace(/[^0-9.-]+/g, ""); 
-        const amount = parseFloat(rawAmount);
+        const amount = cleanNum(amountStr);
 
         if (isNaN(amount)) {
-            console.warn("Skipping row due to invalid amount:", row);
+            logger.warn("Skipping row due to invalid amount", { row, amountStr });
             continue;
         }
 
@@ -249,15 +278,9 @@ export const processTillerData = (data) => {
  * Processes the raw Tiller Accounts data.
  */
 export const processAccountsData = (data) => {
-    console.log("Processing Accounts Data, raw rows:", data.length);
+    logger.info("Processing Accounts Data", { rawRows: data.length });
 
     const processed = data.map(row => {
-        const cleanNum = (val) => {
-            if (!val) return 0;
-            const strVal = String(val);
-            return parseFloat(strVal.replace(/[^0-9.-]+/g, ""));
-        };
-
         const rawType = findVal(row, ['Type']) || 'Other';
         const type = rawType.trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 
@@ -289,11 +312,11 @@ export const processAccountsData = (data) => {
     }).filter(acc => {
         // Only filter if name is totally missing, which is rare
         const isValid = acc.name && acc.name !== 'Unnamed Account';
-        if (!isValid) console.warn("Invalid Account Row:", acc);
+        if (!isValid) logger.warn("Invalid Account Row", { acc });
         return isValid;
     });
 
-    console.log("Processed Accounts:", processed.length);
+    logger.info("Processed Accounts", { count: processed.length });
     return processed;
 };
 
@@ -479,6 +502,7 @@ const tillerService = {
     processIncomeData,
     calculateCashFlow,
     fetchAndParseCsv,
+    getRawCsvData,
     fetchAccountsFromDb,
     fetchTransactionsFromDb,
     uploadAccountsToDb,

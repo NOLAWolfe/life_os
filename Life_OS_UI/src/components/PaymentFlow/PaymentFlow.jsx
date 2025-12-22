@@ -10,6 +10,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useFinancials } from '../../contexts/FinancialContext';
+import { getAllBillNodes } from '../../services/mappingService';
 import BillNode from './BillNode'; // Import Custom Node
 import BillGroupNode from './BillGroupNode';
 import './PaymentFlow.css';
@@ -539,7 +540,19 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         if (!transactions) return [];
         const issues = [];
         const nodeToParentMap = {};
-        finalEdges.forEach(edge => { nodeToParentMap[edge.target] = edge.source; });
+        
+        finalEdges.forEach(edge => { 
+            // Map the direct target
+            nodeToParentMap[edge.target] = edge.source;
+            
+            // If target is a group, also map all contained nodes to this source
+            const targetNode = finalNodes.find(n => n.id === edge.target);
+            if (targetNode?.type === 'billGroup' && targetNode.data.containedNodes) {
+                targetNode.data.containedNodes.forEach(cn => {
+                    nodeToParentMap[cn.id] = edge.source;
+                });
+            }
+        });
 
         const accountMapping = {
             'chase-8211': ['chase', '8211'],
@@ -565,7 +578,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             });
         });
         return issues;
-    }, [transactions, rules, finalEdges]);
+    }, [transactions, rules, finalEdges, finalNodes]);
 
     // Apply Visuals
     const auditedNodes = useMemo(() => {
@@ -597,48 +610,87 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     }, [finalNodes, auditResults, nodeStats]);
 
     const planHierarchy = useMemo(() => {
-        const incomingEdges = new Set(finalEdges.map(e => e.target));
-        const roots = finalNodes.filter(n => !incomingEdges.has(n.id) && n.id !== 'node-remaining-funds');
-        const buildTree = (nodeId) => {
-            const childrenEdges = finalEdges.filter(e => e.source === nodeId);
-            return childrenEdges.map(e => {
-                const childNode = finalNodes.find(n => n.id === e.target);
-                return { edge: e, node: childNode, children: childNode ? buildTree(childNode.id) : [] };
-            });
-        };
-        return roots.map(root => ({ node: root, children: buildTree(root.id) }));
+        const hubs = finalNodes.filter(n => (n.className?.includes('node-hub') || n.className?.includes('node-account')) && !n.id.startsWith('dynamic-income'));
+        
+        return hubs.map(hub => {
+            const incomingIncomes = finalEdges
+                .filter(e => e.target === hub.id && e.source.startsWith('dynamic-income'))
+                .map(e => finalNodes.find(n => n.id === e.source));
+            
+            const children = finalEdges
+                .filter(e => e.source === hub.id)
+                .map(e => {
+                    const childNode = finalNodes.find(n => n.id === e.target);
+                    return { edge: e, node: childNode };
+                });
+
+            return { hub, incomingIncomes, children };
+        });
     }, [finalNodes, finalEdges]);
 
-    const renderPlanItem = (item, depth = 0) => {
-        const stat = nodeStats[item.node?.id];
-        const isGroup = item.node?.type === 'billGroup';
-        const containedNodes = item.node?.data.containedNodes || [];
+    const renderPlanItem = (item) => {
+        const { hub, incomingIncomes, children } = item;
+        const stat = nodeStats[hub.id];
 
         return (
-            <div key={item.node?.id || Math.random()} style={{ marginLeft: `${depth * 20}px` }} className="plan-item mb-2 border-l border-gray-700 pl-2">
-                <div className="flex items-center gap-2">
-                    <span className="text-gray-400">{depth > 0 ? '└─' : '•'}</span>
-                    <span className={`font-medium ${depth === 0 ? 'text-lg text-blue-400' : (isGroup ? 'text-indigo-400' : 'text-sm')}`}>
-                        {item.node?.data.label}
-                    </span>
-                    {stat && <span className={`text-xs px-2 py-0.5 rounded font-mono ${stat.type === 'balance' ? 'bg-green-900 text-green-200' : 'bg-orange-900 text-orange-200'}`}>{stat.label}</span>}
-                    {isGroup && <span className="text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded border border-indigo-700">Bucket: {containedNodes.length} items</span>}
-                    {item.edge?.label && <span className="text-xs bg-gray-700 px-2 py-0.5 rounded text-gray-300">{item.edge.label}</span>}
+            <div key={hub.id} className="plan-section mb-8 border-b border-[var(--border-color)] pb-4">
+                <div className="flex items-center gap-3 mb-3">
+                    <span className="text-xl text-blue-400 font-bold">{hub.data.label}</span>
+                    {stat && <span className="text-xs bg-green-900 text-green-200 px-2 py-0.5 rounded font-mono">{stat.label}</span>}
                 </div>
-                
-                {/* Render Group Contents if applicable */}
-                {isGroup && containedNodes.map(childNode => (
-                    <div key={childNode.id} style={{ marginLeft: '20px' }} className="plan-item mb-1 border-l border-indigo-900/50 pl-2 opacity-80">
-                        <div className="flex items-center gap-2">
-                            <span className="text-indigo-700">↳</span>
-                            <span className="text-xs text-gray-300">{childNode.data.label}</span>
-                            {nodeStats[childNode.id] && <span className="text-[10px] text-orange-400 font-mono">{nodeStats[childNode.id].label}</span>}
-                        </div>
-                    </div>
-                ))}
 
-                {/* Recursively render children from edges */}
-                {item.children.map(child => renderPlanItem(child, depth + 1))}
+                {/* Sources for this Hub */}
+                {incomingIncomes.length > 0 && (
+                    <div className="mb-3 ml-4">
+                        <p className="text-[10px] uppercase text-gray-500 font-bold mb-1">Incoming Sources</p>
+                        {incomingIncomes.map(inc => (
+                            <div key={inc.id} className="flex items-center gap-2 text-sm text-green-400 ml-2">
+                                <span>💰</span>
+                                <span>{inc.data.label}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Payments from this Hub */}
+                <div className="ml-4">
+                    <p className="text-[10px] uppercase text-gray-500 font-bold mb-1">Payments & Transfers</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                        {children.map(({ edge, node }) => {
+                            if (!node) return null;
+                            const isGroup = node.type === 'billGroup';
+                            const nodeStat = nodeStats[node.id];
+                            const containedNodes = node.data.containedNodes || [];
+
+                            return (
+                                <div key={node.id} className="flex flex-col border-l border-gray-700 pl-3 py-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-gray-500">└─</span>
+                                        <span className={`text-sm font-medium ${isGroup ? 'text-indigo-400' : (node.type === 'bill' ? 'text-orange-300' : 'text-blue-300')}`}>
+                                            {node.data.label}
+                                        </span>
+                                        {nodeStat && <span className="text-[10px] text-gray-400 font-mono">{nodeStat.label}</span>}
+                                        {edge.label && <span className="text-[9px] bg-gray-800 text-gray-400 px-1 rounded">{edge.label}</span>}
+                                    </div>
+                                    
+                                    {isGroup && (
+                                        <div className="ml-6 mt-1 space-y-1">
+                                            <p className="text-[9px] text-indigo-500 font-bold uppercase">Bucket Items:</p>
+                                            {containedNodes.map(cn => (
+                                                <div key={cn.id} className="flex items-center gap-2 text-[11px] text-gray-400">
+                                                    <span>↳</span>
+                                                    <span>{cn.data.label}</span>
+                                                    {nodeStats[cn.id] && <span className="text-[10px] text-orange-500/70">{nodeStats[cn.id].label}</span>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {children.length === 0 && <p className="text-xs text-gray-500 italic">No outgoing payments mapped</p>}
+                    </div>
+                </div>
             </div>
         );
     };
@@ -720,105 +772,143 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {finalNodes
-                                        .filter(n => n.type === 'bill' || n.className?.includes('node-bill'))
-                                        .map(bill => {
-                                            const stat = nodeStats[bill.id];
-                                            const parentEdge = finalEdges.find(e => e.target === bill.id);
-                                            const parentNode = parentEdge ? finalNodes.find(n => n.id === parentEdge.source) : null;
-                                            const keywords = rules[bill.id] || [];
-                                            const isExpanded = expandedRows[bill.id];
-
-                                            const potentialSources = finalNodes.filter(n => 
-                                                (n.className?.includes('node-hub') || n.className?.includes('node-account')) &&
-                                                !n.id.startsWith('dynamic-income')
-                                            );
-
-                                            let allMatches = [];
-                                            const breakdown = keywords.map(k => {
-                                                const matches = transactions ? transactions.filter(t => 
-                                                    t.type === 'debit' && t.name.toLowerCase().includes(k)
-                                                ) : [];
-                                                
-                                                if (matches.length > 0) allMatches = [...allMatches, ...matches];
-                                                if (matches.length === 0) return { name: k, cost: 0, count: 0, day: '-' };
-
-                                                const total = matches.reduce((sum, t) => sum + t.amount, 0);
-                                                const dates = matches.map(t => new Date(t.date));
-                                                const minDate = new Date(Math.min(...dates));
-                                                const maxDate = new Date(Math.max(...dates));
-                                                const daysDiff = (maxDate - minDate) / (1000 * 60 * 60 * 24);
-                                                const months = Math.max(daysDiff / 30, 1);
-                                                const days = dates.map(d => d.getDate());
-                                                const avgDay = Math.round(days.reduce((a, b) => a + b, 0) / days.length);
-
-                                                return { name: k, cost: total / months, count: matches.length, day: avgDay };
-                                            }).filter(b => b.cost > 0).sort((a,b) => b.cost - a.cost);
-
-                                            let dueString = '-';
-                                            if (allMatches.length > 0) {
-                                                const days = allMatches.map(t => new Date(t.date).getDate());
-                                                const avgDay = Math.round(days.reduce((a, b) => a + b, 0) / days.length);
-                                                const getOrdinal = (n) => {
-                                                    const s = ["th", "st", "nd", "rd"];
-                                                    const v = n % 100;
-                                                    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-                                                };
-                                                dueString = getOrdinal(avgDay);
+                                    {(() => {
+                                        const allBills = getAllBillNodes(finalNodes);
+                                        const billsBySource = {};
+                                        
+                                        allBills.forEach(bill => {
+                                            // Find parent edge (handle grouped bills)
+                                            let parentEdge = finalEdges.find(e => e.target === bill.id);
+                                            if (!parentEdge) {
+                                                const group = finalNodes.find(n => n.type === 'billGroup' && n.data.containedNodes?.some(cn => cn.id === bill.id));
+                                                if (group) {
+                                                    parentEdge = finalEdges.find(e => e.target === group.id);
+                                                }
                                             }
+                                            
+                                            const sourceId = parentEdge ? parentEdge.source : 'unassigned';
+                                            if (!billsBySource[sourceId]) billsBySource[sourceId] = [];
+                                            billsBySource[sourceId].push(bill);
+                                        });
+
+                                        return Object.entries(billsBySource).sort(([idA], [idB]) => {
+                                            if (idA === 'unassigned') return 1;
+                                            if (idB === 'unassigned') return -1;
+                                            return 0;
+                                        }).map(([sourceId, sourceBills]) => {
+                                            const sourceNode = finalNodes.find(n => n.id === sourceId);
+                                            const sourceLabel = sourceNode ? sourceNode.data.label : (sourceId === 'unassigned' ? '❓ Unassigned' : sourceId);
 
                                             return (
-                                                <React.Fragment key={bill.id}>
-                                                    <tr className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-colors">
-                                                        <td className="py-3 pr-4 font-medium flex items-center gap-2 cursor-pointer" onClick={() => setExpandedRows(prev => ({ ...prev, [bill.id]: !prev[bill.id] }))}>
-                                                            <span className="text-[var(--text-secondary)] text-xs transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
-                                                            <input className="bg-transparent border-none text-[var(--text-primary)] font-medium w-full focus:ring-1 focus:ring-blue-500 rounded px-1" value={bill.data.label} onChange={(e) => updateNodeData(bill.id, 'label', e.target.value)} onClick={(e) => e.stopPropagation()}/>
+                                                <React.Fragment key={sourceId}>
+                                                    <tr className="bg-[var(--bg-secondary)]/30">
+                                                        <td colSpan="5" className="py-2 px-4 text-xs font-bold text-blue-400 uppercase tracking-widest border-y border-[var(--border-color)]">
+                                                            {sourceLabel}
                                                         </td>
-                                                        <td className="py-3 pr-4">
-                                                            <select className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs w-full" value={parentNode ? parentNode.id : ''} onChange={(e) => updateBillSource(bill.id, e.target.value)}>
-                                                                <option value="" disabled>Select Source...</option>
-                                                                {potentialSources.map(src => (<option key={src.id} value={src.id}>{src.data.label}</option>))}
-                                                            </select>
-                                                        </td>
-                                                        <td className="py-3 pr-4">
-                                                            <select className="bg-transparent border-none text-xs text-[var(--text-secondary)] focus:text-[var(--text-primary)] w-full cursor-pointer" value={bill.data.method || 'autopay'} onChange={(e) => updateNodeData(bill.id, 'method', e.target.value)}>
-                                                                <option value="autopay">🔄 Autopay</option>
-                                                                <option value="manual">👆 Manual</option>
-                                                                <option value="billpay">🏦 Bill Pay</option>
-                                                                <option value="check">✍️ Check</option>
-                                                            </select>
-                                                        </td>
-                                                        <td className="py-3 pr-4">{stat ? <span className="text-orange-400 font-mono font-bold">{stat.label}</span> : <span className="text-gray-500 text-sm">-</span>}</td>
-                                                        <td className="py-3 font-medium text-[var(--text-primary)]">{dueString}</td>
                                                     </tr>
-                                                    {isExpanded && (
-                                                        <tr className="bg-[var(--bg-secondary)]/50">
-                                                            <td colSpan="5" className="p-0">
-                                                                <div className="p-3 pl-8 border-l-4 border-[var(--accent-color)]">
-                                                                    <div className="flex justify-between items-center mb-2">
-                                                                        <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Transaction Matches</p>
-                                                                        <div className="flex gap-2">
-                                                                            <input className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs w-64" placeholder="Paste Login URL" value={bill.data.link || ''} onChange={(e) => updateNodeData(bill.id, 'link', e.target.value)}/>
-                                                                            {bill.data.link && <a href={bill.data.link} target="_blank" rel="noopener noreferrer" className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded">Go ↗</a>}
-                                                                        </div>
-                                                                    </div>
-                                                                    {breakdown.length > 0 ? (
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                                            {breakdown.map((item, idx) => (
-                                                                                <div key={idx} className="flex justify-between items-center text-sm bg-[var(--bg-primary)] p-2 rounded border border-[var(--border-color)]">
-                                                                                    <div className="flex flex-col"><span className="font-medium">{item.name}</span><span className="text-[10px] text-[var(--text-secondary)]">Due ~{item.day}th</span></div>
-                                                                                    <div className="text-right"><span className="text-[var(--text-primary)] font-mono block">-${Math.round(item.cost).toLocaleString()}/mo</span><span className="text-[10px] text-[var(--text-secondary)]">{item.count} txns</span></div>
+                                                    {sourceBills.map(bill => {
+                                                        const stat = nodeStats[bill.id];
+                                                        const parentEdge = finalEdges.find(e => e.target === bill.id) || 
+                                                                         (finalNodes.find(n => n.type === 'billGroup' && n.data.containedNodes?.some(cn => cn.id === bill.id)) && 
+                                                                          finalEdges.find(e => e.target === (finalNodes.find(n => n.type === 'billGroup' && n.data.containedNodes?.some(cn => cn.id === bill.id))).id));
+                                                        const parentNode = parentEdge ? finalNodes.find(n => n.id === parentEdge.source) : null;
+                                                        const keywords = rules[bill.id] || [];
+                                                        const isExpanded = expandedRows[bill.id];
+
+                                                        const potentialSources = finalNodes.filter(n => 
+                                                            (n.className?.includes('node-hub') || n.className?.includes('node-account')) &&
+                                                            !n.id.startsWith('dynamic-income')
+                                                        );
+
+                                                        let allMatches = [];
+                                                        const breakdown = keywords.map(k => {
+                                                            const matches = transactions ? transactions.filter(t => 
+                                                                t.type === 'debit' && t.name.toLowerCase().includes(k)
+                                                            ) : [];
+                                                            
+                                                            if (matches.length > 0) allMatches = [...allMatches, ...matches];
+                                                            if (matches.length === 0) return { name: k, cost: 0, count: 0, day: '-' };
+
+                                                            const total = matches.reduce((sum, t) => sum + t.amount, 0);
+                                                            const dates = matches.map(t => new Date(t.date));
+                                                            const minDate = new Date(Math.min(...dates));
+                                                            const maxDate = new Date(Math.max(...dates));
+                                                            const daysDiff = (maxDate - minDate) / (1000 * 60 * 60 * 24);
+                                                            const months = Math.max(daysDiff / 30, 1);
+                                                            const days = dates.map(d => d.getDate());
+                                                            const avgDay = Math.round(days.reduce((a, b) => a + b, 0) / days.length);
+
+                                                            return { name: k, cost: total / months, count: matches.length, day: avgDay };
+                                                        }).filter(b => b.cost > 0).sort((a,b) => b.cost - a.cost);
+
+                                                        let dueString = '-';
+                                                        if (allMatches.length > 0) {
+                                                            const days = allMatches.map(t => new Date(t.date).getDate());
+                                                            const avgDay = Math.round(days.reduce((a, b) => a + b, 0) / days.length);
+                                                            const getOrdinal = (n) => {
+                                                                const s = ["th", "st", "nd", "rd"];
+                                                                const v = n % 100;
+                                                                return n + (s[(v - 20) % 10] || s[v] || s[0]);
+                                                            };
+                                                            dueString = getOrdinal(avgDay);
+                                                        }
+
+                                                        return (
+                                                            <React.Fragment key={bill.id}>
+                                                                <tr className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-colors">
+                                                                    <td className="py-3 pr-4 font-medium flex items-center gap-2 cursor-pointer" onClick={() => setExpandedRows(prev => ({ ...prev, [bill.id]: !prev[bill.id] }))}>
+                                                                        <span className="text-[var(--text-secondary)] text-xs transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
+                                                                        <input className="bg-transparent border-none text-[var(--text-primary)] font-medium w-full focus:ring-1 focus:ring-blue-500 rounded px-1" value={bill.data.label} onChange={(e) => updateNodeData(bill.id, 'label', e.target.value)} onClick={(e) => e.stopPropagation()}/>
+                                                                    </td>
+                                                                    <td className="py-3 pr-4">
+                                                                        <select className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs w-full" value={parentNode ? parentNode.id : ''} onChange={(e) => updateBillSource(bill.id, e.target.value)}>
+                                                                            <option value="" disabled>Select Source...</option>
+                                                                            {potentialSources.map(src => (<option key={src.id} value={src.id}>{src.data.label}</option>))}
+                                                                        </select>
+                                                                    </td>
+                                                                    <td className="py-3 pr-4">
+                                                                        <select className="bg-transparent border-none text-xs text-[var(--text-secondary)] focus:text-[var(--text-primary)] w-full cursor-pointer" value={bill.data.method || 'autopay'} onChange={(e) => updateNodeData(bill.id, 'method', e.target.value)}>
+                                                                            <option value="autopay">🔄 Autopay</option>
+                                                                            <option value="manual">👆 Manual</option>
+                                                                            <option value="billpay">🏦 Bill Pay</option>
+                                                                            <option value="check">✍️ Check</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td className="py-3 pr-4">{stat ? <span className="text-orange-400 font-mono font-bold">{stat.label}</span> : <span className="text-gray-500 text-sm">-</span>}</td>
+                                                                    <td className="py-3 font-medium text-[var(--text-primary)]">{dueString}</td>
+                                                                </tr>
+                                                                {isExpanded && (
+                                                                    <tr className="bg-[var(--bg-secondary)]/50">
+                                                                        <td colSpan="5" className="p-0">
+                                                                            <div className="p-3 pl-8 border-l-4 border-[var(--accent-color)]">
+                                                                                <div className="flex justify-between items-center mb-2">
+                                                                                    <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Transaction Matches</p>
+                                                                                    <div className="flex gap-2">
+                                                                                        <input className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs w-64" placeholder="Paste Login URL" value={bill.data.link || ''} onChange={(e) => updateNodeData(bill.id, 'link', e.target.value)}/>
+                                                                                        {bill.data.link && <a href={bill.data.link} target="_blank" rel="noopener noreferrer" className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded">Go ↗</a>}
+                                                                                    </div>
                                                                                 </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    ) : <p className="text-sm text-gray-500 italic">No transactions found</p>}
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    )}
+                                                                                {breakdown.length > 0 ? (
+                                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                                        {breakdown.map((item, idx) => (
+                                                                                            <div key={idx} className="flex justify-between items-center text-sm bg-[var(--bg-primary)] p-2 rounded border border-[var(--border-color)]">
+                                                                                                <div className="flex flex-col"><span className="font-medium">{item.name}</span><span className="text-[10px] text-[var(--text-secondary)]">Due ~{item.day}th</span></div>
+                                                                                                <div className="text-right"><span className="text-[var(--text-primary)] font-mono block">-${Math.round(item.cost).toLocaleString()}/mo</span><span className="text-[10px] text-[var(--text-secondary)]">{item.count} txns</span></div>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                ) : <p className="text-sm text-gray-500 italic">No transactions found</p>}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
                                                 </React.Fragment>
                                             );
-                                        })}
+                                        });
+                                    })()}
                                 </tbody>
                             </table>
                         </div>

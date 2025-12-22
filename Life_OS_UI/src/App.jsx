@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
-import LandingPage from './pages/LandingPage';
-import FinancialDashboard from './pages/FinancialDashboard';
-import WorkoutPage from './pages/WorkoutPage';
-import MealPlannerPage from './pages/MealPlannerPage';
-import CreativePage from './pages/CreativePage';
-import ProfessionalHubPage from './pages/ProfessionalHubPage';
 import { FinancialProvider } from './contexts/FinancialContext';
 import './App.css';
 import './pages/Page.css'; // Import shared page styles
+
+// Lazy load pages
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const FinancialDashboard = lazy(() => import('./pages/FinancialDashboard'));
+const WorkoutPage = lazy(() => import('./pages/WorkoutPage'));
+const MealPlannerPage = lazy(() => import('./pages/MealPlannerPage'));
+const CreativePage = lazy(() => import('./pages/CreativePage'));
+const ProfessionalHubPage = lazy(() => import('./pages/ProfessionalHubPage'));
 
 // Placeholder component for pages we haven't built yet
 const PlaceholderPage = ({ title }) => (
@@ -23,21 +25,30 @@ const PlaceholderPage = ({ title }) => (
   </div>
 );
 
+// Loading fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-[60vh]">
+    <div className="text-lg font-medium text-[var(--text-secondary)] animate-pulse">Loading Life.io Module...</div>
+  </div>
+);
+
 function App() {
   return (
     <FinancialProvider>
       <div className="App">
         <Navbar />
         <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-[1440px] mx-auto w-full box-border">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/professional-hub" element={<ProfessionalHubPage />} />
-            <Route path="/workout" element={<WorkoutPage />} />
-            <Route path="/meal-planner" element={<MealPlannerPage />} />
-            <Route path="/finance" element={<FinancialDashboard />} />
-            <Route path="/health" element={<PlaceholderPage title="Health Hub" />} />
-            <Route path="/creative" element={<CreativePage />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/professional-hub" element={<ProfessionalHubPage />} />
+              <Route path="/workout" element={<WorkoutPage />} />
+              <Route path="/meal-planner" element={<MealPlannerPage />} />
+              <Route path="/finance" element={<FinancialDashboard />} />
+              <Route path="/health" element={<PlaceholderPage title="Health Hub" />} />
+              <Route path="/creative" element={<CreativePage />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </FinancialProvider>

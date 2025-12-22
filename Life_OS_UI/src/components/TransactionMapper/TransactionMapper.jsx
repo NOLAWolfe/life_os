@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useFinancials } from '../../contexts/FinancialContext';
-import { getOrphanedTransactions, suggestKeyword } from '../../services/mappingService';
+import { getOrphanedTransactions, suggestKeyword, getAllBillNodes } from '../../services/mappingService';
 import './TransactionMapper.css';
 
 const TransactionMapper = () => {
@@ -105,7 +105,7 @@ const TransactionMapper = () => {
     };
 
     // Derived Lists
-    const eligibleNodes = nodes.filter(n => n.className?.includes('node-bill'));
+    const eligibleNodes = useMemo(() => getAllBillNodes(nodes), [nodes]);
     const eligibleAccountNodes = nodes.filter(n => n.className?.includes('node-account') || n.className?.includes('node-hub'));
     
     const uniqueSourceAccounts = useMemo(() => {

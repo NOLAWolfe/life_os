@@ -19,18 +19,22 @@ The project has moved from a static visualization to a **dynamic, manageable str
 3.  **The "Hottest Dollar" & Strategic Metrics**
     *   **Remaining Funds:** Added a dynamic calculation of monthly surplus at the bottom of the map, identifying how much "active" capital is left after all commitments are met.
 
+4.  **Optimization & Resilience (Phase 1)**
+    *   **Performance:** Implemented database indexing, React memoization, and lazy loading for a lightning-fast UI.
+    *   **Visibility:** Organized the strategy engine (Bills List/Plan) by account source to reduce cognitive load and redundancy.
+    *   **Auditability:** Built the "Data Debugger" to provide transparency into the raw CSV ingestion process.
+
 ---
 
-**Next Session Mission: The Data Audit**
-*   **Account/Balance Deep-Dive:** Despite robustness updates, some balances still show as null/zero in the UI. 
-    *   **Task:** Create a "Data Debugger" view in the Data tab that lists all raw CSV headers detected by the system.
-    *   **Task:** Audit `tillerService.cleanNum` to ensure it isn't stripping necessary characters from unusual currency formats.
-*   **Payment Flow UX Polish:**
-    *   Refine edge behavior when ungrouping nodes to ensure they re-attach to the correct parent automatically.
-    *   Add a "Focus Mode" to the Inspector to show only transactions related to the selected bucket.
+**Next Session Mission: The Architectural Refactor & AppMap Integration**
+*   **AppMap Baseline:** Generate and analyze the current system map to identify any lingering circular dependencies or hidden bottlenecks.
+*   **Logic Extraction:** Move grouping, flow, and drift detection logic out of `PaymentFlow.jsx` and into a dedicated `strategyService.js` (Per Senior Dev's audit).
+*   **Data Debugger Expansion:** 
+    *   Add "Lateral Movement" audit to show why specific transactions were flagged.
+    *   Audit `cleanNum` edge cases in the UI (Data Debugger sample view).
+*   **The "Council" Workflow:** Initiate the first planning session for the "Life Admin Assistant" module using the Council of Three protocol.
 
-
-4.  **The Future Vision: "The Useful Assistant Suite"**
+5.  **The Future Vision: "The Useful Assistant Suite"**
     Beyond the current modules, Life.io is evolving into a collection of specialized, local-first AI assistants.
     *   **Core Principles:** Personal-First, Local-First/Privacy-Respecting, and Decision Simplification.
     *   **Planned Assistants:**

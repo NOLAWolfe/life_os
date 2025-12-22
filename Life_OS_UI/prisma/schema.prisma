@@ -24,6 +24,8 @@ model FinancialAccount {
   
   // Relations
   transactions    Transaction[]
+
+  @@index([type])
 }
 
 model Transaction {
@@ -39,6 +41,10 @@ model Transaction {
   // Relations
   accountId       String?
   account         FinancialAccount? @relation(fields: [accountId], references: [id])
+
+  @@index([date])
+  @@index([category])
+  @@index([accountId])
 }
 
 model DebtItem {

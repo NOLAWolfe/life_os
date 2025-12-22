@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import CsvUploader from '../components/CsvUploader/CsvUploader';
-import BalancesWidget from '../components/BalancesWidget/BalancesWidget';
-import SpendingTrends from '../components/SpendingTrends/SpendingTrends';
-import BudgetVsActuals from '../components/BudgetVsActuals/BudgetVsActuals';
-import DebtPayoffPlanner from '../components/DebtPayoffPlanner/DebtPayoffPlanner';
-import LeakDetector from '../components/LeakDetector/LeakDetector';
-import PaymentFlow from '../components/PaymentFlow/PaymentFlow';
-import IncomeStreams from '../components/IncomeStreams/IncomeStreams';
-import BankConnection from '../components/BankConnection/BankConnection';
-import TransactionMapper from '../components/TransactionMapper/TransactionMapper';
 import './FinancialDashboard.css';
+
+// Lazy load widgets
+const BalancesWidget = lazy(() => import('../components/BalancesWidget/BalancesWidget'));
+const SpendingTrends = lazy(() => import('../components/SpendingTrends/SpendingTrends'));
+const BudgetVsActuals = lazy(() => import('../components/BudgetVsActuals/BudgetVsActuals'));
+const DebtPayoffPlanner = lazy(() => import('../components/DebtPayoffPlanner/DebtPayoffPlanner'));
+const LeakDetector = lazy(() => import('../components/LeakDetector/LeakDetector'));
+const PaymentFlow = lazy(() => import('../components/PaymentFlow/PaymentFlow'));
+const IncomeStreams = lazy(() => import('../components/IncomeStreams/IncomeStreams'));
+const BankConnection = lazy(() => import('../components/BankConnection/BankConnection'));
+const TransactionMapper = lazy(() => import('../components/TransactionMapper/TransactionMapper'));
+const DataDebugger = lazy(() => import('../components/DataDebugger/DataDebugger'));
+
+// Loading fallback for widgets
+const WidgetLoader = () => (
+    <div className="flex items-center justify-center min-h-[200px] w-full bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
+        <div className="text-sm text-[var(--text-secondary)] animate-pulse">Initializing Widget...</div>
+    </div>
+);
 
 const FinancialDashboard = () => {
     const [activeTab, setActiveTab] = useState('strategy');
@@ -76,95 +86,102 @@ const FinancialDashboard = () => {
                             <button className={`sub-tab-button ${subTab === 'upload' ? 'active' : ''}`} onClick={() => setSubTab('upload')}>Upload Files</button>
                             <button className={`sub-tab-button ${subTab === 'connect' ? 'active' : ''}`} onClick={() => setSubTab('connect')}>Bank Connect</button>
                             <button className={`sub-tab-button ${subTab === 'mapper' ? 'active' : ''}`} onClick={() => setSubTab('mapper')}>🧙‍♂️ Sorting Hat</button>
+                            <button className={`sub-tab-button ${subTab === 'debug' ? 'active' : ''}`} onClick={() => setSubTab('debug')}>🕵️ Data Debugger</button>
                         </>
                     )}
                 </div>
 
                 {/* Content Areas */}
                 <div className="dashboard-content">
-                    
-                    {/* STRATEGY VIEW */}
-                    {activeTab === 'strategy' && (
-                        <div className="h-full flex flex-col">
-                            {/* Hero Section: The Strategy Map */}
-                            <div className="w-full flex-1 min-h-[700px]">
-                                <PaymentFlow viewMode={subTab} setViewMode={setSubTab} />
+                    <Suspense fallback={<WidgetLoader />}>
+                        {/* STRATEGY VIEW */}
+                        {activeTab === 'strategy' && (
+                            <div className="h-full flex flex-col">
+                                {/* Hero Section: The Strategy Map */}
+                                <div className="w-full flex-1 min-h-[700px]">
+                                    <PaymentFlow viewMode={subTab} setViewMode={setSubTab} />
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* ANALYTICS VIEW */}
-                    {activeTab === 'analytics' && (
-                        <div className="space-y-8">
-                            {subTab === 'overview' && (
-                                <>
-                                    {/* Top Row: Offense & Defense */}
-                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        {/* ANALYTICS VIEW */}
+                        {activeTab === 'analytics' && (
+                            <div className="space-y-8">
+                                {subTab === 'overview' && (
+                                    <>
+                                        {/* Top Row: Offense & Defense */}
+                                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                            <IncomeStreams />
+                                            <SpendingTrends />
+                                        </div>
+                                        
+                                        {/* Middle Row: Strategy Widgets (Moved here) */}
+                                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                            <LeakDetector />
+                                            <DebtPayoffPlanner />
+                                        </div>
+
+                                        {/* Bottom Row: Details */}
+                                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                                            <div className="xl:col-span-2">
+                                                <BudgetVsActuals />
+                                            </div>
+                                            <div>
+                                                <BalancesWidget />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                                {subTab === 'income' && (
+                                    <div className="xl:col-span-3">
                                         <IncomeStreams />
-                                        <SpendingTrends />
                                     </div>
-                                    
-                                    {/* Middle Row: Strategy Widgets (Moved here) */}
+                                )}
+                                {subTab === 'spending' && (
+                                    <div className="xl:col-span-3 space-y-8">
+                                        <SpendingTrends />
+                                        <BudgetVsActuals />
+                                    </div>
+                                )}
+                                {subTab === 'debt' && (
                                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                                         <LeakDetector />
                                         <DebtPayoffPlanner />
                                     </div>
+                                )}
+                            </div>
+                        )}
 
-                                    {/* Bottom Row: Details */}
-                                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                                        <div className="xl:col-span-2">
-                                            <BudgetVsActuals />
+                        {/* DATA VIEW */}
+                        {activeTab === 'data' && (
+                            <div className="h-full">
+                                {subTab === 'upload' && (
+                                    <div className="max-w-2xl mx-auto space-y-4">
+                                        <h2 className="text-xl font-bold">Data Ingestion</h2>
+                                        <div className="p-4 bg-[var(--bg-secondary)] rounded-lg text-sm text-[var(--text-secondary)] mb-4">
+                                            <p>Upload your Tiller exports here to update the dashboard.</p>
                                         </div>
-                                        <div>
-                                            <BalancesWidget />
-                                        </div>
+                                        <CsvUploader />
                                     </div>
-                                </>
-                            )}
-                            {subTab === 'income' && (
-                                <div className="xl:col-span-3">
-                                    <IncomeStreams />
-                                </div>
-                            )}
-                            {subTab === 'spending' && (
-                                <div className="xl:col-span-3 space-y-8">
-                                    <SpendingTrends />
-                                    <BudgetVsActuals />
-                                </div>
-                            )}
-                            {subTab === 'debt' && (
-                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                                    <LeakDetector />
-                                    <DebtPayoffPlanner />
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* DATA VIEW */}
-                    {activeTab === 'data' && (
-                        <div className="h-full">
-                            {subTab === 'upload' && (
-                                <div className="max-w-2xl mx-auto space-y-4">
-                                    <h2 className="text-xl font-bold">Data Ingestion</h2>
-                                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg text-sm text-[var(--text-secondary)] mb-4">
-                                        <p>Upload your Tiller exports here to update the dashboard.</p>
+                                )}
+                                {subTab === 'connect' && (
+                                    <div className="h-full flex items-center justify-center">
+                                        <BankConnection />
                                     </div>
-                                    <CsvUploader />
-                                </div>
-                            )}
-                            {subTab === 'connect' && (
-                                <div className="h-full flex items-center justify-center">
-                                    <BankConnection />
-                                </div>
-                            )}
-                            {subTab === 'mapper' && (
-                                <div className="h-full">
-                                    <TransactionMapper />
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                )}
+                                {subTab === 'mapper' && (
+                                    <div className="h-full">
+                                        <TransactionMapper />
+                                    </div>
+                                )}
+                                {subTab === 'debug' && (
+                                    <div className="h-full">
+                                        <DataDebugger />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </Suspense>
                 </div>
             </div>
         </div>

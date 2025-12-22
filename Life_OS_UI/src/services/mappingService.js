@@ -78,6 +78,31 @@ export const getOrphanedTransactions = (transactions, currentRules) => {
 };
 
 /**
+ * Recursively extracts all bill nodes from a list of ReactFlow nodes.
+ * Handles both top-level bill nodes and those nested within billGroup nodes.
+ */
+export const getAllBillNodes = (nodes) => {
+    if (!nodes) return [];
+    
+    let bills = [];
+    nodes.forEach(node => {
+        // Check if it's a bill node
+        if (node.type === 'bill' || node.className?.includes('node-bill')) {
+            bills.push(node);
+        }
+        
+        // If it's a group, check its contained nodes
+        if (node.type === 'billGroup' && node.data?.containedNodes) {
+            // Recursive call for nested groups if they ever exist, 
+            // or just add the contained nodes.
+            bills.push(...getAllBillNodes(node.data.containedNodes));
+        }
+    });
+    
+    return bills;
+};
+
+/**
  * Helper to generate a standardized "Rule Keyword" from a transaction description.
  * e.g., "Spotify USA 829283" -> "spotify"
  */

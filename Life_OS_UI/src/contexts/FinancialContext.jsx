@@ -10,8 +10,6 @@ export const useFinancials = () => {
 export const FinancialProvider = ({ children }) => {
     const [accounts, setAccounts] = useState([]); 
     const [transactions, setTransactions] = useState([]);
-    const [incomeStreams, setIncomeStreams] = useState([]);
-    const [cashFlow, setCashFlow] = useState({ monthlyIncome: 0, monthlyExpenses: 0, surplus: 0 });
     const [categories, setCategories] = useState([]);
     const [debtAccounts, setDebtAccounts] = useState([]);
     const [summaryBalances, setSummaryBalances] = useState(null);
@@ -39,14 +37,14 @@ export const FinancialProvider = ({ children }) => {
     }, []);
 
     // Update income streams and cash flow whenever transactions change
-    useEffect(() => {
-        if (transactions.length > 0) {
-            const streams = tillerService.processIncomeData(transactions);
-            setIncomeStreams(streams);
-            
-            const flow = tillerService.calculateCashFlow(transactions);
-            setCashFlow(flow);
-        }
+    const incomeStreams = useMemo(() => {
+        if (transactions.length === 0) return [];
+        return tillerService.processIncomeData(transactions);
+    }, [transactions]);
+
+    const cashFlow = useMemo(() => {
+        if (transactions.length === 0) return { monthlyIncome: 0, monthlyExpenses: 0, surplus: 0 };
+        return tillerService.calculateCashFlow(transactions);
     }, [transactions]);
 
     // Initial Load Sequence
@@ -148,7 +146,7 @@ export const FinancialProvider = ({ children }) => {
         }
     };
 
-    const value = {
+    const value = useMemo(() => ({
         accounts,
         transactions,
         incomeStreams,
@@ -164,7 +162,18 @@ export const FinancialProvider = ({ children }) => {
         handleCategoriesUpload,
         handleDebtUpload,
         refreshFromDb
-    };
+    }), [
+        accounts,
+        transactions,
+        incomeStreams,
+        cashFlow,
+        categories,
+        debtAccounts,
+        summaryBalances,
+        loading,
+        error,
+        refreshFromDb
+    ]);
 
     return (
         <FinancialContext.Provider value={value}>
