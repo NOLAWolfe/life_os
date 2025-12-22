@@ -611,14 +611,33 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
     const renderPlanItem = (item, depth = 0) => {
         const stat = nodeStats[item.node?.id];
+        const isGroup = item.node?.type === 'billGroup';
+        const containedNodes = item.node?.data.containedNodes || [];
+
         return (
             <div key={item.node?.id || Math.random()} style={{ marginLeft: `${depth * 20}px` }} className="plan-item mb-2 border-l border-gray-700 pl-2">
                 <div className="flex items-center gap-2">
                     <span className="text-gray-400">{depth > 0 ? '└─' : '•'}</span>
-                    <span className={`font-medium ${depth === 0 ? 'text-lg text-blue-400' : 'text-sm'}`}>{item.node?.data.label}</span>
+                    <span className={`font-medium ${depth === 0 ? 'text-lg text-blue-400' : (isGroup ? 'text-indigo-400' : 'text-sm')}`}>
+                        {item.node?.data.label}
+                    </span>
                     {stat && <span className={`text-xs px-2 py-0.5 rounded font-mono ${stat.type === 'balance' ? 'bg-green-900 text-green-200' : 'bg-orange-900 text-orange-200'}`}>{stat.label}</span>}
+                    {isGroup && <span className="text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded border border-indigo-700">Bucket: {containedNodes.length} items</span>}
                     {item.edge?.label && <span className="text-xs bg-gray-700 px-2 py-0.5 rounded text-gray-300">{item.edge.label}</span>}
                 </div>
+                
+                {/* Render Group Contents if applicable */}
+                {isGroup && containedNodes.map(childNode => (
+                    <div key={childNode.id} style={{ marginLeft: '20px' }} className="plan-item mb-1 border-l border-indigo-900/50 pl-2 opacity-80">
+                        <div className="flex items-center gap-2">
+                            <span className="text-indigo-700">↳</span>
+                            <span className="text-xs text-gray-300">{childNode.data.label}</span>
+                            {nodeStats[childNode.id] && <span className="text-[10px] text-orange-400 font-mono">{nodeStats[childNode.id].label}</span>}
+                        </div>
+                    </div>
+                ))}
+
+                {/* Recursively render children from edges */}
                 {item.children.map(child => renderPlanItem(child, depth + 1))}
             </div>
         );
