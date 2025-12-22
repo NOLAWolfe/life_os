@@ -1,5 +1,5 @@
 import React from 'react';
-import MealPlanner from '../components/MealPlanner/MealPlanner';
+import MealPlanner from '../components/LifeAdmin/MealPlanner/MealPlanner';
 import '../pages/Page.css';
 
 const MealPlannerPage = () => {

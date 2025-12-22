@@ -1,12 +1,12 @@
 import React from "react";
-import Calendar from "../components/Calendar/Calendar";
-import BalancesWidget from "../components/BalancesWidget/BalancesWidget";
-import ObsidianConnector from "../components/ObsidianConnector/ObsidianConnector";
-import SmallWinWidget from "../components/SmallWinWidget/SmallWinWidget";
-import WealthTargets from "../components/WealthTargets/WealthTargets";
-import WealthMentor from "../components/WealthMentor/WealthMentor";
-import DailyReads from "../components/DailyReads/DailyReads";
-import ToDoTracker from "../components/TodoTracker/TodoTracker";
+import Calendar from "../components/LifeAdmin/Calendar/Calendar";
+import BalancesWidget from "../components/Finance/BalancesWidget/BalancesWidget";
+import ObsidianConnector from "../components/System/ObsidianConnector/ObsidianConnector";
+import SmallWinWidget from "../components/Finance/SmallWinWidget/SmallWinWidget";
+import WealthTargets from "../components/Finance/WealthTargets/WealthTargets";
+import WealthMentor from "../components/Finance/WealthMentor/WealthMentor";
+import DailyReads from "../components/LifeAdmin/DailyReads/DailyReads";
+import ToDoTracker from "../components/LifeAdmin/TodoTracker/TodoTracker";
 import "./LandingPage.css";
 
 const LandingPage = () => {

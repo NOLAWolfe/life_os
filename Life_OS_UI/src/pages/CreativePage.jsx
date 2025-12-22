@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import spotifyService from '../services/spotifyService';
-import SetlistCritic from '../components/SetlistCritic/SetlistCritic';
+import SetlistCritic from '../components/SocialHub/SetlistCritic/SetlistCritic';
 import '../pages/Page.css';
 import './CreativePage.css';
 

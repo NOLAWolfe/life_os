@@ -148,8 +148,8 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
     // -- Node Statistics (Balances & Bill Costs) --
     const { nodeStats, totalMonthlyCommitments } = useMemo(() => {
-        return strategyService.calculateNodeStats(nodes, accounts, transactions, rules);
-    }, [nodes, accounts, transactions, rules]);
+        return strategyService.calculateNodeStats(nodes, accounts, transactions, rules, debtAccounts);
+    }, [nodes, accounts, transactions, rules, debtAccounts]);
 
     // -- The Big Picture: Remaining Funds Node (Tier 4) --
     const remainingFundsNode = useMemo(() => {
@@ -159,10 +159,10 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         return {
             id: 'node-remaining-funds',
             data: { 
-                label: `🌟 Remaining Funds\n$${Math.round(remaining).toLocaleString()}/mo` 
+                label: `🔥 The Hottest Dollar\n$${Math.round(remaining).toLocaleString()}/mo\n(Wealth Creation)`,
             },
             position: { x: 250, y: STRATEGY_TIERS.REMAINING }, // Tier 4 (Bottom)
-            className: `node-remaining ${isHealthy ? 'healthy' : 'tight'}`, // Corrected class name
+            className: `node-remaining ${isHealthy ? 'healthy' : 'tight'}`, 
             type: 'output',
             draggable: false
         };

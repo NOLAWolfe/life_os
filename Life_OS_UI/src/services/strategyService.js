@@ -105,8 +105,9 @@ const strategyService = {
 
     /**
      * Calculates monthly averages for bills based on transaction history and rules.
+     * Incorporates Debt Minimums for liability nodes.
      */
-    calculateNodeStats: (nodes, accounts, transactions, rules) => {
+    calculateNodeStats: (nodes, accounts, transactions, rules, debtAccounts = []) => {
         const stats = {};
         let totalCommitments = 0;
         
@@ -129,9 +130,24 @@ const strategyService = {
             });
         }
 
-        // 2. Bill Costs
-        if (transactions && rules) {
-            Object.entries(rules).forEach(([nodeId, keywords]) => {
+        // 2. Bill Costs (Transactions vs Debt Minimums)
+        nodes.forEach(node => {
+            // Check if node is a Debt Node (via ID or Type)
+            const debtMatch = debtAccounts.find(d => 
+                node.id.includes(d.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()) ||
+                node.data.label === d.name
+            );
+
+            let monthlyCost = 0;
+            let isDebt = false;
+
+            if (debtMatch) {
+                // Priority 1: Use the Hard Minimum from Tiller Metadata
+                monthlyCost = debtMatch.minPayment || 0;
+                isDebt = true;
+            } else if (rules && rules[node.id] && transactions) {
+                // Priority 2: Use Transaction History Average
+                const keywords = rules[node.id];
                 const matches = transactions.filter(t => 
                     t.type === 'debit' &&
                     keywords.some(k => t.name.toLowerCase().includes(k))
@@ -144,18 +160,19 @@ const strategyService = {
                     const maxDate = new Date(Math.max(...dates));
                     const daysDiff = (maxDate - minDate) / (1000 * 60 * 60 * 24);
                     const months = Math.max(daysDiff / 30, 1);
-                    
-                    const avgMonthly = totalCheck / months;
-                    totalCommitments += avgMonthly;
-
-                    stats[nodeId] = {
-                        type: 'bill',
-                        value: avgMonthly,
-                        label: `-$${Math.round(avgMonthly).toLocaleString()}/mo`
-                    };
+                    monthlyCost = totalCheck / months;
                 }
-            });
-        }
+            }
+
+            if (monthlyCost > 0) {
+                totalCommitments += monthlyCost;
+                stats[node.id] = {
+                    type: isDebt ? 'debt' : 'bill',
+                    value: monthlyCost,
+                    label: `-$${Math.round(monthlyCost).toLocaleString()}/mo`
+                };
+            }
+        });
         
         return { nodeStats: stats, totalMonthlyCommitments: totalCommitments };
     },

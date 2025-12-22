@@ -1,18 +1,18 @@
 import React, { useState, Suspense, lazy } from 'react';
-import CsvUploader from '../components/CsvUploader/CsvUploader';
+import CsvUploader from '../components/Finance/CsvUploader/CsvUploader';
 import './FinancialDashboard.css';
 
 // Lazy load widgets
-const BalancesWidget = lazy(() => import('../components/BalancesWidget/BalancesWidget'));
-const SpendingTrends = lazy(() => import('../components/SpendingTrends/SpendingTrends'));
-const BudgetVsActuals = lazy(() => import('../components/BudgetVsActuals/BudgetVsActuals'));
-const DebtPayoffPlanner = lazy(() => import('../components/DebtPayoffPlanner/DebtPayoffPlanner'));
-const LeakDetector = lazy(() => import('../components/LeakDetector/LeakDetector'));
-const PaymentFlow = lazy(() => import('../components/PaymentFlow/PaymentFlow'));
-const IncomeStreams = lazy(() => import('../components/IncomeStreams/IncomeStreams'));
-const BankConnection = lazy(() => import('../components/BankConnection/BankConnection'));
-const TransactionMapper = lazy(() => import('../components/TransactionMapper/TransactionMapper'));
-const DataDebugger = lazy(() => import('../components/DataDebugger/DataDebugger'));
+const BalancesWidget = lazy(() => import('../components/Finance/BalancesWidget/BalancesWidget'));
+const SpendingTrends = lazy(() => import('../components/Finance/SpendingTrends/SpendingTrends'));
+const BudgetVsActuals = lazy(() => import('../components/Finance/BudgetVsActuals/BudgetVsActuals'));
+const DebtPayoffPlanner = lazy(() => import('../components/Finance/DebtPayoffPlanner/DebtPayoffPlanner'));
+const LeakDetector = lazy(() => import('../components/Finance/LeakDetector/LeakDetector'));
+const PaymentFlow = lazy(() => import('../components/Finance/PaymentFlow/PaymentFlow'));
+const IncomeStreams = lazy(() => import('../components/Finance/IncomeStreams/IncomeStreams'));
+const BankConnection = lazy(() => import('../components/Finance/BankConnection/BankConnection'));
+const TransactionMapper = lazy(() => import('../components/Finance/TransactionMapper/TransactionMapper'));
+const DataDebugger = lazy(() => import('../components/System/DataDebugger/DataDebugger'));
 
 // Loading fallback for widgets
 const WidgetLoader = () => (
