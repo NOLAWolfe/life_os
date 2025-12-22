@@ -44,7 +44,7 @@ const IncomeStreams = () => {
                 type: config.type || 'active', // Default to active
                 alias: config.alias || s.name,
                 target: config.target || 0,
-                monthlyAvg: s.average // Assuming 'average' from service is monthly
+                monthlyAvg: s.monthlyAvg || s.average // Use true monthly avg, fallback to avg per txn
             };
         });
     }, [incomeStreams, streamConfig]);

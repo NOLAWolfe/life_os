@@ -10,7 +10,14 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useFinancials } from '../../contexts/FinancialContext';
+import BillNode from './BillNode'; // Import Custom Node
+import BillGroupNode from './BillGroupNode';
 import './PaymentFlow.css';
+
+const nodeTypes = {
+  bill: BillNode,
+  billGroup: BillGroupNode,
+};
 
 const initialNodes = [
   // Tier 0: Income (Placeholder if dynamic fails)
@@ -20,17 +27,17 @@ const initialNodes = [
   { id: 'navy-fed', data: { label: '🏦 Navy Fed (Primary)' }, position: { x: 250, y: 150 }, className: 'node-hub' },
   
   // Tier 3: Strategy / MMI
-  { id: 'mmi-group', data: { label: '🛡️ MMI / Debt Mgmt' }, position: { x: 600, y: 450 }, className: 'node-bill' },
+  { id: 'mmi-group', type: 'bill', data: { label: '🛡️ MMI / Debt Mgmt' }, position: { x: 600, y: 450 } },
 
   // Tier 2: Secondary Accounts / Liabilities
   { id: 'chase-8211', data: { label: '🏠 Chase 8211 (Joint/House)' }, position: { x: 50, y: 300 }, className: 'node-account' },
   
   // Tier 3: Target Bills
-  { id: 'mortgage', data: { label: 'Mortgage/Housing' }, position: { x: -50, y: 450 }, className: 'node-bill' },
-  { id: 'auto-loan', data: { label: 'Auto Loan' }, position: { x: 150, y: 450 }, className: 'node-bill' },
-  { id: 'savings', data: { label: 'Savings' }, position: { x: 250, y: 450 }, className: 'node-bill' },
-  { id: 'phone-wifi', data: { label: 'Utility Bills' }, position: { x: 350, y: 450 }, className: 'node-bill' },
-  { id: 'subs', data: { label: 'Subscriptions' }, position: { x: 450, y: 450 }, className: 'node-bill' },
+  { id: 'mortgage', type: 'bill', data: { label: 'Mortgage/Housing' }, position: { x: -50, y: 450 } },
+  { id: 'auto-loan', type: 'bill', data: { label: 'Auto Loan' }, position: { x: 150, y: 450 } },
+  { id: 'savings', type: 'bill', data: { label: 'Savings' }, position: { x: 250, y: 450 } },
+  { id: 'phone-wifi', type: 'bill', data: { label: 'Utility Bills' }, position: { x: 350, y: 450 } },
+  { id: 'subs', type: 'bill', data: { label: 'Subscriptions' }, position: { x: 450, y: 450 } },
 ];
 
 const initialEdges = [
@@ -43,12 +50,20 @@ const initialEdges = [
 ];
 
 const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
-    const { transactions, accounts, incomeStreams } = useFinancials();
+    const { transactions, accounts, incomeStreams, debtAccounts } = useFinancials();
     
     // Load Nodes/Edges from LocalStorage or use Default
     const [nodes, setNodes, onNodesChange] = useNodesState(() => {
         const saved = localStorage.getItem('paymentFlowNodes');
-        return saved ? JSON.parse(saved) : initialNodes;
+        // Migration: Ensure saved bill nodes have type='bill'
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            return parsed.map(n => {
+                if (n.className?.includes('node-bill')) return { ...n, type: 'bill' };
+                return n;
+            });
+        }
+        return initialNodes;
     });
     const [edges, setEdges, onEdgesChange] = useEdgesState(() => {
         const saved = localStorage.getItem('paymentFlowEdges');
@@ -59,7 +74,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     const [newRule, setNewRule] = React.useState('');
     const [expandedRows, setExpandedRows] = React.useState({}); 
 
-    // -- Auto-Populate CC Liabilities (Tier 2) --
+    // -- Auto-Populate Accounts (Assets & Liabilities) --
     useEffect(() => {
         if (!accounts || accounts.length === 0) return;
 
@@ -70,21 +85,41 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             accounts.forEach(acc => {
                 const type = (acc.type || '').toLowerCase();
                 const group = (acc.group || '').toLowerCase();
+                const className = (acc.class || '').toLowerCase();
                 
-                // User requirement: CC Liabilities only, exclude Student Loans
-                const isCC = type.includes('credit') || group.includes('credit');
-                const isStudentLoan = acc.name?.toLowerCase().includes('student') || type.includes('student');
+                // 1. Identify Node Type
+                let isHub = false;
+                let isLiability = false;
 
-                if (!isCC || isStudentLoan) return;
+                if (className === 'asset' || type.includes('checking') || type.includes('savings')) {
+                    isHub = true;
+                } else if (type.includes('credit') || group.includes('credit')) {
+                    isLiability = true;
+                }
 
-                const exists = currentNodes.some(n => n.id === acc.account_id || n.data.label.includes(acc.name));
+                // Skip if not a relevant account type (e.g. ignore random assets like 'House Value' for now unless explicitly desired)
+                if (!isHub && !isLiability) return;
+                
+                // Special Case: Ignore Student Loans here (handled by debtAccounts)
+                if (acc.name?.toLowerCase().includes('student') || type.includes('student')) return;
+
+                // Check for existence
+                const exists = currentNodes.some(n => 
+                    n.id === acc.account_id || 
+                    n.data.label.toLowerCase().includes(acc.name.toLowerCase()) ||
+                    (acc.account_id && n.id.includes(acc.account_id)) // robust check
+                );
+
                 if (!exists) {
                     hasChanges = true;
+                    // Deterministic ID
+                    const fallbackId = `node-${isHub ? 'hub' : 'liab'}-${acc.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+                    
                     newNodes.push({
-                        id: acc.account_id || `node-liab-${Date.now()}`,
-                        data: { label: `💳 ${acc.name}` },
-                        position: { x: 450, y: 300 }, // Tier 2
-                        className: 'node-account'
+                        id: acc.account_id || fallbackId,
+                        data: { label: isHub ? `🏦 ${acc.name}` : `💳 ${acc.name}` },
+                        position: { x: isHub ? 250 : 450, y: isHub ? 150 : 300 }, // Tier 1 (Hub) vs Tier 2 (Liability)
+                        className: isHub ? 'node-hub' : 'node-account'
                     });
                 }
             });
@@ -92,6 +127,67 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             return hasChanges ? newNodes : currentNodes;
         });
     }, [accounts]);
+
+    // -- Auto-Populate Debt Liabilities (Tier 3) --
+    useEffect(() => {
+        if (!debtAccounts || debtAccounts.length === 0) return;
+
+        setNodes(currentNodes => {
+            const newNodes = [...currentNodes];
+            let hasChanges = false;
+            
+            // We'll also track if we need to add edges for these new nodes
+            const newEdges = []; 
+
+            debtAccounts.forEach((debt, index) => {
+                if (!debt.active || debt.currentBalance <= 0) return;
+
+                // Check if node exists (by name or fuzzy match)
+                const exists = currentNodes.find(n => 
+                    n.data.label.toLowerCase().includes(debt.name.toLowerCase()) ||
+                    (debt.originalName && n.data.label.toLowerCase().includes(debt.originalName.toLowerCase()))
+                );
+
+                if (exists) {
+                    // Update existing node data with Debt info if needed
+                    // (Optional: could update label or metadata here)
+                    return;
+                }
+
+                hasChanges = true;
+                const isCard = debt.name.toLowerCase().includes('visa') || debt.name.toLowerCase().includes('card') || debt.name.toLowerCase().includes('amex');
+                
+                // If it's a card, it might have been missed by Accounts load, or it's a pure liability
+                // If it's a loan (Student, Auto), make it a Bill node
+                const type = isCard ? 'default' : 'bill';
+                const className = isCard ? 'node-account' : ''; // Bill nodes use custom component, no class needed usually
+                const tierY = isCard ? 300 : 450;
+                
+                // Deterministic ID: debt-index-sanitizedName
+                const nodeId = `debt-${index}-${debt.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+                
+                newNodes.push({
+                    id: nodeId,
+                    type: type,
+                    data: { 
+                        label: debt.name,
+                        subtext: `Min: $${debt.minPayment}`, // For BillNode
+                        minPayment: debt.minPayment,
+                        payoffDate: debt.payoffMonth
+                    },
+                    position: { x: 100 + (index * 120), y: tierY },
+                    className: className
+                });
+
+                // Auto-link to Hub (Navy Fed) if creating new
+                // Check if edge exists is tricky here since we don't have edges state in this scope easily
+                // For now, we just add the node. The user can link it.
+                // OR we can try to append to edges in a separate effect. 
+            });
+
+            return hasChanges ? newNodes : currentNodes;
+        });
+    }, [debtAccounts]);
 
     // -- Defensive Adapter: Dynamic Income Streams (Tier 0) --
     const { dynamicNodes, dynamicEdges, totalMonthlyIncome } = useMemo(() => {
@@ -244,7 +340,9 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
     // -- Actions --
     const saveLayout = () => {
-        localStorage.setItem('paymentFlowNodes', JSON.stringify(nodes));
+        // Save cleaned state (remove drift flags from persistence if any)
+        const nodesToSave = nodes.map(n => ({ ...n, data: { ...n.data, isDrifting: false } }));
+        localStorage.setItem('paymentFlowNodes', JSON.stringify(nodesToSave));
         localStorage.setItem('paymentFlowEdges', JSON.stringify(edges));
         alert('Strategy layout saved!');
     };
@@ -265,7 +363,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             if (node.id === 'income' || node.id.startsWith('dynamic-income')) y = 0;
             else if (node.className?.includes('node-hub')) y = 150;
             else if (node.className?.includes('node-account')) y = 300;
-            else if (node.className?.includes('node-bill')) y = 450;
+            else if (node.type === 'bill' || node.className?.includes('node-bill')) y = 450;
             
             return {
                 ...node,
@@ -277,12 +375,15 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     const addNode = () => {
         const label = prompt('Node Name:');
         if (!label) return;
-        const type = prompt('Type (hub, account, bill):', 'bill');
+        const typeInput = prompt('Type (hub, account, bill):', 'bill');
+        const type = typeInput === 'bill' ? 'bill' : 'default'; // ReactFlow Type
+        
         const newNode = {
             id: `node-${Date.now()}`,
             data: { label },
             position: { x: 100, y: 100 },
-            className: `node-${type || 'bill'}`
+            type: type,
+            className: type === 'default' ? `node-${typeInput}` : ''
         };
         setNodes((nds) => nds.concat(newNode));
     };
@@ -319,6 +420,118 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             if (n.id === nodeId) return { ...n, data: { ...n.data, [field]: value } };
             return n;
         }));
+    };
+
+    // -- Grouping Logic --
+    const groupSelectedNodes = () => {
+        // We need to know which nodes are selected. React Flow controls selection state internally usually,
+        // but we can filter nodes by `selected: true` if we are passing onNodesChange correctly.
+        // Let's check nodes state.
+        const selectedNodes = nodes.filter(n => n.selected);
+        if (selectedNodes.length < 2) {
+            alert('Select at least 2 nodes to group.');
+            return;
+        }
+        
+        // Validation: Only group Bill nodes for now to avoid breaking hierarchy
+        const invalid = selectedNodes.some(n => n.type !== 'bill' && !n.className?.includes('node-bill'));
+        if (invalid) {
+            alert('Only Bill nodes can be grouped currently.');
+            return;
+        }
+
+        // Calculate aggregate data
+        const totalAmount = selectedNodes.reduce((sum, n) => {
+            const stat = nodeStats[n.id];
+            return sum + (stat ? stat.value : 0);
+        }, 0);
+
+        // Center position
+        const avgX = selectedNodes.reduce((sum, n) => sum + n.position.x, 0) / selectedNodes.length;
+        const avgY = selectedNodes.reduce((sum, n) => sum + n.position.y, 0) / selectedNodes.length;
+
+        // Create Group Node
+        const groupId = `group-${Date.now()}`;
+        const groupNode = {
+            id: groupId,
+            type: 'billGroup',
+            position: { x: avgX, y: avgY },
+            data: { 
+                label: 'Bill Bucket', 
+                billCount: selectedNodes.length, 
+                totalAmount: totalAmount,
+                containedNodes: selectedNodes // Store original nodes
+            },
+            selected: true
+        };
+
+        // Re-route edges: Find edges pointing to any of the selected nodes
+        // and make them point to the new group node.
+        // NOTE: We only handle incoming edges from Hub/Account -> Group.
+        // We might drop edges between bills if any?
+        const newEdges = edges.map(e => {
+            if (selectedNodes.some(n => n.id === e.target)) {
+                return { ...e, target: groupId };
+            }
+            return e;
+        }).filter(e => !selectedNodes.some(n => n.id === e.source)); // Remove edges starting from grouped nodes
+
+        // Deduplicate edges (if multiple bills had same source, we only need one edge to group)
+        const uniqueEdges = [];
+        const seenEdges = new Set();
+        newEdges.forEach(e => {
+            const key = `${e.source}-${e.target}`;
+            if (!seenEdges.has(key)) {
+                seenEdges.add(key);
+                uniqueEdges.push(e);
+            }
+        });
+
+        // Update State: Remove original nodes, add group node
+        const remainingNodes = nodes.filter(n => !selectedNodes.some(s => s.id === n.id));
+        setNodes([...remainingNodes, groupNode]);
+        setEdges(uniqueEdges);
+    };
+
+    const ungroupNode = () => {
+        if (!selectedNode || selectedNode.type !== 'billGroup') return;
+
+        const groupNode = selectedNode;
+        const containedNodes = groupNode.data.containedNodes || [];
+
+        if (containedNodes.length === 0) {
+            // Just delete the empty group
+            setNodes(nodes.filter(n => n.id !== groupNode.id));
+            return;
+        }
+
+        // Restore Nodes
+        // We might want to offset their positions slightly so they don't stack perfectly?
+        // For now, restore original positions.
+        
+        // Restore Edges
+        // We need to re-connect them.
+        // Assumption: The edge that connected to the Group Node should be distributed to all children?
+        // OR we rely on the user to re-link? 
+        // Better: Check who the Group was connected to.
+        const parentEdge = edges.find(e => e.target === groupNode.id);
+        const parentId = parentEdge ? parentEdge.source : null;
+
+        let restoredEdges = [...edges.filter(e => e.target !== groupNode.id && e.source !== groupNode.id)];
+        
+        if (parentId) {
+            const newLinks = containedNodes.map(n => ({
+                id: `e-${parentId}-${n.id}-${Date.now()}`,
+                source: parentId,
+                target: n.id,
+                animated: false
+            }));
+            restoredEdges = [...restoredEdges, ...newLinks];
+        }
+
+        setNodes([...nodes.filter(n => n.id !== groupNode.id), ...containedNodes]);
+        setEdges(restoredEdges);
+        setSelectedNode(null);
     };
 
     // -- Audit Logic (Drift Detection) --
@@ -361,14 +574,25 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             const stat = nodeStats[node.id];
             let label = node.data.label;
 
+            // Update Label with Stats (if not custom bill node, which handles it internally via data prop?)
+            // Actually, for custom node, we need to pass data.amount
             if (stat && !node.id.startsWith('dynamic-income-') && node.id !== 'node-remaining-funds') {
                 label = `${node.data.label} (${stat.label})`;
             }
 
-            if (hasIssue) {
-                return { ...node, className: `${node.className} ring-4 ring-red-500`, data: { ...node.data, label: `${label} ⚠️` } };
-            }
-            return { ...node, data: { ...node.data, label } };
+            const isDrifting = !!hasIssue;
+            
+            return { 
+                ...node, 
+                data: { 
+                    ...node.data, 
+                    label, 
+                    isDrifting,
+                    amount: stat?.label // Pass formatted amount to custom node
+                },
+                // Add drift class if default node
+                className: (!node.type && isDrifting) ? `${node.className} ring-4 ring-red-500` : node.className
+            };
         });
     }, [finalNodes, auditResults, nodeStats]);
 
@@ -406,6 +630,10 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                 <h2 className="text-xl font-bold text-[var(--accent-color)]">🗺️ Strategic Money Map</h2>
                 <div className="flex gap-2">
                     <button onClick={addNode} className="px-3 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded">+ Node</button>
+                    <button onClick={groupSelectedNodes} className="px-3 py-1 text-xs bg-indigo-700 hover:bg-indigo-600 rounded">📂 Group</button>
+                    {selectedNode && selectedNode.type === 'billGroup' && (
+                        <button onClick={ungroupNode} className="px-3 py-1 text-xs bg-indigo-900 hover:bg-indigo-800 rounded border border-indigo-500">💥 Ungroup</button>
+                    )}
                     <button onClick={reorganizeLayout} className="px-3 py-1 text-xs bg-purple-700 hover:bg-purple-600 rounded">✨ Auto-Tier</button>
                     <button onClick={saveLayout} className="px-3 py-1 text-xs bg-blue-700 hover:bg-blue-600 rounded">💾 Save</button>
                     <button onClick={resetLayout} className="px-3 py-1 text-xs bg-red-900/50 hover:bg-red-900 rounded text-red-200">Reset</button>
@@ -416,13 +644,22 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                 {viewMode === 'map' ? (
                     <>
                         <div className="flow-main">
-                            <ReactFlow nodes={auditedNodes} edges={finalEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} onNodeClick={onNodeClick} fitView>
+                            <ReactFlow 
+                                nodes={auditedNodes} 
+                                edges={finalEdges} 
+                                onNodesChange={onNodesChange} 
+                                onEdgesChange={onEdgesChange} 
+                                onConnect={onConnect} 
+                                onNodeClick={onNodeClick} 
+                                nodeTypes={nodeTypes} // Register Custom Types
+                                fitView
+                            >
                                 <Background color="var(--border-color)" gap={20} />
                                 <Controls />
                                 <MiniMap nodeColor={(n) => {
                                     if (n.className?.includes('node-hub')) return '#2575fc';
                                     if (n.className?.includes('node-account')) return '#4a5568';
-                                    if (n.className?.includes('node-bill')) return '#2e7d32';
+                                    if (n.type === 'bill') return '#2e7d32'; // Match Bill Color
                                     if (n.className?.includes('node-remaining')) return '#f59e0b';
                                     return '#ccc';
                                 }} />
@@ -465,7 +702,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                                 </thead>
                                 <tbody>
                                     {finalNodes
-                                        .filter(n => n.className?.includes('node-bill'))
+                                        .filter(n => n.type === 'bill' || n.className?.includes('node-bill'))
                                         .map(bill => {
                                             const stat = nodeStats[bill.id];
                                             const parentEdge = finalEdges.find(e => e.target === bill.id);

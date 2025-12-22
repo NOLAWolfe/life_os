@@ -1,54 +1,75 @@
 // --- Azure DevOps (ADO) API Service ---
-// This file will contain all the logic for interacting with the ADO API.
-// For now, it contains placeholder functions that return mock data.
-
-const mockUserStories = [
-    {
-        id: 26354,
-        title: "As a user, I want to be able to log in with my email and password.",
-        state: "Active",
-        assignedTo: "Neauxla",
-        acceptanceCriteria: "1. User can enter email and password. 2. User is redirected to dashboard on success. 3. User sees an error on failure.",
-    },
-    {
-        id: 26355,
-        title: "As a user, I want to see my account balance on the dashboard.",
-        state: "Active",
-        assignedTo: "Neauxla",
-        acceptanceCriteria: "1. Dashboard displays current balance. 2. Balance is formatted as currency.",
-    },
-];
-
-const mockBugs = [
-    {
-        id: 26388,
-        title: "Login button does not work on Firefox.",
-        state: "Active",
-        severity: 2,
-    },
-];
+// Replaced mock data with local file-based API calls.
 
 /**
- * Fetches user stories assigned to the current user.
- * (Currently returns mock data)
+ * Fetches user stories.
  */
 export const getMyUserStories = async () => {
-    console.log("Fetching user stories (mock)");
-    return Promise.resolve(mockUserStories);
+    try {
+        const response = await fetch('/api/professional/stories');
+        if (!response.ok) throw new Error('Failed to fetch stories');
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
 };
 
 /**
- * Fetches bugs assigned to the current user.
- * (Currently returns mock data)
+ * Fetches bugs.
  */
 export const getMyBugs = async () => {
-    console.log("Fetching bugs (mock)");
-    return Promise.resolve(mockBugs);
+    try {
+        const response = await fetch('/api/professional/bugs');
+        if (!response.ok) throw new Error('Failed to fetch bugs');
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+};
+
+/**
+ * Adds a new user story.
+ */
+export const addUserStory = async (story) => {
+    try {
+        const response = await fetch('/api/professional/stories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(story)
+        });
+        if (!response.ok) throw new Error('Failed to add story');
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+};
+
+/**
+ * Adds a new bug.
+ */
+export const addBug = async (bug) => {
+    try {
+        const response = await fetch('/api/professional/bugs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bug)
+        });
+        if (!response.ok) throw new Error('Failed to add bug');
+        return await response.json();
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
 };
 
 const adoService = {
     getMyUserStories,
     getMyBugs,
+    addUserStory,
+    addBug
 };
 
 export default adoService;

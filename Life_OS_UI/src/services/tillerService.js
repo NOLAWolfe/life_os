@@ -68,27 +68,35 @@ export const fetchAndParseCsv = async (url, hasHeader = true) => {
 
 /**
  * Processes the raw Tiller Debt Payoff data.
+ * Dynamic column mapping for robustness.
  */
 export const processDebtData = (data) => {
     const debtAccounts = [];
-    let isDebtTable = false;
+    let headerMap = null;
 
     for (const row of data) {
         const values = Array.isArray(row) ? row : Object.values(row);
-        
-        if (values[1] === "Account" && (values[3] === "Interest Rate" || values[4] === "Min Monthly Payment")) {
-            isDebtTable = true;
-            continue;
+
+        // Detect Header Row
+        if (!headerMap && values.includes("Account") && (values.includes("Interest Rate") || values.includes("Min Monthly Payment"))) {
+            headerMap = {};
+            values.forEach((header, index) => {
+                if (header) headerMap[header.trim()] = index;
+            });
+            continue; 
         }
 
-        if (isDebtTable) {
-            if ((!values[0] || values[0] === "") && (!values[1] || values[1] === "")) {
-                if (debtAccounts.length > 0) break; 
-                continue;
-            }
+        if (headerMap) {
+            const getVal = (colName) => {
+                const idx = headerMap[colName];
+                return idx !== undefined ? values[idx] : undefined;
+            };
 
-            const accountName = values[1];
-            if (accountName === "Account" || !accountName) continue;
+            const accountName = getVal("Account");
+            if (!accountName || accountName === "Account") continue;
+
+            // Stop if we hit an empty row after data starts
+            if (!accountName && debtAccounts.length > 0) break;
 
             const cleanNum = (val) => {
                 if (val === undefined || val === null || val === "") return 0;
@@ -97,18 +105,30 @@ export const processDebtData = (data) => {
                 return cleaned === "" ? 0 : parseFloat(cleaned);
             };
 
+            // Clean "Group Id:" names
+            let displayName = accountName;
+            if (accountName.startsWith("Group Id:")) {
+                // "Group Id:Ae - xxxx79ae (BDB5)" -> "Student Loan (Group Ae)"
+                const groupPart = accountName.split('-')[0].replace("Group Id:", "").trim();
+                displayName = `Student Loan (Group ${groupPart})`;
+            }
+
+            // Checkmark column is often unnamed or the first column
+            const activeVal = values[0]; 
+
             debtAccounts.push({
-                active: String(values[0]).toUpperCase() === "TRUE" || values[0] === "✅",
-                name: accountName,
-                interestRate: cleanNum(values[3]),
-                minPayment: cleanNum(values[4]),
-                rank: cleanNum(values[5]),
-                startingBalance: cleanNum(values[6]),
-                currentBalance: cleanNum(values[7]),
-                monthlyInterest: cleanNum(values[9]),
-                payoffMonth: values[10],
-                totalInterest: cleanNum(values[11]),
-                recommendedPayment: cleanNum(values[12])
+                active: String(activeVal).toUpperCase() === "TRUE" || activeVal === "✅",
+                name: displayName,
+                originalName: accountName,
+                interestRate: cleanNum(getVal("Interest Rate")),
+                minPayment: cleanNum(getVal("Min Monthly Payment")),
+                rank: cleanNum(getVal("Rank")),
+                startingBalance: cleanNum(getVal("Starting Balance")),
+                currentBalance: cleanNum(getVal("Current Balance")),
+                monthlyInterest: cleanNum(getVal("Monthly Interest")),
+                payoffMonth: getVal("Paid Off Month"), // Tiller's projection
+                totalInterest: cleanNum(getVal("Est Total Interest")),
+                recommendedPayment: cleanNum(getVal("Recommended Payment"))
             });
         }
     }
@@ -270,9 +290,21 @@ export const processAccountsData = (data) => {
 /**
  * Extracts income streams from transactions.
  * Uses pre-calculated isSideHustle and isLateral flags.
+ * Calculates True Monthly Average (Total / Months in Dataset).
  */
 export const processIncomeData = (transactions) => {
-    if (!transactions || !Array.isArray(transactions)) return [];
+    if (!transactions || !Array.isArray(transactions) || transactions.length === 0) return [];
+
+    // Calculate Date Range in Months
+    const dates = transactions.map(t => new Date(t.date)).filter(d => !isNaN(d));
+    let monthsDivisor = 1;
+    if (dates.length > 1) {
+        const newest = new Date(Math.max(...dates));
+        const oldest = new Date(Math.min(...dates));
+        const diffInMs = newest - oldest;
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+        monthsDivisor = Math.max(diffInDays / 30.44, 1);
+    }
 
     const incomeTransactions = transactions.filter(t => {
         if (t.type !== 'credit') return false;
@@ -313,7 +345,8 @@ export const processIncomeData = (transactions) => {
     return Array.from(streamsMap.values())
         .map(stream => ({
             ...stream,
-            average: stream.total / stream.count
+            average: stream.total / stream.count, // Avg per transaction
+            monthlyAvg: stream.total / monthsDivisor // True Monthly Avg
         }))
         .sort((a, b) => b.total - a.total);
 };
@@ -385,6 +418,48 @@ export const processCategoriesData = (data) => {
     }).filter(c => c !== null);
 };
 
+/**
+ * API Integration: Fetch all accounts from SQLite.
+ */
+export const fetchAccountsFromDb = async () => {
+    const res = await fetch('/api/finance/accounts');
+    if (!res.ok) throw new Error('Failed to fetch accounts from DB');
+    return await res.json();
+};
+
+/**
+ * API Integration: Fetch all transactions from SQLite.
+ */
+export const fetchTransactionsFromDb = async () => {
+    const res = await fetch('/api/finance/txns');
+    if (!res.ok) throw new Error('Failed to fetch transactions from DB');
+    return await res.json();
+};
+
+/**
+ * API Integration: Upload parsed account data to backend.
+ */
+export const uploadAccountsToDb = async (accounts) => {
+    const res = await fetch('/api/finance/accounts/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accounts)
+    });
+    return await res.json();
+};
+
+/**
+ * API Integration: Upload parsed transaction data to backend.
+ */
+export const uploadTransactionsToDb = async (transactions) => {
+    const res = await fetch('/api/finance/txns/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transactions)
+    });
+    return await res.json();
+};
+
 const tillerService = {
     getTillerData,
     processTillerData,
@@ -393,7 +468,11 @@ const tillerService = {
     processCategoriesData,
     processIncomeData,
     calculateCashFlow,
-    fetchAndParseCsv
+    fetchAndParseCsv,
+    fetchAccountsFromDb,
+    fetchTransactionsFromDb,
+    uploadAccountsToDb,
+    uploadTransactionsToDb
 };
 
 export default tillerService;

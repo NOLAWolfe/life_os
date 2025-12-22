@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import tillerService from '../services/tillerService';
 
 const FinancialContext = createContext();
@@ -8,7 +8,7 @@ export const useFinancials = () => {
 };
 
 export const FinancialProvider = ({ children }) => {
-    const [accounts, setAccounts] = useState([]); // Master accounts list
+    const [accounts, setAccounts] = useState([]); 
     const [transactions, setTransactions] = useState([]);
     const [incomeStreams, setIncomeStreams] = useState([]);
     const [cashFlow, setCashFlow] = useState({ monthlyIncome: 0, monthlyExpenses: 0, surplus: 0 });
@@ -17,6 +17,26 @@ export const FinancialProvider = ({ children }) => {
     const [summaryBalances, setSummaryBalances] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    /**
+     * Master Sync: Fetches latest data from the modular backend.
+     */
+    const refreshFromDb = useCallback(async () => {
+        try {
+            console.log("Syncing with modular backend...");
+            const [dbAccounts, dbTxns] = await Promise.all([
+                tillerService.fetchAccountsFromDb(),
+                tillerService.fetchTransactionsFromDb()
+            ]);
+            
+            if (dbAccounts) setAccounts(dbAccounts);
+            if (dbTxns) setTransactions(dbTxns);
+            
+            console.log("Backend sync complete.");
+        } catch (err) {
+            console.warn("Backend sync failed. Using local state only.", err);
+        }
+    }, []);
 
     // Update income streams and cash flow whenever transactions change
     useEffect(() => {
@@ -29,68 +49,74 @@ export const FinancialProvider = ({ children }) => {
         }
     }, [transactions]);
 
-    // Auto-load files on mount for troubleshooting
+    // Initial Load Sequence
     useEffect(() => {
-        const loadInitialData = async () => {
+        const init = async () => {
             setLoading(true);
+            
+            // 1. Try to load local fallback files (for troubleshooting/offline)
             const loadFile = async (name, url, setter, processor, hasHeader = true) => {
                 try {
                     const data = await tillerService.fetchAndParseCsv(url, hasHeader);
                     if (data) {
                         const processed = processor ? processor(data) : data;
                         setter(processed);
-                        console.log(`${name} auto-loaded successfully`);
                     }
-                } catch (err) {
-                    console.warn(`Failed to auto-load ${name}:`, err);
-                    // We don't set a global error here to allow manual recovery
-                }
+                } catch (err) { /* Silent fail for auto-load */ }
             };
 
             await Promise.all([
                 loadFile('Accounts', '/Accounts.csv', setAccounts, tillerService.processAccountsData),
                 loadFile('Transactions', '/Transactions.csv', (processed) => setTransactions(processed.transactions), tillerService.processTillerData),
-                loadFile('Debt Payoff', '/Debt Payoff Planner.csv', setDebtAccounts, tillerService.processDebtData, false), // hasHeader = false
+                loadFile('Debt Payoff', '/Debt Payoff Planner.csv', setDebtAccounts, tillerService.processDebtData, false),
                 loadFile('Categories', '/Categories.csv', setCategories, tillerService.processCategoriesData),
                 loadFile('Balances', '/Balances.csv', setSummaryBalances)
             ]);
 
+            // 2. Refresh from the modular backend (Source of Truth)
+            await refreshFromDb();
+
             setLoading(false);
         };
 
-        loadInitialData();
-    }, []);
+        init();
+    }, [refreshFromDb]);
 
-    const handleTransactionsUpload = (data) => {
+    const handleTransactionsUpload = async (data) => {
         setLoading(true);
         try {
-            const { transactions: processedTransactions } = tillerService.processTillerData(data);
-            setTransactions(processedTransactions || []);
+            // Send raw CSV JSON to backend for processing and storage
+            const result = await tillerService.uploadTransactionsToDb(data);
+            console.log("Transaction upload result:", result);
+            
+            // Refresh state from DB to get normalized data
+            await refreshFromDb();
             setError(null);
         } catch (e) {
             setError(e.message);
-            console.error("Error processing Tiller transactions data:", e);
+            console.error("Error uploading transactions:", e);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAccountsUpload = (data) => {
+    const handleAccountsUpload = async (data) => {
         setLoading(true);
         try {
-            const processedAccounts = tillerService.processAccountsData(data);
-            setAccounts(processedAccounts || []);
+            const result = await tillerService.uploadAccountsToDb(data);
+            console.log("Account upload result:", result);
+            
+            await refreshFromDb();
             setError(null);
         } catch (e) {
             setError(e.message);
-            console.error("Error processing Tiller accounts data:", e);
+            console.error("Error uploading accounts:", e);
         } finally {
             setLoading(false);
         }
     };
 
     const handleBalancesUpload = (data) => {
-        // Balances.csv is mostly summary info
         setSummaryBalances(data);
     };
 
@@ -137,6 +163,7 @@ export const FinancialProvider = ({ children }) => {
         handleBalancesUpload,
         handleCategoriesUpload,
         handleDebtUpload,
+        refreshFromDb
     };
 
     return (

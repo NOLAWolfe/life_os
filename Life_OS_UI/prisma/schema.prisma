@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------------------------
+// MODULE: Financial Engine (The "Money Maker")
+// --------------------------------------------------------
+
+model FinancialAccount {
+  id              String   @id @default(uuid()) // "account_id" from Tiller
+  name            String
+  institution     String?
+  type            String?  // checking, savings, credit
+  balance         Float    @default(0)
+  lastUpdated     DateTime @default(now())
+  
+  // Relations
+  transactions    Transaction[]
+}
+
+model Transaction {
+  id              String   @id @default(uuid()) // "transaction_id" from Tiller
+  date            DateTime
+  description     String
+  amount          Float
+  type            String   // debit, credit
+  category        String?
+  isLateral       Boolean  @default(false)
+  isSideHustle    Boolean  @default(false)
+  
+  // Relations
+  accountId       String?
+  account         FinancialAccount? @relation(fields: [accountId], references: [id])
+}
+
+model DebtItem {
+  id              String   @id @default(uuid())
+  name            String
+  balance         Float
+  interestRate    Float
+  minPayment      Float
+  dueDate         String?
+  category        String?  // student_loan, credit_card, auto
+  priority        Int      @default(0)
+}
+
+model IncomeStreamConfig {
+  name            String   @id // The stream name (e.g. "Gusto")
+  alias           String?
+  type            String   // active, side, passive, ignored
+  target          Float    @default(0)
+}
+
+// --------------------------------------------------------
+// MODULE: Professional Hub (QA Co-Pilot)
+// --------------------------------------------------------
+
+model UserStory {
+  id                Int      @id @default(autoincrement())
+  title             String
+  state             String   @default("New") // New, Active, Closed
+  assignedTo        String?
+  acceptanceCriteria String?
+  createdAt         DateTime @default(now())
+}
+
+model Bug {
+  id                Int      @id @default(autoincrement())
+  title             String
+  state             String   @default("Active")
+  severity          Int      @default(3)
+  createdAt         DateTime @default(now())
+}
+
+// --------------------------------------------------------
+// MODULE: Life Admin (Personal Goals)
+// --------------------------------------------------------
+
+model DailyRead {
+  id              Int      @id @default(autoincrement())
+  title           String
+  author          String?
+  type            String   // book, article, course
+  status          String   @default("in_progress")
+  progress        Int      @default(0)
+  total           Int      @default(100)
+  link            String?
+  notes           String?
+}
+
+model WorkoutLog {
+  id              String   @id @default(uuid())
+  date            DateTime @default(now())
+  templateName    String
+  details         String?  // JSON string for specific exercises
+}

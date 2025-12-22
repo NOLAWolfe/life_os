@@ -34,3 +34,11 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+/src/generated/prisma
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+*-journal
