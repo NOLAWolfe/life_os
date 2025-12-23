@@ -50,6 +50,7 @@ const Navbar = () => {
         {workspace === 'work' ? (
           <>
             <li><NavLink to="/app/professional-hub" className="nav-work">Professional Hub</NavLink></li>
+            <li><NavLink to="/app/dj-world" className="nav-work">DJ World</NavLink></li>
             <li><NavLink to="/app/creative" className="nav-work">Social Hub</NavLink></li>
           </>
         ) : (

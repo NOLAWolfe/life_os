@@ -13,6 +13,7 @@ const WorkoutPage = lazy(() => import('./pages/WorkoutPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlannerPage'));
 const CreativePage = lazy(() => import('./pages/CreativePage'));
 const ProfessionalHubPage = lazy(() => import('./pages/ProfessionalHubPage'));
+const DjWorldPage = lazy(() => import('./pages/DjWorldPage'));
 
 // Placeholder component for pages we haven't built yet
 const PlaceholderPage = ({ title }) => (
@@ -59,6 +60,7 @@ function App() {
             <Route path="/app/workout" element={<AppLayout><WorkoutPage /></AppLayout>} />
             <Route path="/app/meal-planner" element={<AppLayout><MealPlannerPage /></AppLayout>} />
             <Route path="/app/creative" element={<AppLayout><CreativePage /></AppLayout>} />
+            <Route path="/app/dj-world" element={<AppLayout><DjWorldPage /></AppLayout>} />
             <Route path="/app/health" element={<AppLayout><PlaceholderPage title="Health Hub" /></AppLayout>} />
             
             {/* Legacy Redirects (Handle old bookmarks) */}

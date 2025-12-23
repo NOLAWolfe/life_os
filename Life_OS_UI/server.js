@@ -9,11 +9,13 @@ import financialAccountRouter from './server/modules/financial_engine/api/accoun
 import transactionRouter from './server/modules/financial_engine/api/transactionController.js';
 import debtRouter from './server/modules/financial_engine/api/debtController.js';
 import qaRouter from './server/modules/professional_engine/api/qaController.js';
+import clientRouter from './server/modules/social_engine/api/clientController.js';
+import invoiceRouter from './server/modules/social_engine/api/invoiceController.js';
 
 const app = express();
 const PORT = 4001; 
 
-// ...
+app.use(express.json());
 
 // --- 3. MOUNT MODULES ---
 console.log("⚙️  [System] Mounting Life_OS Modules...");
@@ -21,6 +23,8 @@ app.use('/api/finance/accounts', financialAccountRouter);
 app.use('/api/finance/txns', transactionRouter);
 app.use('/api/finance/debts', debtRouter);
 app.use('/api/professional', qaRouter);
+app.use('/api/social/clients', clientRouter);
+app.use('/api/social/invoices', invoiceRouter);
 
 // --- 4. LEGACY / OTHER ROUTES ---
 const __filename = fileURLToPath(import.meta.url);

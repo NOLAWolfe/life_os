@@ -42,10 +42,18 @@ test.describe('System Smoke Test (Critical Path)', () => {
   // 5. Social Hub (Formerly Creative)
   test('Social Hub should render', async ({ page }) => {
     await page.goto('http://localhost:5173/app/creative');
-    await expect(page.locator('h1:has-text("Creative Hub")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Social Hub")')).toBeVisible();
   });
 
-  // 6. Workout Tracker (Health)
+  // 6. DJ World (New Studio Admin)
+  test('DJ World should render', async ({ page }) => {
+    await page.goto('http://localhost:5173/app/dj-world');
+    await expect(page.locator('h1:has-text("DJ World")')).toBeVisible();
+    await expect(page.locator('h2:has-text("Client Roster")')).toBeVisible();
+    await expect(page.locator('h2:has-text("Invoice Command Center")')).toBeVisible();
+  });
+
+  // 7. Workout Page
   test('Workout Page should render', async ({ page }) => {
     await page.goto('http://localhost:5173/app/workout');
     await expect(page.locator('h1:has-text("My Workouts")')).toBeVisible();

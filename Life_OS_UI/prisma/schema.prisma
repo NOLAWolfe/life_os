@@ -109,3 +109,37 @@ model WorkoutLog {
   templateName    String
   details         String?  // JSON string for specific exercises
 }
+
+// --------------------------------------------------------
+// MODULE: Social Hub (DJ Business Admin)
+// --------------------------------------------------------
+
+model Client {
+  id              String   @id @default(uuid())
+  name            String
+  company         String?
+  email           String?
+  phone           String?
+  rate            Float?   // Default rate
+  rateType        String?  // 'hourly' or 'flat'
+  status          String   @default("Active") // Active, Lead, Archived
+  createdAt       DateTime @default(now())
+
+  // Relations
+  invoices        Invoice[]
+}
+
+model Invoice {
+  id              String   @id @default(uuid())
+  number          String   // e.g., "INV-2025-001"
+  status          String   @default("Draft") // Draft, Sent, Paid, Overdue
+  date            DateTime @default(now())
+  dueDate         DateTime?
+  totalAmount     Float
+  items           String   // JSON string of line items: [{ desc, qty, rate, total }]
+  notes           String?
+  
+  // Relations
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+}
