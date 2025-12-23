@@ -1,4 +1,6 @@
 import React, { useState, Suspense, lazy } from 'react';
+import { TIERS } from '../contexts/UserContext';
+import FeatureGate from '../components/System/FeatureGate';
 import './FinancialDashboard.css';
 
 // Lazy load widgets
@@ -110,7 +112,9 @@ const FinancialDashboard = () => {
                                     <>
                                         {/* Top Row: Offense & Defense */}
                                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                                            <IncomeStreams />
+                                            <FeatureGate minTier={TIERS.PRO}>
+                                                <IncomeStreams />
+                                            </FeatureGate>
                                             <SpendingTrends />
                                         </div>
                                         
