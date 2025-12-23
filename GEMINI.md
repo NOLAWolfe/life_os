@@ -49,6 +49,11 @@ The goal is to simulate a client-facing SaaS product to test multi-tenancy UX.
 3.  **Phase 3: The Paywall**
     *   Implement `<FeatureGate>` components to lock features based on tiered access.
 
+**Future Roadmap: DJ Assistant Expansion**
+*   **Module 1: Content Factory:** "No-Design" Flyer Bot & Audio-to-Video Promo Generator.
+*   **Module 2: Crate Digger:** Apple Music -> "To Buy" List pipeline.
+*   **Module 3: Admin Ops:** Automated PDF Invoicing to replace manual templates.
+
 ---
 
 **Life.io Architectural Strategy: The Dual-Path**
