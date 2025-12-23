@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useUser } from '../../../contexts/UserContext';
 import './Navbar.css';
 
 const Navbar = () => {
   // Default to 'life' workspace
   const [workspace, setWorkspace] = useState(() => localStorage.getItem('activeWorkspace') || 'life');
+  const { toggleGodMode, isGodMode } = useUser();
 
   useEffect(() => {
     document.body.setAttribute('data-workspace', workspace);
@@ -15,10 +17,18 @@ const Navbar = () => {
     setWorkspace(prev => prev === 'life' ? 'work' : 'life');
   };
 
+  // Secret God Mode Trigger (Triple Click)
+  const handleLogoClick = (e) => {
+    if (e.detail === 3) {
+      e.preventDefault();
+      toggleGodMode();
+    }
+  };
+
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isGodMode ? 'god-mode-active' : ''}`}>
       <div className="navbar-left">
-        <div className="navbar-logo">
+        <div className="navbar-logo" onClick={handleLogoClick}>
           <NavLink to="/app">
             <img src="/logo.svg" alt="Life.io Logo" />
             <span>Life.io</span>

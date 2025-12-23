@@ -500,12 +500,13 @@ export const processCategoriesData = (data) => {
  * API Integration: Fetch all accounts from SQLite.
  * Normalizes DB schema to frontend expectation.
  */
-export const fetchAccountsFromDb = async () => {
-    const res = await fetch('/api/finance/accounts');
+export const fetchAccountsFromDb = async (userId) => {
+    const query = userId ? `?userId=${userId}` : '';
+    const res = await fetch(`/api/finance/accounts${query}`);
     if (!res.ok) throw new Error('Failed to fetch accounts from DB');
     const data = await res.json();
     
-    return data.map(acc => ({
+    return data.map(acc => validate(AccountSchema, {
         account_id: acc.id,
         name: securityService.sanitize(acc.name),
         institution: acc.institution || 'Unknown',
@@ -515,39 +516,40 @@ export const fetchAccountsFromDb = async () => {
         },
         class: acc.class?.toUpperCase() || 'ASSET',
         lastUpdate: acc.lastUpdated
-    }));
+    }, `Account: ${acc.name}`));
 };
 
 /**
  * API Integration: Fetch all transactions from SQLite.
  * Normalizes DB schema to frontend expectation (description -> name).
  */
-export const fetchTransactionsFromDb = async () => {
-    const res = await fetch('/api/finance/txns');
+export const fetchTransactionsFromDb = async (userId) => {
+    const query = userId ? `?userId=${userId}` : '';
+    const res = await fetch(`/api/finance/txns${query}`);
     if (!res.ok) throw new Error('Failed to fetch transactions from DB');
     const data = await res.json();
 
-    return data.map(t => ({
-        transaction_id: t.id,
+    return data.map(t => validate(TransactionSchema, {
+        id: t.id,
         date: t.date,
         name: securityService.sanitize(t.description), // Mapper expects .name
         amount: Math.abs(t.amount), // Mapper and UI expect absolute for display
         type: t.type,
-        category: [t.category || 'Uncategorized'],
+        category: t.category || 'Uncategorized',
         accountName: securityService.sanitize(t.account?.name) || 'Unknown',
         institution: t.account?.institution || 'N/A',
         isLateral: t.isLateral,
         isSideHustle: t.isSideHustle
-    }));
+    }, `Transaction: ${t.description}`));
 };
 
 /**
  * API Integration: Upload parsed account data to backend.
  */
-export const uploadAccountsToDb = async (accounts) => {
+export const uploadAccountsToDb = async (accounts, userId) => {
     const res = await fetch('/api/finance/accounts/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-User-ID': userId },
         body: JSON.stringify(accounts)
     });
     return await res.json();
@@ -556,10 +558,10 @@ export const uploadAccountsToDb = async (accounts) => {
 /**
  * API Integration: Upload parsed transaction data to backend.
  */
-export const uploadTransactionsToDb = async (transactions) => {
+export const uploadTransactionsToDb = async (transactions, userId) => {
     const res = await fetch('/api/finance/txns/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-User-ID': userId },
         body: JSON.stringify(transactions)
     });
     return await res.json();
@@ -568,21 +570,22 @@ export const uploadTransactionsToDb = async (transactions) => {
 /**
  * API Integration: Fetch all debt items from SQLite.
  */
-export const fetchDebtsFromDb = async () => {
-    const res = await fetch('/api/finance/debts');
+export const fetchDebtsFromDb = async (userId) => {
+    const query = userId ? `?userId=${userId}` : '';
+    const res = await fetch(`/api/finance/debts${query}`);
     if (!res.ok) throw new Error('Failed to fetch debts from DB');
     const data = await res.json();
     
-    return data.map(d => ({
-        active: true,
+    return data.map(d => validate(DebtSchema, {
         name: d.name,
         originalName: d.name,
         interestRate: d.interestRate,
         minPayment: d.minPayment,
         currentBalance: d.balance,
         payoffMonth: d.dueDate || 'Unknown',
+        active: true,
         priority: d.priority
-    }));
+    }, `Debt: ${d.name}`));
 };
 
 const tillerService = {
