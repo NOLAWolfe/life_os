@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useFinancials } from '../../contexts/FinancialContext';
+import { useFinancials } from '../../../contexts/FinancialContext';
 
 const LeakDetector = () => {
     const { transactions } = useFinancials();
