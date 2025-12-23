@@ -45,6 +45,7 @@ The server is organized into specialized engines, each with its own Repository, 
 
 *   **Financial Engine**: Processes Tiller syncs, calculates "The Hottest Dollar", and manages drift detection.
 *   **Professional Engine**: Manages Agile workflows (User Stories, Bugs) and prepares data for AI Analysis.
+*   **Social Engine**: Manages Clients, Invoices, and DJ performance metrics.
 *   **Life Admin Engine**: (Upcoming) Will manage health, reading, and personal logistics.
 
 ## 3. UI Component Hierarchy (Frontend)
@@ -95,3 +96,12 @@ graph LR
     ADO(Azure DevOps) -.->|Future Connector| PE(Professional Engine)
     PE --> SQL
 ```
+
+## 5. Billing & Subscription Strategy (Future SaaS Layer)
+
+As Life.io evolves into a platform, the **Invoice Manager** (currently in Social Engine) will mature into a central **Billing Engine**.
+
+*   **Payment Provider:** Stripe (Primary candidate) or Lemon Squeezy (Merchant of Record).
+*   **Idempotency:** All charges must be idempotent to prevent double-billing. The Provider is the source of truth; our DB is a synced replica.
+*   **Webhooks:** We will not poll for status. We will expose `api/webhooks/stripe` to listen for `invoice.paid` and `subscription.updated` events.
+*   **Customer Portal:** We will leverage the Provider's hosted portal for self-serve card updates and plan changes, minimizing our PCI scope and dev effort.
