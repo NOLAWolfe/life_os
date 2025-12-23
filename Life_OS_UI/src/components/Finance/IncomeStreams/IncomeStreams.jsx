@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useFinancials } from '../../contexts/FinancialContext';
+import { useFinancials } from '../../../contexts/FinancialContext';
 import './IncomeStreams.css';
 
 const STREAM_TYPES = {

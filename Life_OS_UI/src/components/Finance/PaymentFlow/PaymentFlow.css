@@ -26,16 +26,37 @@
     border: 1px solid #222;
 }
 
+/* Specific Node Types */
 .node-hub {
     background: #2575fc;
+    color: white;
 }
 
 .node-account {
     background: #4a5568;
+    color: white;
 }
 
 .node-bill {
     background: #2e7d32;
+    color: white;
+}
+
+/* Fallback for Default ReactFlow Nodes (Legacy/Orphaned) */
+.react-flow__node-default {
+    background: #4a5568 !important; /* Match node-account Silver */
+    color: white !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 5px !important;
+    padding: 10px !important;
+    text-align: center !important;
+    font-size: 12px !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.react-flow__node-default.selected {
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 2px var(--accent-color) !important;
 }
 
 /* The Big Picture: Remaining Funds */

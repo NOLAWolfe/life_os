@@ -1,27 +1,60 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
+  // Default to 'life' workspace
+  const [workspace, setWorkspace] = useState(() => localStorage.getItem('activeWorkspace') || 'life');
+
+  useEffect(() => {
+    document.body.setAttribute('data-workspace', workspace);
+    localStorage.setItem('activeWorkspace', workspace);
+  }, [workspace]);
+
+  const toggleWorkspace = () => {
+    setWorkspace(prev => prev === 'life' ? 'work' : 'life');
+  };
+
   return (
     <nav className="navbar">
-      <div className="navbar-logo">
-        <NavLink to="/">
-          <img src="/logo.svg" alt="Life.io Logo" />
-          <span>Life.io</span>
-        </NavLink>
-      </div>
-      <ul className="navbar-links">
-        <li><NavLink to="/professional-hub">Professional</NavLink></li>
-        <li><NavLink to="/finance">Finance</NavLink></li>
-        <li className="dropdown">
-          <a href="#health" className="dropbtn">Health & Fitness</a>
-          <div className="dropdown-content">
-            <NavLink to="/workout">Workout Tracker</NavLink>
-            <NavLink to="/meal-planner">Meal Planner</NavLink>
+      <div className="navbar-left">
+        <div className="navbar-logo">
+          <NavLink to="/">
+            <img src="/logo.svg" alt="Life.io Logo" />
+            <span>Life.io</span>
+          </NavLink>
+        </div>
+        
+        {/* Workspace Switcher */}
+        <div className="workspace-toggle" onClick={toggleWorkspace} title="Switch Workspace">
+          <div className={`toggle-track ${workspace}`}>
+            <div className="toggle-thumb">
+              {workspace === 'life' ? '🌱' : '💼'}
+            </div>
           </div>
-        </li>
-        <li><NavLink to="/creative">Creative</NavLink></li>
+          <span className="toggle-label">{workspace === 'life' ? 'Life OS' : 'Work OS'}</span>
+        </div>
+      </div>
+
+      <ul className="navbar-links">
+        {workspace === 'work' ? (
+          <>
+            <li><NavLink to="/professional-hub" className="nav-work">Professional Hub</NavLink></li>
+            <li><NavLink to="/creative" className="nav-work">Social Hub</NavLink></li>
+          </>
+        ) : (
+          <>
+            <li><NavLink to="/finance">Finance</NavLink></li>
+            <li className="dropdown">
+              <span className="dropbtn">Health & Fitness</span>
+              <div className="dropdown-content">
+                <NavLink to="/workout">Workout Tracker</NavLink>
+                <NavLink to="/meal-planner">Meal Planner</NavLink>
+              </div>
+            </li>
+            <li><NavLink to="/creative">Social Hub</NavLink></li>
+          </>
+        )}
       </ul>
     </nav>
   );

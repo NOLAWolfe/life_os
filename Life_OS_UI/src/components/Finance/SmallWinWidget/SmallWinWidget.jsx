@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useFinancials } from '../../contexts/FinancialContext';
+import { useFinancials } from '../../../contexts/FinancialContext';
 import './SmallWinWidget.css';
 
 const SmallWinWidget = () => {

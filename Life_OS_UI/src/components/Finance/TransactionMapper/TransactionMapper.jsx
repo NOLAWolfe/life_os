@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useFinancials } from '../../contexts/FinancialContext';
-import { getOrphanedTransactions, suggestKeyword, getAllBillNodes } from '../../services/mappingService';
+import { useFinancials } from '../../../contexts/FinancialContext';
+import { getOrphanedTransactions, suggestKeyword, getAllBillNodes } from '../../../services/mappingService';
 import './TransactionMapper.css';
 
 const TransactionMapper = () => {

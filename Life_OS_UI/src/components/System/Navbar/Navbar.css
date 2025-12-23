@@ -11,6 +11,21 @@
   top: 0;
   left: 0;
   z-index: 1000;
+  transition: border-color 0.3s ease;
+}
+
+/* Theme Borders based on Workspace */
+body[data-workspace="work"] .navbar {
+  border-bottom-color: #3b82f6; /* Blue for Work */
+}
+body[data-workspace="life"] .navbar {
+  border-bottom-color: #10b981; /* Green for Life */
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
 }
 
 .navbar-logo a {
@@ -28,6 +43,66 @@
 .navbar-logo span {
   font-size: 1.5rem;
   font-weight: bold;
+}
+
+/* --- Workspace Switcher --- */
+.workspace-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  transition: background-color 0.2s;
+}
+
+.workspace-toggle:hover {
+  background-color: var(--bg-secondary);
+}
+
+.toggle-track {
+  width: 44px;
+  height: 22px;
+  background-color: #374151;
+  border-radius: 20px;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.toggle-track.life {
+  background-color: #065f46; /* Dark Green */
+}
+
+.toggle-track.work {
+  background-color: #1e3a8a; /* Dark Blue */
+}
+
+.toggle-thumb {
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: black;
+}
+
+.toggle-track.work .toggle-thumb {
+  transform: translateX(22px);
+}
+
+.toggle-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
 }
 
 .navbar-links {
@@ -48,7 +123,6 @@
   padding: 0.5rem 0;
   border-bottom: 2px solid transparent;
   transition: all 0.2s ease;
-  /* transition: color 0.3s, border-bottom-color 0.3s; */
 }
 
 .navbar-links a:hover {
@@ -58,6 +132,12 @@
 .navbar-links a.active {
   color: var(--primary-color);
   border-bottom-color: var(--primary-color);
+}
+
+/* Nav Link overrides for Work Mode */
+body[data-workspace="work"] .navbar-links a.active.nav-work {
+  color: #60a5fa; /* Light Blue */
+  border-bottom-color: #60a5fa;
 }
 
 /* Dropdown styles */

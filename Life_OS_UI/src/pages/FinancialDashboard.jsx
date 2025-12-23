@@ -1,5 +1,4 @@
 import React, { useState, Suspense, lazy } from 'react';
-import CsvUploader from '../components/Finance/CsvUploader/CsvUploader';
 import './FinancialDashboard.css';
 
 // Lazy load widgets
@@ -157,11 +156,15 @@ const FinancialDashboard = () => {
                             <div className="h-full">
                                 {subTab === 'upload' && (
                                     <div className="max-w-2xl mx-auto space-y-4">
-                                        <h2 className="text-xl font-bold">Data Ingestion</h2>
-                                        <div className="p-4 bg-[var(--bg-secondary)] rounded-lg text-sm text-[var(--text-secondary)] mb-4">
-                                            <p>Upload your Tiller exports here to update the dashboard.</p>
+                                        <h2 className="text-xl font-bold text-orange-400">Sync Management</h2>
+                                        <div className="p-6 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
+                                            <p className="mb-4 text-sm text-[var(--text-secondary)]">
+                                                Direct CSV uploads have been deprecated in favor of the **Tiller Live Sync Engine**. 
+                                            </p>
+                                            <p className="text-sm text-[var(--text-secondary)]">
+                                                Use the **Bank Connect** tab to configure your live feed, or trigger a manual sync via the CLI.
+                                            </p>
                                         </div>
-                                        <CsvUploader />
                                     </div>
                                 )}
                                 {subTab === 'connect' && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFinancials } from '../../contexts/FinancialContext';
+import { useFinancials } from '../../../contexts/FinancialContext';
 import './BalancesWidget.css';
 
 const BalancesWidget = () => {

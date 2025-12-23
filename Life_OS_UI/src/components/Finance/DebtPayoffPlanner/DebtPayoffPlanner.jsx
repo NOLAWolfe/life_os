@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useFinancials } from '../../contexts/FinancialContext';
-import { calculatePayoff } from '../../services/debtService';
+import { useFinancials } from '../../../contexts/FinancialContext';
+import { calculatePayoff } from '../../../services/debtService';
 import './DebtPayoffPlanner.css';
 
 const DebtPayoffPlanner = () => {

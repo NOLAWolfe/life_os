@@ -63,40 +63,6 @@ export const FinancialProvider = ({ children }) => {
         init();
     }, [refreshFromDb]);
 
-    const handleTransactionsUpload = async (data) => {
-        setLoading(true);
-        try {
-            // Send raw CSV JSON to backend for processing and storage
-            const result = await tillerService.uploadTransactionsToDb(data);
-            console.log("Transaction upload result:", result);
-            
-            // Refresh state from DB to get normalized data
-            await refreshFromDb();
-            setError(null);
-        } catch (e) {
-            setError(e.message);
-            console.error("Error uploading transactions:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAccountsUpload = async (data) => {
-        setLoading(true);
-        try {
-            const result = await tillerService.uploadAccountsToDb(data);
-            console.log("Account upload result:", result);
-            
-            await refreshFromDb();
-            setError(null);
-        } catch (e) {
-            setError(e.message);
-            console.error("Error uploading accounts:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleBalancesUpload = (data) => {
         setSummaryBalances(data);
     };
@@ -115,20 +81,6 @@ export const FinancialProvider = ({ children }) => {
         }
     };
 
-    const handleDebtUpload = (data) => {
-        setLoading(true);
-        try {
-            const processedDebt = tillerService.processDebtData(data);
-            setDebtAccounts(processedDebt || []);
-            setError(null);
-        } catch (e) {
-            setError(e.message);
-            console.error("Error processing Tiller debt data:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const value = useMemo(() => ({
         accounts,
         transactions,
@@ -139,11 +91,8 @@ export const FinancialProvider = ({ children }) => {
         summaryBalances,
         loading,
         error,
-        handleTransactionsUpload,
-        handleAccountsUpload,
         handleBalancesUpload,
         handleCategoriesUpload,
-        handleDebtUpload,
         refreshFromDb
     }), [
         accounts,

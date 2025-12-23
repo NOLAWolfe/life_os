@@ -15,6 +15,19 @@ export const STRATEGY_TIERS = {
 
 const strategyService = {
     /**
+     * Helper to check if a node exists anywhere in the graph (including inside groups).
+     */
+    nodeExists: (nodes, targetId) => {
+        return nodes.some(n => {
+            if (n.id === targetId) return true;
+            if (n.type === 'billGroup' && n.data.containedNodes) {
+                return n.data.containedNodes.some(cn => cn.id === targetId);
+            }
+            return false;
+        });
+    },
+
+    /**
      * Generates Hub and Liability nodes from account data.
      */
     generateAccountNodes: (accounts, currentNodes) => {
@@ -22,6 +35,7 @@ const strategyService = {
         let hasChanges = false;
 
         accounts.forEach(acc => {
+            // ... (Type logic remains the same) ...
             const type = (acc.type || '').toLowerCase();
             const group = (acc.group || '').toLowerCase();
             const className = (acc.class || '').toLowerCase();
@@ -38,18 +52,15 @@ const strategyService = {
             if (!isHub && !isLiability) return;
             if (acc.name?.toLowerCase().includes('student') || type.includes('student')) return;
 
-            const exists = currentNodes.some(n => 
-                n.id === acc.account_id || 
-                n.data.label.toLowerCase().includes(acc.name.toLowerCase()) ||
-                (acc.account_id && n.id.includes(acc.account_id))
-            );
+            // Deterministic ID
+            const fallbackId = `node-${isHub ? 'hub' : 'liab'}-${acc.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+            const targetId = acc.account_id || fallbackId;
 
-            if (!exists) {
+            // Deep Existence Check
+            if (!strategyService.nodeExists(currentNodes, targetId)) {
                 hasChanges = true;
-                const fallbackId = `node-${isHub ? 'hub' : 'liab'}-${acc.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
-                
                 newNodes.push({
-                    id: acc.account_id || fallbackId,
+                    id: targetId,
                     data: { label: isHub ? `🏦 ${acc.name}` : `💳 ${acc.name}` },
                     position: { x: isHub ? 250 : 450, y: isHub ? STRATEGY_TIERS.HUB : STRATEGY_TIERS.LIABILITY },
                     className: isHub ? 'node-hub' : 'node-account'
@@ -62,45 +73,84 @@ const strategyService = {
 
     /**
      * Generates Bill nodes from debt account data.
+     * MERGING LOGIC: If a Debt Item matches an existing Account Node (Liability), 
+     * we enrich the existing node instead of creating a duplicate.
      */
     generateDebtNodes: (debtAccounts, currentNodes) => {
         const newNodes = [];
         let hasChanges = false;
 
+        // We return a new array of nodes where some might be updated (enriched)
+        // and some might be new.
+        let updatedCurrentNodes = [...currentNodes];
+
         debtAccounts.forEach((debt, index) => {
             if (!debt.active || debt.currentBalance <= 0) return;
 
-            const exists = currentNodes.find(n => 
-                n.data.label.toLowerCase().includes(debt.name.toLowerCase()) ||
-                (debt.originalName && n.data.label.toLowerCase().includes(debt.originalName.toLowerCase()))
-            );
-
-            if (exists) return;
-
-            hasChanges = true;
-            const isCard = debt.name.toLowerCase().includes('visa') || debt.name.toLowerCase().includes('card') || debt.name.toLowerCase().includes('amex');
+            // 1. Try to find a matching Account Node (Liability)
+            // Match by deterministic ID OR Name similarity
+            const targetId = `debt-${debt.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
             
-            const type = isCard ? 'default' : 'bill';
-            const className = isCard ? 'node-account' : '';
-            const tierY = isCard ? STRATEGY_TIERS.LIABILITY : STRATEGY_TIERS.BILL;
-            
-            const nodeId = `debt-${index}-${debt.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
-            
-            newNodes.push({
-                id: nodeId,
-                type: type,
-                data: { 
-                    label: debt.name,
-                    subtext: `Min: $${debt.minPayment}`,
-                    minPayment: debt.minPayment,
-                    payoffDate: debt.payoffMonth
-                },
-                position: { x: 100 + (index * 120), y: tierY },
-                className: className
+            const matchIndex = updatedCurrentNodes.findIndex(n => {
+                // Exact ID match (if we linked them before)
+                if (n.id === targetId) return true;
+                
+                // Fuzzy Name Match (Crucial for Tiller Account vs Debt Item)
+                // e.g. "Chase Sapphire" vs "Chase Sapphire Reserve - x1234"
+                const nodeLabel = n.data.label.toLowerCase();
+                const debtName = debt.name.toLowerCase();
+                if (nodeLabel.includes(debtName) || debtName.includes(nodeLabel)) return true;
+                if (debt.originalName && nodeLabel.includes(debt.originalName.toLowerCase())) return true;
+                
+                return false;
             });
+
+            if (matchIndex !== -1) {
+                // FOUND MATCH: Enrich existing node
+                const existingNode = updatedCurrentNodes[matchIndex];
+                
+                // Only update if data is missing or different
+                if (!existingNode.data.minPayment || existingNode.data.minPayment !== debt.minPayment) {
+                    hasChanges = true;
+                    updatedCurrentNodes[matchIndex] = {
+                        ...existingNode,
+                        data: {
+                            ...existingNode.data,
+                            // Merge Debt Data
+                            subtext: `Min: $${debt.minPayment} (${(debt.interestRate * 100).toFixed(1)}%)`,
+                            minPayment: debt.minPayment,
+                            interestRate: debt.interestRate,
+                            payoffDate: debt.payoffMonth
+                        }
+                    };
+                }
+            } else {
+                // NO MATCH: Create new Debt Node (only if it doesn't strictly exist via ID check)
+                if (!strategyService.nodeExists(updatedCurrentNodes, targetId)) {
+                    hasChanges = true;
+                    const isCard = debt.name.toLowerCase().includes('visa') || debt.name.toLowerCase().includes('card') || debt.name.toLowerCase().includes('amex');
+                    
+                    const type = isCard ? 'default' : 'bill';
+                    const className = isCard ? 'node-account' : ''; // Default style for cards if not using custom node
+                    const tierY = isCard ? STRATEGY_TIERS.LIABILITY : STRATEGY_TIERS.BILL;
+                    
+                    newNodes.push({
+                        id: targetId,
+                        type: type,
+                        data: { 
+                            label: debt.name,
+                            subtext: `Min: $${debt.minPayment}`,
+                            minPayment: debt.minPayment,
+                            payoffDate: debt.payoffMonth
+                        },
+                        position: { x: 100 + (index * 120), y: tierY },
+                        className: className
+                    });
+                }
+            }
         });
 
-        return { hasChanges, newNodes };
+        return { hasChanges, newNodes, updatedNodes: updatedCurrentNodes };
     },
 
     /**

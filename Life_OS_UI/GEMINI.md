@@ -64,11 +64,15 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
     - **Frontend Build:** Verified `vite build` passes successfully.
     - **Synthetic Data:** Seeded the database with realistic "Enterprise" tickets for immediate demo value.
 
+    - **Testing Suite:** Added Playwright specs for `transaction_mapper` and `professional_hub` to validate critical flows.
+
+- **Closing Verification:**
+    - **Smoke Test:** Passed (5/5). Critical paths (Finance, Professional, Social, Health) are active.
+    - **Visualizer Enrichment:** Confirmed "Liability + Debt Metadata" merging logic eliminates duplicate nodes.
+    - **Cleanup:** Public CSVs and legacy JSONs purged.
+
 ## Development Conventions
-- **Component Structure:** Each component has its own folder containing `.jsx` and `.css` files.
-- **Service Layer:** API calls and data processing logic are encapsulated in `src/services/`.
-- **Theming:** Use CSS variables (e.g., `--primary-color`, `--bg-dark`) defined in `index.css` for consistent styling.
-- **Mocking:** **DEPRECATED**. Use Synthetic Data seeding (`scripts/seed_qa_data.js`) for demo scenarios.
+- **Component Structure:** Organized by Domain (`src/components/{Domain}/{Widget}`).
 
 ## Key Files
 - `src/App.jsx`: Main routing and layout.

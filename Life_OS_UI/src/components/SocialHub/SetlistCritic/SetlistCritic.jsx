@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import spotifyService from '../../services/spotifyService';
+import spotifyService from '../../../services/spotifyService';
 import './SetlistCritic.css';
 
 const SetlistCritic = () => {

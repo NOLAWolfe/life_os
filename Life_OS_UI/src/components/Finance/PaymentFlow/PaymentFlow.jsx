@@ -9,9 +9,9 @@ import {
   useEdgesState
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useFinancials } from '../../contexts/FinancialContext';
-import { getAllBillNodes } from '../../services/mappingService';
-import strategyService, { STRATEGY_TIERS } from '../../services/strategyService';
+import { useFinancials } from '../../../contexts/FinancialContext';
+import { getAllBillNodes } from '../../../services/mappingService';
+import strategyService, { STRATEGY_TIERS } from '../../../services/strategyService';
 import BillNode from './BillNode'; // Import Custom Node
 import BillGroupNode from './BillGroupNode';
 import './PaymentFlow.css';
@@ -90,9 +90,11 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     useEffect(() => {
         if (!debtAccounts || debtAccounts.length === 0) return;
 
-        const { hasChanges, newNodes } = strategyService.generateDebtNodes(debtAccounts, nodes);
+        const { hasChanges, newNodes, updatedNodes } = strategyService.generateDebtNodes(debtAccounts, nodes);
         if (hasChanges) {
-            setNodes(currentNodes => [...currentNodes, ...newNodes]);
+            // Replace current nodes with the enriched ones, then add any new standalone debt nodes
+            // Note: updatedNodes contains the full list of current nodes with modifications
+            setNodes([...updatedNodes, ...newNodes]);
         }
     }, [debtAccounts]);
 
@@ -339,29 +341,40 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         const stat = nodeStats[hub.id];
 
         return (
-            <div key={hub.id} className="plan-section mb-8 border-b border-[var(--border-color)] pb-4">
-                <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xl text-blue-400 font-bold">{hub.data.label}</span>
-                    {stat && <span className="text-xs bg-green-900 text-green-200 px-2 py-0.5 rounded font-mono">{stat.label}</span>}
+            <div key={hub.id} className="plan-section mb-10 bg-gray-900/20 p-4 rounded-lg border border-gray-800/50">
+                <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-800">
+                    <div className="flex items-center gap-3">
+                        <span className="text-xl text-blue-400 font-bold tracking-tight">{hub.data.label}</span>
+                        {stat && <span className="text-[10px] bg-blue-900/40 text-blue-200 px-2 py-0.5 rounded-full font-mono border border-blue-800/50">{stat.label}</span>}
+                    </div>
+                    <span className="text-[10px] uppercase text-gray-600 font-black tracking-widest">Source Account</span>
                 </div>
 
                 {/* Sources for this Hub */}
                 {incomingIncomes.length > 0 && (
-                    <div className="mb-3 ml-4">
-                        <p className="text-[10px] uppercase text-gray-500 font-bold mb-1">Incoming Sources</p>
-                        {incomingIncomes.map(inc => (
-                            <div key={inc.id} className="flex items-center gap-2 text-sm text-green-400 ml-2">
-                                <span>💰</span>
-                                <span>{inc.data.label}</span>
-                            </div>
-                        ))}
+                    <div className="mb-4 ml-2">
+                        <p className="text-[9px] uppercase text-green-500/70 font-black mb-2 flex items-center gap-2">
+                            <span className="w-1 h-1 bg-green-500 rounded-full"></span>
+                            Inflow (Revenue)
+                        </p>
+                        <div className="space-y-1">
+                            {incomingIncomes.map(inc => (
+                                <div key={inc.id} className="flex items-center gap-2 text-sm text-green-400/90 ml-3">
+                                    <span className="text-xs">💰</span>
+                                    <span className="font-medium">{inc.data.label}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
                 {/* Payments from this Hub */}
-                <div className="ml-4">
-                    <p className="text-[10px] uppercase text-gray-500 font-bold mb-1">Payments & Transfers</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                <div className="ml-2">
+                    <p className="text-[9px] uppercase text-indigo-500/70 font-black mb-2 flex items-center gap-2">
+                        <span className="w-1 h-1 bg-indigo-500 rounded-full"></span>
+                        Outflow (Allocations)
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {children.map(({ edge, node }) => {
                             if (!node) return null;
                             const isGroup = node.type === 'billGroup';
@@ -369,24 +382,26 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                             const containedNodes = node.data.containedNodes || [];
 
                             return (
-                                <div key={node.id} className="flex flex-col border-l border-gray-700 pl-3 py-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-gray-500">└─</span>
-                                        <span className={`text-sm font-medium ${isGroup ? 'text-indigo-400' : (node.type === 'bill' ? 'text-orange-300' : 'text-blue-300')}`}>
-                                            {node.data.label}
-                                        </span>
-                                        {nodeStat && <span className="text-[10px] text-gray-400 font-mono">{nodeStat.label}</span>}
-                                        {edge.label && <span className="text-[9px] bg-gray-800 text-gray-400 px-1 rounded">{edge.label}</span>}
+                                <div key={node.id} className={`flex flex-col p-3 rounded border ${isGroup ? 'bg-indigo-900/10 border-indigo-900/30' : 'bg-black/20 border-gray-800/50'}`}>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-sm font-bold ${isGroup ? 'text-indigo-300' : (node.type === 'bill' ? 'text-orange-300' : 'text-blue-300')}`}>
+                                                {node.data.label}
+                                            </span>
+                                            {edge.label && <span className="text-[8px] bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter">{edge.label}</span>}
+                                        </div>
+                                        {nodeStat && <span className="text-xs text-gray-400 font-mono font-bold">{nodeStat.label}</span>}
                                     </div>
                                     
                                     {isGroup && (
-                                        <div className="ml-6 mt-1 space-y-1">
-                                            <p className="text-[9px] text-indigo-500 font-bold uppercase">Bucket Items:</p>
+                                        <div className="mt-2 pl-3 border-l border-indigo-800/50 space-y-1.5">
                                             {containedNodes.map(cn => (
-                                                <div key={cn.id} className="flex items-center gap-2 text-[11px] text-gray-400">
-                                                    <span>↳</span>
-                                                    <span>{cn.data.label}</span>
-                                                    {nodeStats[cn.id] && <span className="text-[10px] text-orange-500/70">{nodeStats[cn.id].label}</span>}
+                                                <div key={cn.id} className="flex items-center justify-between text-[11px] text-gray-400">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-indigo-900">↳</span>
+                                                        <span>{cn.data.label}</span>
+                                                    </div>
+                                                    {nodeStats[cn.id] && <span className="text-[10px] text-orange-500/50 font-mono">{nodeStats[cn.id].label}</span>}
                                                 </div>
                                             ))}
                                         </div>
@@ -394,7 +409,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
                                 </div>
                             );
                         })}
-                        {children.length === 0 && <p className="text-xs text-gray-500 italic">No outgoing payments mapped</p>}
+                        {children.length === 0 && <p className="text-xs text-gray-600 italic ml-3">No active allocations mapped</p>}
                     </div>
                 </div>
             </div>

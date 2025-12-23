@@ -2,124 +2,96 @@
 
 This document provides a human-friendly overview of the Life_OS project (Life.io), bridging the gap between the codebase and system-wide understanding.
 
-## 1. Financial Data Pipeline (ERD)
+## 1. The Core Data Engine (SQLite + Prisma)
 
-Life.io uses a "CSV-as-Database" architecture, primarily ingesting data exported from Tiller Money templates. The `FinancialContext` acts as the central state manager.
+Life.io has transitioned from a legacy CSV-based model to a robust **SQLite-First** architecture. The Node.js backend serves as the single source of truth, managing data via Prisma.
 
 ```mermaid
 erDiagram
-    CSV_FILES ||--o{ TILLER_SERVICE : "parsed by"
-    TILLER_SERVICE ||--o{ FINANCIAL_CONTEXT : "populates"
+    FINANCIAL_ACCOUNT ||--o{ TRANSACTION : "contains"
+    DEBT_ITEM }|--|| FINANCIAL_ACCOUNT : "links to metadata"
+    USER_STORY ||--o{ AI_ANALYSIS : "analyzed by"
+    BUG ||--o{ USER_STORY : "references"
 
-    FINANCIAL_CONTEXT {
-        Array accounts
-        Array transactions
-        Array debtAccounts
-        Object summaryBalances
+    FINANCIAL_ACCOUNT {
+        String id PK "Unique ID from Tiller or generated"
+        String name
+        Float balance
+        String type "checking, savings, credit"
+        String class "asset, liability"
     }
 
-    ACCOUNTS_CSV {
-        String Account_Id
-        String Account_Name
-        String Institution
-        Number Last_Balance
+    TRANSACTION {
+        String id PK
+        Date date
+        String description
+        Float amount
+        String category
+        Boolean isLateral "Internal transfer flag"
     }
 
-    TRANSACTIONS_CSV {
-        Date Date
-        String Description
-        String Category
-        Number Amount
-        String Account_ID
+    DEBT_ITEM {
+        String id PK
+        String name
+        Float interestRate
+        Float minPayment
+        Float balance
     }
-
-    DEBT_PAYOFF_CSV {
-        String Account
-        Float Interest_Rate
-        Number Min_Payment
-        Number Current_Balance
-    }
-
-    ACCOUNTS_CSV ||--o{ TRANSACTIONS_CSV : "references via Account ID"
-    ACCOUNTS_CSV ||--o{ DEBT_PAYOFF_CSV : "mapped by name"
 ```
 
-## 2. Professional Hub: AI QA Co-Pilot (Flow Chart)
+## 2. Modular Engine Architecture (Backend)
 
-The Professional Hub leverages AI to accelerate the QA lifecycle by transforming raw Azure DevOps (ADO) data into actionable automation assets.
+The server is organized into specialized engines, each with its own Repository, Service, and Controller.
 
-```mermaid
-graph TD
-    A[ADO Service] -->|Fetch| B(User Stories / Bugs)
-    B -->|Select Item| C{User Action}
+*   **Financial Engine**: Processes Tiller syncs, calculates "The Hottest Dollar", and manages drift detection.
+*   **Professional Engine**: Manages Agile workflows (User Stories, Bugs) and prepares data for AI Analysis.
+*   **Life Admin Engine**: (Upcoming) Will manage health, reading, and personal logistics.
 
-    C -->|Analyze| D[AI: Summarize Requirements]
-    D -->|Refine| E[AI: Generate Scenarios]
-    E -->|Approve| F[AI: Generate Automation Stencil]
+## 3. UI Component Hierarchy (Frontend)
 
-    F -->|Output| G[Playwright Spec Code]
-
-    subgraph AI Processing Layer
-    D
-    E
-    F
-    end
-
-    subgraph Engineering Output
-    G
-    end
-```
-
-## 3. Application Component Hierarchy
-
-Visualizing how the React application is structured and how state flows through the system.
+The React application is organized into **Domain-Specific Modules** to support eventually selling different tiers (Free, Pro, Enterprise).
 
 ```mermaid
 graph TD
     Root[main.jsx] --> App[App.jsx]
-    App --> Prov[FinancialProvider]
+    App --> Prov[FinancialContext]
 
-    subgraph Global State Wrapper
-    Prov
+    subgraph System Module
+    Nav[Navbar + Workspace Switcher]
+    DB[Data Debugger]
     end
 
-    Prov --> Nav[Navbar]
+    Prov --> Nav
     Prov --> Routes[React Router]
 
-    Routes --> LP[Landing Page]
-    Routes --> FD[Financial Dashboard]
-    Routes --> PH[Professional Hub]
-
-    subgraph Landing Page Widgets
-    LP --> Cal[Calendar]
-    LP --> SWW[Small Win Widget]
-    LP --> BW[Balances Widget]
-    LP --> OC[Obsidian Connector]
+    subgraph Finance Module (Life OS)
+    FD[Financial Dashboard]
+    FD --> MF[Strategic Money Map]
+    FD --> SH[The Sorting Hat]
+    FD --> ST[Spending Trends]
     end
 
-    subgraph Financial Dashboard
-    FD --> DU[CSV Uploader]
-    FD --> DPP[Debt Payoff Planner]
-    FD --> ST[Spending Trends]
-    FD --> BVA[Budget vs Actuals]
+    subgraph Professional Module (Work OS)
+    PH[Professional Hub]
+    PH --> AB[Agile Board]
+    PH --> AI[AI QA Co-Pilot]
+    end
+
+    subgraph Life Admin Module
+    LP[Landing Page]
+    LP --> Cal[Calendar]
+    LP --> DR[Daily Reads]
     end
 ```
 
-## 4. Debt Payoff Logic (Strategic Sequence)
-
-The `debtService.js` performs contextual analysis based on the user's financial health.
+## 4. Sync & Integration Flow
 
 ```mermaid
-sequenceDiagram
-    participant UI as Debt Planner UI
-    participant DS as debtService.js
-    participant AI as Strategic Logic
-
-    UI->>DS: calculatePayoff(accounts, extra, strategy)
-    DS->>DS: Sort by Strategy (Avalanche/Snowball)
-    DS->>AI: Check for Predatory Structures
-    Note over AI: Detects Negative Amortization
-    AI-->>DS: Return Status (HEALTHY/SLOW_PAYOFF/...)
-    DS->>DS: Simulate Month-by-Month
-    DS-->>UI: Return Months, Total Interest, & Status
+graph LR
+    GS(Google Sheets / Tiller) -->|MCP Sync| FE(Financial Engine)
+    FE -->|Prisma Upsert| SQL(SQLite DB)
+    SQL -->|Fetch| UI(React Dashboard)
+    
+    ADO(Azure DevOps) -.->|Future Connector| PE(Professional Engine)
+    PE --> SQL
 ```

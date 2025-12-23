@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import logger from './logger/logger';
+import securityService from './securityService';
 
 /**
  * Robustly cleans a string representation of a number, handling currency symbols, 
@@ -237,7 +238,7 @@ export const processTillerData = (data) => {
         if (transactions.some(t => t.transaction_id === transactionId)) continue;
 
         // Process Accounts
-        const accountName = account;
+        const accountName = securityService.sanitize(account);
         if (!accountsMap.has(accountName)) {
             const institution = findVal(row, ['Institution']) || 'N/A';
             let accountId = findVal(row, ['Account ID', 'Account #']);
@@ -264,7 +265,7 @@ export const processTillerData = (data) => {
         const transactionObj = {
             transaction_id: transactionId,
             date: date,
-            name: description,
+            name: securityService.sanitize(description),
             amount: Math.abs(amount),
             category: [categoryVal],
             tags: [], 
@@ -297,7 +298,8 @@ export const processAccountsData = (data) => {
         const rawType = findVal(row, ['Type']) || 'Other';
         const type = rawType.trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 
-        const name = findVal(row, ['Account', 'Name']) || 'Unnamed Account';
+        const rawName = findVal(row, ['Account', 'Name']) || 'Unnamed Account';
+        const name = securityService.sanitize(rawName);
         const institution = findVal(row, ['Institution']) || 'N/A';
         
         // Robust ID generation
@@ -488,7 +490,7 @@ export const fetchAccountsFromDb = async () => {
     
     return data.map(acc => ({
         account_id: acc.id,
-        name: acc.name,
+        name: securityService.sanitize(acc.name),
         institution: acc.institution || 'Unknown',
         type: acc.type || 'Other',
         balances: {
@@ -511,11 +513,11 @@ export const fetchTransactionsFromDb = async () => {
     return data.map(t => ({
         transaction_id: t.id,
         date: t.date,
-        name: t.description, // Mapper expects .name
+        name: securityService.sanitize(t.description), // Mapper expects .name
         amount: Math.abs(t.amount), // Mapper and UI expect absolute for display
         type: t.type,
         category: [t.category || 'Uncategorized'],
-        accountName: t.account?.name || 'Unknown',
+        accountName: securityService.sanitize(t.account?.name) || 'Unknown',
         institution: t.account?.institution || 'N/A',
         isLateral: t.isLateral,
         isSideHustle: t.isSideHustle
