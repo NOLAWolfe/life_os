@@ -1,47 +1,43 @@
-import React from "react";
-import Calendar from "../components/LifeAdmin/Calendar/Calendar";
-import BalancesWidget from "../components/Finance/BalancesWidget/BalancesWidget";
-import ObsidianConnector from "../components/System/ObsidianConnector/ObsidianConnector";
-import SmallWinWidget from "../components/Finance/SmallWinWidget/SmallWinWidget";
-import WealthTargets from "../components/Finance/WealthTargets/WealthTargets";
-import WealthMentor from "../components/Finance/WealthMentor/WealthMentor";
-import DailyReads from "../components/LifeAdmin/DailyReads/DailyReads";
-import ToDoTracker from "../components/LifeAdmin/TodoTracker/TodoTracker";
-import "./LandingPage.css";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import './LandingPage.css';
 
 const LandingPage = () => {
-  return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>Your Daily Dashboard</h1>
-        <p>A quick view of your life.</p>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <WealthTargets />
-          <WealthMentor />
+    const navigate = useNavigate();
+
+    return (
+        <div className="landing-page">
+            <header className="hero-section">
+                <div className="hero-content">
+                    <h1 className="hero-title">Life.io <span className="version-badge">v2.2</span></h1>
+                    <p className="hero-subtitle">The Operating System for High-Performance Living.</p>
+                    <div className="cta-group">
+                        <button className="btn-primary" onClick={() => navigate('/app')}>
+                            Launch Dashboard
+                        </button>
+                        <button className="btn-secondary" onClick={() => window.open('https://github.com/NOLAWolfe/life_os', '_blank')}>
+                            View Source
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <section className="features-grid">
+                <div className="feature-card">
+                    <h3>🏦 Wealth Creation</h3>
+                    <p>Automated surplus tracking and drift detection.</p>
+                </div>
+                <div className="feature-card">
+                    <h3>🚀 Professional Hub</h3>
+                    <p>Agile board and AI-driven career planning.</p>
+                </div>
+                <div className="feature-card">
+                    <h3>🧠 Knowledge Graph</h3>
+                    <p>Obsidian-integrated memory and decision tools.</p>
+                </div>
+            </section>
         </div>
-        <div>
-          <DailyReads />
-        </div>
-        <div className="lg:row-span-2">
-          <Calendar />
-        </div>
-        <div>
-          <SmallWinWidget />
-        </div>
-        <div>
-          <BalancesWidget />
-        </div>
-        <div className="lg:col-span-2">
-          <ObsidianConnector />
-        </div>
-        <div className="lg:col-span-2">
-          <ToDoTracker />
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default LandingPage;

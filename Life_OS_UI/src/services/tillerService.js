@@ -1,6 +1,22 @@
 import Papa from 'papaparse';
 import logger from './logger/logger';
 import securityService from './securityService';
+import { TransactionSchema, AccountSchema, DebtSchema } from './schemas';
+
+/**
+ * Validates data against a Zod schema, logging warnings but returning the data.
+ * Used to ensure visibility without crashing.
+ */
+const validate = (schema, data, context) => {
+    const result = schema.safeParse(data);
+    if (!result.success) {
+        logger.warn(`Schema Validation Failed: ${context}`, { 
+            errors: result.error.format(),
+            data 
+        });
+    }
+    return data;
+};
 
 /**
  * Robustly cleans a string representation of a number, handling currency symbols, 
@@ -146,7 +162,7 @@ export const processDebtData = (data) => {
             // Checkmark column is often unnamed or the first column
             const activeVal = values[0]; 
 
-            debtAccounts.push({
+            const debtObj = {
                 active: String(activeVal).toUpperCase() === "TRUE" || activeVal === "✅",
                 name: displayName,
                 originalName: accountName,
@@ -159,7 +175,9 @@ export const processDebtData = (data) => {
                 payoffMonth: getVal("Paid Off Month"), // Tiller's projection
                 totalInterest: cleanNum(getVal("Est Total Interest")),
                 recommendedPayment: cleanNum(getVal("Recommended Payment"))
-            });
+            };
+
+            debtAccounts.push(validate(DebtSchema, debtObj, `Debt: ${displayName}`));
         }
     }
 
@@ -263,27 +281,24 @@ export const processTillerData = (data) => {
         const categoryVal = findVal(row, ['Category']) || 'Uncategorized';
         
         const transactionObj = {
-            transaction_id: transactionId,
+            id: transactionId,
             date: date,
             name: securityService.sanitize(description),
             amount: Math.abs(amount),
-            category: [categoryVal],
-            tags: [], 
-            note: row.Note || '', 
+            category: categoryVal,
             type: amount < 0 ? 'debit' : 'credit',
             accountName: accountName,
-            institution: findVal(row, ['Institution']) || 'N/A',
+            isLateral: checkIsLateral({ name: description, category: [categoryVal] }, userName, userNameAlt),
         };
 
         // Determine Meta-Types
         transactionObj.isSideHustle = checkIsSideHustle(transactionObj);
-        transactionObj.isLateral = checkIsLateral(transactionObj, userName, userNameAlt);
 
-        transactions.push(transactionObj);
+        transactions.push(validate(TransactionSchema, transactionObj, `Transaction: ${transactionObj.name}`));
     }
 
     return {
-        accounts: Array.from(accountsMap.values()),
+        accounts: Array.from(accountsMap.values()).map(acc => validate(AccountSchema, acc, `Account: ${acc.name}`)),
         transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)), 
     };
 };
@@ -325,7 +340,7 @@ export const processAccountsData = (data) => {
             }
         }
 
-        return {
+        const accObj = {
             account_id: accountId,
             name: name,
             institution: institution,
@@ -337,6 +352,8 @@ export const processAccountsData = (data) => {
             group: findVal(row, ['Group']) || 'Other',
             class: accountClass
         };
+
+        return validate(AccountSchema, accObj, `Account: ${name}`);
     }).filter(acc => {
         // Only filter if name is totally missing, which is rare
         const isValid = acc.name && acc.name !== 'Unnamed Account';

@@ -1,0 +1,4 @@
+name: Life_OS
+packages:
+  - path: server
+  - path: src/services
