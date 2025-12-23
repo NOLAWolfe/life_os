@@ -19,7 +19,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-left">
         <div className="navbar-logo">
-          <NavLink to="/">
+          <NavLink to="/app">
             <img src="/logo.svg" alt="Life.io Logo" />
             <span>Life.io</span>
           </NavLink>
@@ -39,20 +39,20 @@ const Navbar = () => {
       <ul className="navbar-links">
         {workspace === 'work' ? (
           <>
-            <li><NavLink to="/professional-hub" className="nav-work">Professional Hub</NavLink></li>
-            <li><NavLink to="/creative" className="nav-work">Social Hub</NavLink></li>
+            <li><NavLink to="/app/professional-hub" className="nav-work">Professional Hub</NavLink></li>
+            <li><NavLink to="/app/creative" className="nav-work">Social Hub</NavLink></li>
           </>
         ) : (
           <>
-            <li><NavLink to="/finance">Finance</NavLink></li>
+            <li><NavLink to="/app/finance">Finance</NavLink></li>
             <li className="dropdown">
               <span className="dropbtn">Health & Fitness</span>
               <div className="dropdown-content">
-                <NavLink to="/workout">Workout Tracker</NavLink>
-                <NavLink to="/meal-planner">Meal Planner</NavLink>
+                <NavLink to="/app/workout">Workout Tracker</NavLink>
+                <NavLink to="/app/meal-planner">Meal Planner</NavLink>
               </div>
             </li>
-            <li><NavLink to="/creative">Social Hub</NavLink></li>
+            <li><NavLink to="/app/creative">Social Hub</NavLink></li>
           </>
         )}
       </ul>

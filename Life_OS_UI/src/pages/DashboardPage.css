@@ -1,0 +1,18 @@
+.dashboard-container {
+    width: 100%;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.dashboard-header h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.dashboard-header p {
+    color: var(--text-secondary);
+}
