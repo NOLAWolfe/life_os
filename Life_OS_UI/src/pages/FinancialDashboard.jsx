@@ -100,7 +100,22 @@ const FinancialDashboard = () => {
                             <div className="h-full flex flex-col">
                                 {/* Hero Section: The Strategy Map */}
                                 <div className="w-full flex-1 min-h-[700px]">
-                                    <PaymentFlow viewMode={subTab} setViewMode={setSubTab} />
+                                    <FeatureGate 
+                                        minTier={TIERS.PRO} 
+                                        fallback={
+                                            <div className="h-full flex flex-col items-center justify-center bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-8 text-center">
+                                                <div className="text-6xl mb-4">🗺️</div>
+                                                <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Unlock the Money Map</h2>
+                                                <p className="text-[var(--text-secondary)] max-w-md mb-6">
+                                                    Visualize your entire financial flow, detect drift, and optimize your strategy.
+                                                    See exactly where every dollar goes.
+                                                </p>
+                                                <button className="btn-primary">Upgrade to Pro</button>
+                                            </div>
+                                        }
+                                    >
+                                        <PaymentFlow viewMode={subTab} setViewMode={setSubTab} />
+                                    </FeatureGate>
                                 </div>
                             </div>
                         )}
@@ -120,8 +135,12 @@ const FinancialDashboard = () => {
                                         
                                         {/* Middle Row: Strategy Widgets (Moved here) */}
                                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                                            <LeakDetector />
-                                            <DebtPayoffPlanner />
+                                            <FeatureGate minTier={TIERS.PRO}>
+                                                <LeakDetector />
+                                            </FeatureGate>
+                                            <FeatureGate minTier={TIERS.PRO}>
+                                                <DebtPayoffPlanner />
+                                            </FeatureGate>
                                         </div>
 
                                         {/* Bottom Row: Details */}
@@ -137,7 +156,9 @@ const FinancialDashboard = () => {
                                 )}
                                 {subTab === 'income' && (
                                     <div className="xl:col-span-3">
-                                        <IncomeStreams />
+                                        <FeatureGate minTier={TIERS.PRO}>
+                                            <IncomeStreams />
+                                        </FeatureGate>
                                     </div>
                                 )}
                                 {subTab === 'spending' && (
@@ -148,8 +169,12 @@ const FinancialDashboard = () => {
                                 )}
                                 {subTab === 'debt' && (
                                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                                        <LeakDetector />
-                                        <DebtPayoffPlanner />
+                                        <FeatureGate minTier={TIERS.PRO}>
+                                            <LeakDetector />
+                                        </FeatureGate>
+                                        <FeatureGate minTier={TIERS.PRO}>
+                                            <DebtPayoffPlanner />
+                                        </FeatureGate>
                                     </div>
                                 )}
                             </div>
