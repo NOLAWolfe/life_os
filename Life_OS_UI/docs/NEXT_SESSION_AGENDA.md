@@ -41,6 +41,11 @@
     *   Generate a fresh AppMap.
     *   Update `README.md` for public consumption.
 
+## 5. 🎓 Life.io Academy (The "Bootcamp")
+*   **Goal:** Create a "Golden Path" tutorial for new contributors.
+*   **Concept:** "The Pet Tracker Project" - A guided walkthrough where a new dev builds a full-stack module (Model -> API -> UI) to learn the patterns.
+*   **Deliverable:** A `docs/BOOTCAMP` directory with step-by-step guides (`01_SETUP.md`, `02_HELLO_WORLD.md`) and architectural diagrams.
+
 ---
 **Preparation for Next Session:**
 *   Review this list and prioritize the "Top 3" blockers.
