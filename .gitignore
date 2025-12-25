@@ -62,3 +62,7 @@ yarn-error.log*
 *.jpg
 *.jpeg
 *.svg
+
+# Temporary Files (AppMap, etc)
+Life_OS_UI/tmp/
+tmp/

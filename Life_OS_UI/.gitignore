@@ -30,7 +30,7 @@ dist-ssr
 
 # Playwright
 /test-results/
-/playwright-report/
+playwright-report*/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
@@ -41,4 +41,7 @@ dist-ssr
 *.db
 *.sqlite
 *.sqlite3
-*-journaltmp/
+*-journal
+
+# Temporary Files (AppMap, etc)
+tmp/
