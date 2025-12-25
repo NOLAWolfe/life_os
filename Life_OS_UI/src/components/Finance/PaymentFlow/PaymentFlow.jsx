@@ -99,43 +99,89 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     }, [debtAccounts]);
 
     // -- Defensive Adapter: Dynamic Income Streams (Tier 0) --
-    const { dynamicNodes, dynamicEdges, totalMonthlyIncome } = useMemo(() => {
-        if (!incomeStreams || incomeStreams.length === 0) {
-            return { dynamicNodes: [], dynamicEdges: [], totalMonthlyIncome: 0 };
-        }
+    // Sync Income Streams into State (preserving position)
+    const totalMonthlyIncome = useMemo(() => {
+        if (!incomeStreams) return 0;
+        return incomeStreams.reduce((sum, stream) => {
+             const config = JSON.parse(localStorage.getItem('incomeStreamConfig') || '{}');
+             const streamConf = config[stream.name] || {};
+             if (streamConf.type === 'ignored') return sum;
+             return sum + (stream.average || 0);
+        }, 0);
+    }, [incomeStreams]);
+
+    useEffect(() => {
+        if (!incomeStreams || incomeStreams.length === 0) return;
 
         const config = JSON.parse(localStorage.getItem('incomeStreamConfig') || '{}');
-        const dns = [];
-        const des = [];
-        let total = 0;
+        
+        setNodes(currentNodes => {
+            const newNodes = [...currentNodes];
+            let hasChanges = false;
 
-        incomeStreams.forEach((stream, index) => {
-            const streamConf = config[stream.name] || {};
-            if (streamConf.type === 'ignored') return;
+            incomeStreams.forEach((stream, index) => {
+                const streamConf = config[stream.name] || {};
+                if (streamConf.type === 'ignored') return;
 
-            const id = `dynamic-income-${stream.name.replace(/\s+/g, '-').toLowerCase()}`;
-            const avg = Math.round(stream.average || 0);
-            total += avg;
+                const id = `dynamic-income-${stream.name.replace(/\s+/g, '-').toLowerCase()}`;
+                const avg = Math.round(stream.average || 0);
+                const label = `💰 ${streamConf.alias || stream.name} ($${avg.toLocaleString()}/mo)`;
 
-            dns.push({
-                id,
-                data: { label: `💰 ${streamConf.alias || stream.name} ($${avg.toLocaleString()}/mo)` },
-                position: { x: (index - (incomeStreams.length / 2)) * 250 + 250, y: 0 },
-                className: 'node-hub ring-2 ring-green-500/50',
-                type: 'input'
+                const existingIndex = newNodes.findIndex(n => n.id === id);
+
+                if (existingIndex >= 0) {
+                    // Update Data, Preserve Position
+                    if (newNodes[existingIndex].data.label !== label) {
+                        newNodes[existingIndex] = {
+                            ...newNodes[existingIndex],
+                            data: { ...newNodes[existingIndex].data, label }
+                        };
+                        hasChanges = true;
+                    }
+                } else {
+                    // Create New
+                    newNodes.push({
+                        id,
+                        data: { label },
+                        position: { x: (index - (incomeStreams.length / 2)) * 250 + 250, y: 0 },
+                        className: 'node-hub ring-2 ring-green-500/50',
+                        type: 'input'
+                    });
+                    hasChanges = true;
+                }
             });
 
-            des.push({
-                id: `edge-${id}-navy`,
-                source: id,
-                target: 'navy-fed',
-                animated: true,
-                style: { stroke: '#10b981', strokeWidth: 2 },
-                label: 'Income'
-            });
+            return hasChanges ? newNodes : currentNodes;
         });
 
-        return { dynamicNodes: dns, dynamicEdges: des, totalMonthlyIncome: total };
+        setEdges(currentEdges => {
+            const newEdges = [...currentEdges];
+            let hasChanges = false;
+
+            incomeStreams.forEach((stream) => {
+                const streamConf = config[stream.name] || {};
+                if (streamConf.type === 'ignored') return;
+
+                const id = `dynamic-income-${stream.name.replace(/\s+/g, '-').toLowerCase()}`;
+                const edgeId = `edge-${id}-navy`;
+                
+                // Only add if it doesn't exist (Strategy: We assume Income feeds Navy Fed by default)
+                if (!newEdges.find(e => e.id === edgeId)) {
+                    newEdges.push({
+                        id: edgeId,
+                        source: id,
+                        target: 'navy-fed',
+                        animated: true,
+                        style: { stroke: '#10b981', strokeWidth: 2 },
+                        label: 'Income'
+                    });
+                    hasChanges = true;
+                }
+            });
+
+            return hasChanges ? newEdges : currentEdges;
+        });
+
     }, [incomeStreams]);
 
     // Load rules from localStorage
@@ -170,32 +216,29 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
         };
     }, [totalMonthlyIncome, totalMonthlyCommitments]);
 
-    // Merge State nodes with Dynamic nodes and Remaining Funds
+    // Merge State nodes with Remaining Funds
     const finalNodes = useMemo(() => {
-        const hasDynamic = dynamicNodes.length > 0;
+        const hasDynamic = nodes.some(n => n.id.startsWith('dynamic-income'));
         const filteredNodes = nodes.filter(n => {
             if (hasDynamic && n.id === 'income') return false;
             return true;
         });
 
-        const allNodes = [...filteredNodes, ...dynamicNodes];
-        
         // Add Remaining Funds node only in map view
         if (viewMode === 'map') {
-            allNodes.push(remainingFundsNode);
+            return [...filteredNodes, remainingFundsNode];
         }
 
-        return allNodes;
-    }, [nodes, dynamicNodes, remainingFundsNode, viewMode]);
+        return filteredNodes;
+    }, [nodes, remainingFundsNode, viewMode]);
 
     const finalEdges = useMemo(() => {
-        const hasDynamic = dynamicEdges.length > 0;
-        const filteredEdges = edges.filter(e => {
+        const hasDynamic = nodes.some(n => n.id.startsWith('dynamic-income'));
+        return edges.filter(e => {
             if (hasDynamic && e.source === 'income') return false;
             return true;
         });
-        return [...filteredEdges, ...dynamicEdges];
-    }, [edges, dynamicEdges]);
+    }, [edges, nodes]);
 
     // -- Actions --
     const saveLayout = () => {
@@ -417,7 +460,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     };
 
     return (
-        <div className="widget-card flex flex-col h-full min-h-[700px]">
+        <div className="widget-card flex flex-col h-full min-h-[500px] md:min-h-[700px]">
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
                 <h2 className="text-xl font-bold text-[var(--accent-color)]">🗺️ Strategic Money Map</h2>
                 <div className="flex gap-2">

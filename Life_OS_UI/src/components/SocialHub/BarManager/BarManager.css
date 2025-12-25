@@ -1,0 +1,13 @@
+.bar-manager-container {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.game-card, .event-card {
+    transition: transform 0.2s;
+}
+
+.game-card:hover, .event-card:hover {
+    transform: translateX(2px);
+    border-color: var(--primary-color);
+}

@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/System/Navbar/Navbar';
 import { FinancialProvider } from './contexts/FinancialContext';
+import { UserProvider } from './contexts/UserContext';
 import './App.css';
 import './pages/Page.css'; // Import shared page styles
 
@@ -13,7 +14,7 @@ const WorkoutPage = lazy(() => import('./pages/WorkoutPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlannerPage'));
 const CreativePage = lazy(() => import('./pages/CreativePage'));
 const ProfessionalHubPage = lazy(() => import('./pages/ProfessionalHubPage'));
-const DjWorldPage = lazy(() => import('./pages/DjWorldPage'));
+const BusinessHubPage = lazy(() => import('./pages/BusinessHubPage'));
 
 // Placeholder component for pages we haven't built yet
 const PlaceholderPage = ({ title }) => (
@@ -46,30 +47,33 @@ const AppLayout = ({ children }) => (
 
 function App() {
   return (
-    <FinancialProvider>
-      <div className="App">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* Public Route */}
-            <Route path="/" element={<LandingPage />} />
+    <UserProvider>
+      <FinancialProvider>
+        <div className="App">
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Public Route */}
+              <Route path="/" element={<LandingPage />} />
 
-            {/* Private App Routes (Nested under /app for clearer separation) */}
-            <Route path="/app" element={<AppLayout><DashboardPage /></AppLayout>} />
-            <Route path="/app/finance" element={<AppLayout><FinancialDashboard /></AppLayout>} />
-            <Route path="/app/professional-hub" element={<AppLayout><ProfessionalHubPage /></AppLayout>} />
-            <Route path="/app/workout" element={<AppLayout><WorkoutPage /></AppLayout>} />
-            <Route path="/app/meal-planner" element={<AppLayout><MealPlannerPage /></AppLayout>} />
-            <Route path="/app/creative" element={<AppLayout><CreativePage /></AppLayout>} />
-            <Route path="/app/dj-world" element={<AppLayout><DjWorldPage /></AppLayout>} />
-            <Route path="/app/health" element={<AppLayout><PlaceholderPage title="Health Hub" /></AppLayout>} />
-            
-            {/* Legacy Redirects (Handle old bookmarks) */}
-            <Route path="/finance" element={<Navigate to="/app/finance" replace />} />
-            <Route path="/professional-hub" element={<Navigate to="/app/professional-hub" replace />} />
-          </Routes>
-        </Suspense>
-      </div>
-    </FinancialProvider>
+              {/* Private App Routes (Nested under /app for clearer separation) */}
+              <Route path="/app" element={<AppLayout><DashboardPage /></AppLayout>} />
+              <Route path="/app/finance" element={<AppLayout><FinancialDashboard /></AppLayout>} />
+              <Route path="/app/professional-hub" element={<AppLayout><ProfessionalHubPage /></AppLayout>} />
+              <Route path="/app/workout" element={<AppLayout><WorkoutPage /></AppLayout>} />
+              <Route path="/app/meal-planner" element={<AppLayout><MealPlannerPage /></AppLayout>} />
+              <Route path="/app/creative" element={<AppLayout><CreativePage /></AppLayout>} />
+              <Route path="/app/business" element={<AppLayout><BusinessHubPage /></AppLayout>} />
+              <Route path="/app/health" element={<AppLayout><PlaceholderPage title="Health Hub" /></AppLayout>} />
+              
+              {/* Legacy Redirects (Handle old bookmarks) */}
+              <Route path="/finance" element={<Navigate to="/app/finance" replace />} />
+              <Route path="/professional-hub" element={<Navigate to="/app/professional-hub" replace />} />
+              <Route path="/app/dj-world" element={<Navigate to="/app/business" replace />} />
+            </Routes>
+          </Suspense>
+        </div>
+      </FinancialProvider>
+    </UserProvider>
   );
 }
 

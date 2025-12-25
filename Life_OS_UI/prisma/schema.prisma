@@ -110,6 +110,21 @@ model WorkoutLog {
   details         String?  // JSON string for specific exercises
 }
 
+model Recipe {
+  id          String   @id @default(uuid())
+  name        String
+  ingredients String   // JSON string: ["Chicken", "Rice"]
+  tags        String?  // "high-protein", "diabetic-friendly"
+  consumer    String   // "All", "Neauxla", "Partner"
+  createdAt   DateTime @default(now())
+}
+
+model WeeklyPlan {
+  id        String   @id @default(uuid())
+  weekStart DateTime // The Monday of the week
+  data      String   // JSON Blob: { "YYYY-MM-DD": { "Neauxla": { "Dinner": "RecipeID" } } }
+}
+
 // --------------------------------------------------------
 // MODULE: Social Hub (DJ Business Admin)
 // --------------------------------------------------------
@@ -119,6 +134,7 @@ model Client {
   name            String
   company         String?
   email           String?
+  invoiceEmail    String?  // The specific sender address for automated intake matching
   phone           String?
   rate            Float?   // Default rate
   rateType        String?  // 'hourly' or 'flat'
@@ -131,8 +147,10 @@ model Client {
 
 model Invoice {
   id              String   @id @default(uuid())
-  number          String   // e.g., "INV-2025-001"
-  status          String   @default("Draft") // Draft, Sent, Paid, Overdue
+  number          String   @default("TEMP-INV") // n8n can overwrite this or we can generate it
+  status          String   @default("Draft") // Draft, Sent, Paid, Overdue, Review
+  source          String   @default("Manual") // Manual, Email, Upload
+  originId        String?  // e.g. Email ID or File Hash
   date            DateTime @default(now())
   dueDate         DateTime?
   totalAmount     Float

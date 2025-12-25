@@ -1,4 +1,4 @@
-import { prisma } from '../../../shared/db.js';
+import prisma from '../../../shared/db.js';
 
 export const getAllInvoices = async () => {
   return await prisma.invoice.findMany({

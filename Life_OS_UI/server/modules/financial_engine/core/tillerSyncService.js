@@ -14,11 +14,43 @@ const tillerSyncService = {
         return parseFloat(val.toString().replace(/[$,]/g, ''));
     },
 
+    // --- Advanced Logic Helpers ---
+    checkIsSideHustle: (row) => {
+        const desc = (row['Description'] || '').toLowerCase();
+        const inst = (row['Institution'] || '').toLowerCase();
+        const acc = (row['Account'] || '').toLowerCase();
+        
+        // Navy Federal + Cash App/Venmo = Likely DJ Income
+        if (inst.includes('navy federal') || acc.includes('navy federal')) {
+            if (desc.includes('cash app') || desc.includes('venmo')) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    checkIsLateral: (row) => {
+        const desc = (row['Description'] || '').toLowerCase();
+        const cat = (row['Category'] || '').toLowerCase();
+
+        // 1. Explicit Category
+        if (cat.includes('transfer') || cat.includes('credit card payment')) return true;
+
+        // 2. Common Keywords
+        const lateralKeywords = ['online transfer', 'transfer from', 'transfer to', 'internal transfer', 'zelle transfer', 'venmo transfer'];
+        if (lateralKeywords.some(kw => desc.includes(kw))) return true;
+
+        return false;
+    },
+
     /**
      * Standard Tiller Columns for Transactions:
      * Date, Description, Category, Amount, Account, Account #, Institution, Transaction ID
      */
     mapTillerRowToTransaction: (row, accountId) => {
+        const isLateral = tillerSyncService.checkIsLateral(row);
+        const isSideHustle = tillerSyncService.checkIsSideHustle(row);
+        
         return {
             id: row['Transaction ID'] || `ext-${Date.now()}-${Math.random()}`,
             date: new Date(row['Date']),
@@ -27,8 +59,8 @@ const tillerSyncService = {
             category: row['Category'] || 'Uncategorized',
             type: tillerSyncService.cleanMoney(row['Amount']) < 0 ? 'debit' : 'credit',
             accountId: accountId,
-            isLateral: row['Category']?.toLowerCase().includes('transfer') || 
-                       row['Description']?.toLowerCase().includes('zelle') || false
+            isLateral: isLateral,
+            isSideHustle: isSideHustle
         };
     },
 

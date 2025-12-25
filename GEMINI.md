@@ -3,36 +3,29 @@ Current Version: 2.2 (The Financial Command Center)
 User: Neauxla (Senior QA Automation Analyst, Musician, Entrepreneur)
 
 ## **CURRENT STATUS (as of Dec 23, 2025)**
-The project has achieved **Operation Bedrock** status. The foundation is now enterprise-ready with strict validation, efficient state management, and a comprehensive testing suite.
+The project has evolved into **The Enterprise Simulation**. We have successfully transitioned from a personal dashboard to a multi-tenant SaaS architecture with strict separation of concerns.
 
-1.  **Operation Bedrock (Hardened Foundation)**
-    *   **Safety Net (Testing):** Integrated **Vitest** for sub-millisecond unit testing. Core logic (Debt math, Drift detection) is fully covered.
-    *   **Gatekeeper (Data Integrity):** Implemented **Zod** schemas for all data ingestion. "Undefined" crashes are eliminated via early validation.
-    *   **Brain Surgery (State):** Migrated to **TanStack Query**. `FinancialContext` is now a thin wrapper, with data fetching delegated to cached hooks (`useAccounts`, `useTransactions`).
-    *   **Black Box (Observability):** Structured logging service with persistent `localStorage` history for retrospective debugging.
+1.  **The SaaS Architecture (Live)**
+    *   **Storefront Separation:** Public Marketing Site (`/`) vs. Private Dashboard (`/app`).
+    *   **Identity Engine:** `UserContext` with Guest/Free/Pro tiers and "God Mode" administration.
+    *   **The Paywall:** Feature Gating implemented for "Income Streams", "Leak Detector", and "Debt Planner".
 
-2.  **Money Map & Strategy Engine**
-    *   **Deterministic IDs:** Resilience against duplications via account-derived IDs.
-    *   **The "Bucket" System:** Visual organization for bill management.
-    *   **Hottest Dollar:** Real-time surplus calculation.
+2.  **The Household Commander (Meal Planner 2.0)**
+    *   **Dual-Profile Engine:** Manages separate dietary tracks (Performance vs. Medical) with a unified grocery output.
+    *   **Backend:** Dedicated `life_admin` engine (SQLite/Prisma) replaces legacy APIs.
+
+3.  **Operation Bedrock (Hardened Foundation)**
+    *   **Safety Net:** 10/10 System Health Check (including Live Server Smoke Test).
+    *   **Logic Core:** Financial logic (Side Hustles, Lateral Transfers) ported to Backend and Unit Tested.
+    *   **Clean Slate:** Legacy CSV parsers purged.
 
 ---
 
-**Next Session Mission: The Enterprise Simulation (SaaS Layer)**
-With the bedrock solid, we move to simulating a multi-tenant environment.
-
-1.  **Phase 1: The Storefront Separation**
-    *   Rename `LandingPage.jsx` -> `DashboardPage.jsx`.
-    *   Create a public-facing `LandingPage.jsx` (Marketing Site).
-    *   Bifurcate Routing: `/` (Public) vs `/app` (Private).
-
-2.  **Phase 2: The Identity Engine**
-    *   Create `UserContext` for simulated Auth state (Guest/Free/Pro).
-    *   Implement "God Mode" switch for testing user tiers.
-
-3.  **Phase 3: The Paywall & Multi-Tenancy**
-    *   Implement `<FeatureGate>` components.
-    *   Verify strict data isolation using Playwright's Multi-Context capability.
+**Next Session Mission: Deep Vision & Legal**
+1.  **AppMap Integration:** Visualize system flow and dependencies.
+2.  **Visualizer Debt:** Fix node movement/link bugs in `PaymentFlow`.
+3.  **Legal Spike:** Implement Clickwrap Agreements and Privacy Policies.
+4.  **Workout Spike:** Mobile-first fitness tracking with Apple Health integration.
 
 ---
 

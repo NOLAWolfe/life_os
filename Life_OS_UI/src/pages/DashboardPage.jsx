@@ -9,7 +9,7 @@ import DailyReads from "../components/LifeAdmin/DailyReads/DailyReads";
 import ToDoTracker from "../components/LifeAdmin/TodoTracker/TodoTracker";
 import './DashboardPage.css';
 
-const LandingPage = () => {
+const DashboardPage = () => {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -44,4 +44,4 @@ const LandingPage = () => {
   );
 };
 
-export default LandingPage;
+export default DashboardPage;

@@ -5,6 +5,7 @@
 ## 1. 🔭 High-Level Alignment (The Vision Check)
 *   **Narrative Consistency:** Does the "Landing Page" promise match the "Dashboard" reality?
 *   **Monetization Logic:** Are the "Pro" gates placed logically? Do they feel like "value-adds" or "punishments"?
+*   **The Viral Loop:** How do we turn a "Gig Acceptance" notification into a frictionless onboarding for new DJs?
 *   **The "A La Carte" Model:** How do we present the "App Store" of modules to a user? (Brainstorming the UI).
 
 ## 2. 🔬 Technical Scrutiny (The Codebase Audit)
@@ -46,7 +47,26 @@
 *   **Concept:** "The Pet Tracker Project" - A guided walkthrough where a new dev builds a full-stack module (Model -> API -> UI) to learn the patterns.
 *   **Deliverable:** A `docs/BOOTCAMP` directory with step-by-step guides (`01_SETUP.md`, `02_HELLO_WORLD.md`) and architectural diagrams.
 
+## 6. 🎥 The Content Factory (New Mission)
+*   **Review:** `docs/MISSION_CONTENT_CREATION.md`.
+*   **Discuss:** The "Science of Attention" findings (`LifeVault/Project Documentation/Research/Science_of_Attention.md`).
+*   **Plan:** Scoping the `ContentScheduler` widget for Social Hub.
+
+## 7. 🎧 The Enterprise Flywheel & Booking Agent Spike
+*   **Concept:** Adapting the Vendor Orchestrator for DJ Booking Agents and Bar Managers.
+*   **The Connectivity Engine:**
+    *   **Global Calendar Sync:** Seamlessly sync gigs across Bar Managers, Booking Agents, and DJs.
+    *   **Double-Booking Alerts:** Real-time conflict detection during the booking process.
+    *   **Gig Acceptance Workflow:** A secure, "No-Install" mobile web view for DJs to accept gigs and sync to their personal calendars instantly.
+*   **The Viral Growth Spike:**
+    *   **Child Entitlements:** Provision "Lite" accounts for DJs under a Bar Manager's Enterprise subscription.
+    *   **Referral Incentives:** Prototype the "Refer-a-Bar" and "Refer-a-DJ" credit systems (e.g., free months of Pro).
+*   **Venue Profiles:** Store specific needs per restaurant (e.g., "Restaurant A").
+*   **Financials:** Automated invoice generation upon gig completion (Email intake via n8n).
+*   **Taste Profile:** `Genre Rankings` (5-star system for genre presence in setlists).
+
 ---
 **Preparation for Next Session:**
+*   **Direct Connect Spike (Critical):** Research Teller.io/Plaid pay-as-you-go implementation to replace manual Tiller uploads.
 *   Review this list and prioritize the "Top 3" blockers.
 *   Come ready to delete code. Less code = Less bugs.

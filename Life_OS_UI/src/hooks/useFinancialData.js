@@ -1,26 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import tillerService from '../services/tillerService';
 
-export const useAccounts = () => {
+export const useAccounts = (userId) => {
   return useQuery({
-    queryKey: ['accounts'],
-    queryFn: tillerService.fetchAccountsFromDb,
+    queryKey: ['accounts', userId],
+    queryFn: () => tillerService.fetchAccountsFromDb(userId),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
-export const useTransactions = () => {
+export const useTransactions = (userId) => {
   return useQuery({
-    queryKey: ['transactions'],
-    queryFn: tillerService.fetchTransactionsFromDb,
+    queryKey: ['transactions', userId],
+    queryFn: () => tillerService.fetchTransactionsFromDb(userId),
     staleTime: 1000 * 60 * 5,
   });
 };
 
-export const useDebts = () => {
+export const useDebts = (userId) => {
   return useQuery({
-    queryKey: ['debts'],
-    queryFn: tillerService.fetchDebtsFromDb,
+    queryKey: ['debts', userId],
+    queryFn: () => tillerService.fetchDebtsFromDb(userId),
     staleTime: 1000 * 60 * 5,
   });
 };

@@ -97,11 +97,9 @@ graph LR
     PE --> SQL
 ```
 
-## 5. Billing & Subscription Strategy (Future SaaS Layer)
 
-As Life.io evolves into a platform, the **Invoice Manager** (currently in Social Engine) will mature into a central **Billing Engine**.
 
-*   **Payment Provider:** Stripe (Primary candidate) or Lemon Squeezy (Merchant of Record).
-*   **Idempotency:** All charges must be idempotent to prevent double-billing. The Provider is the source of truth; our DB is a synced replica.
-*   **Webhooks:** We will not poll for status. We will expose `api/webhooks/stripe` to listen for `invoice.paid` and `subscription.updated` events.
-*   **Customer Portal:** We will leverage the Provider's hosted portal for self-serve card updates and plan changes, minimizing our PCI scope and dev effort.
+## 📊 Data Ingestion Layer
+*   **Legacy Engine:** Tiller CSV exports (Accounts, Transactions, Categories) via `tillerService.js`.
+*   **Next-Gen Engine (Primary):** Direct Bank Connection via Teller.io / Plaid (Pay-as-you-go).
+*   **Flow:** Webhook -> `financial_engine` (API) -> SQLite (Prisma).

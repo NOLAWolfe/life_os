@@ -13,7 +13,9 @@
     "test": "npx playwright test",
     "test:unit": "vitest",
     "test:ui": "vitest --ui",
-    "start:server": "node server.js"
+    "start:server": "node server.js",
+    "record:server": "npx appmap-node node server.js",
+    "record:suite": "node scripts/record_suite.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -23,7 +25,6 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "moment": "^2.30.1",
-    "papaparse": "^5.5.3",
     "react": "^19.2.0",
     "react-big-calendar": "^1.19.4",
     "react-chartjs-2": "^5.3.1",

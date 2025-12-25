@@ -152,3 +152,22 @@
     width: 100%;
     margin-top: 0.5rem;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .flow-content-wrapper {
+        flex-direction: column;
+    }
+
+    .node-inspector {
+        width: 100%;
+        height: 300px; /* Fixed height for bottom pane */
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        order: 2; /* Ensure it stays at bottom if needed */
+    }
+
+    .flow-main {
+        height: 400px; /* Ensure map has space */
+    }
+}

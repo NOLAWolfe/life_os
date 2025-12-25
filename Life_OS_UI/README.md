@@ -31,7 +31,7 @@ The central hub for the "Life.io" Operating System. This React-based dashboard t
 ## Tech Stack
 *   **Frontend:** React 18 (Vite)
 *   **Visualization:** `@xyflow/react` (Flowcharts), `chart.js` (Trends).
-*   **Data Processing:** `papaparse` with custom deduplication logic.
+*   **Data Processing:** Custom API validation logic.
 *   **Styling:** Tailwind CSS + CSS Modules.
 *   **Persistence:** `localStorage` for user configs (Flowchart layout, Merchant Rules, Income Targets).
 

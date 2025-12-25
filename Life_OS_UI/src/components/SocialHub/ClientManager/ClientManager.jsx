@@ -8,6 +8,8 @@ const ClientManager = () => {
     const [loading, setLoading] = useState(true);
     const [newClientName, setNewClientName] = useState('');
     const [newCompany, setNewCompany] = useState('');
+    const [newEmail, setNewEmail] = useState('');
+    const [newInvoiceEmail, setNewInvoiceEmail] = useState('');
 
     useEffect(() => {
         fetchClients();
@@ -41,8 +43,10 @@ const ClientManager = () => {
                 body: JSON.stringify({
                     name: newClientName,
                     company: newCompany,
+                    email: newEmail,
+                    invoiceEmail: newInvoiceEmail,
                     status: 'Active',
-                    rate: 150, // Default DJ rate
+                    rate: 150, 
                     rateType: 'hourly'
                 })
             });
@@ -52,6 +56,8 @@ const ClientManager = () => {
                 setClients([newClient, ...clients]);
                 setNewClientName('');
                 setNewCompany('');
+                setNewEmail('');
+                setNewInvoiceEmail('');
             }
         } catch (error) {
             console.error("Error adding client:", error);
@@ -73,7 +79,15 @@ const ClientManager = () => {
                                 <h4>{client.name}</h4>
                                 <span className="client-company">{client.company || 'Private Party'}</span>
                                 <div className="client-details">
-                                    {client.email || 'No email'} • ${client.rate}/{client.rateType === 'hourly' ? 'hr' : 'flat'}
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <span className="text-xs text-gray-400">Primary: <span className="text-blue-400">{client.email || 'N/A'}</span></span>
+                                        {client.invoiceEmail && (
+                                            <span className="text-xs text-gray-400">Intake: <span className="text-purple-400">{client.invoiceEmail}</span></span>
+                                        )}
+                                    </div>
+                                    <div className="mt-2 text-xs">
+                                        ${client.rate}/{client.rateType === 'hourly' ? 'hr' : 'flat'}
+                                    </div>
                                 </div>
                             </div>
                             <span className={`client-status status-${client.status.toLowerCase()}`}>
@@ -85,20 +99,34 @@ const ClientManager = () => {
             )}
 
             <form className="add-client-form" onSubmit={handleAddClient}>
-                <input 
-                    type="text" 
-                    placeholder="Client Name" 
-                    value={newClientName}
-                    onChange={(e) => setNewClientName(e.target.value)}
-                    required
-                />
-                <input 
-                    type="text" 
-                    placeholder="Company (Opt)" 
-                    value={newCompany}
-                    onChange={(e) => setNewCompany(e.target.value)}
-                />
-                <button type="submit">Add</button>
+                <div className="grid grid-cols-2 gap-2">
+                    <input 
+                        type="text" 
+                        placeholder="Client Name" 
+                        value={newClientName}
+                        onChange={(e) => setNewClientName(e.target.value)}
+                        required
+                    />
+                    <input 
+                        type="text" 
+                        placeholder="Company (Opt)" 
+                        value={newCompany}
+                        onChange={(e) => setNewCompany(e.target.value)}
+                    />
+                    <input 
+                        type="email" 
+                        placeholder="Primary Email" 
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                    />
+                    <input 
+                        type="email" 
+                        placeholder="Invoice Intake Email" 
+                        value={newInvoiceEmail}
+                        onChange={(e) => setNewInvoiceEmail(e.target.value)}
+                    />
+                </div>
+                <button type="submit" className="mt-2">Add Client</button>
             </form>
         </div>
     );

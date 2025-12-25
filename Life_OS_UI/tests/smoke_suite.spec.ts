@@ -45,12 +45,11 @@ test.describe('System Smoke Test (Critical Path)', () => {
     await expect(page.locator('h1:has-text("Social Hub")')).toBeVisible();
   });
 
-  // 6. DJ World (New Studio Admin)
-  test('DJ World should render', async ({ page }) => {
-    await page.goto('http://localhost:5173/app/dj-world');
-    await expect(page.locator('h1:has-text("DJ World")')).toBeVisible();
-    await expect(page.locator('h2:has-text("Client Roster")')).toBeVisible();
-    await expect(page.locator('h2:has-text("Invoice Command Center")')).toBeVisible();
+  // 6. Business Hub (Enterprise ERP)
+  test('Business Hub should render', async ({ page }) => {
+    await page.goto('http://localhost:5173/app/business');
+    await expect(page.locator('h1:has-text("Business Hub")')).toBeVisible();
+    await expect(page.locator('button:has-text("Operations")')).toBeVisible();
   });
 
   // 7. Workout Page

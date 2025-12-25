@@ -1,0 +1,42 @@
+name: Life.io CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: Life_OS_UI/package-lock.json
+
+    - name: Install Dependencies
+      working-directory: ./Life_OS_UI
+      run: npm ci
+
+    - name: Lint Code
+      working-directory: ./Life_OS_UI
+      run: npm run lint
+      continue-on-error: true # Warning only for Alpha
+
+    - name: Run Unit Tests
+      working-directory: ./Life_OS_UI
+      run: npm test
+      
+    - name: Build Project
+      working-directory: ./Life_OS_UI
+      run: npm run build

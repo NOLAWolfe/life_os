@@ -1,5 +1,5 @@
 import * as repo from '../data/invoiceRepository.js';
-import { prisma } from '../../../shared/db.js';
+import prisma from '../../../shared/db.js';
 
 const generateInvoiceNumber = async () => {
     const year = new Date().getFullYear();
