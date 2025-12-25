@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import { connectDB } from './server/shared/db.js';
+import AppError from './server/shared/AppError.js';
 
 // --- MODULE IMPORTS ---
 import financialAccountRouter from './server/modules/financial_engine/api/accountController.js';
@@ -37,10 +38,31 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Handle 404 (Undefined Routes)
+// Note: In Express 5, using '*' can trigger path-to-regexp errors. 
+// Using a middleware without a path captures all unmatched requests.
+app.use((req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
 // --- 5. GLOBAL ERROR MIDDLEWARE ---
 app.use((err, req, res, next) => {
-    console.error("❌ [Express] Error Middleware Caught:", err);
-    res.status(500).json({ error: "Internal Server Error", details: err.message });
+    err.statusCode = err.statusCode || 500;
+    err.status = err.status || 'error';
+
+    // Log the error for observability
+    console.error("❌ [Express] Error:", {
+        message: err.message,
+        status: err.statusCode,
+        stack: err.stack
+    });
+
+    res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+        // Only show stack in development/test to prevent leaking info in prod
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined 
+    });
 });
 
 // --- 6. STARTUP SEQUENCE ---
