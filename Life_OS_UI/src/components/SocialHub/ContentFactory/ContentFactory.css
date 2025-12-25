@@ -1,0 +1,111 @@
+.content-factory {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: 100%;
+}
+
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    min-height: 400px;
+}
+
+.kanban-column {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.kanban-column h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.column-count {
+    background: var(--bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+}
+
+.content-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: grab;
+    transition: transform 0.1s, border-color 0.2s;
+}
+
+.content-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.card-pillar {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.pillar-ai { background: #3b82f6; color: white; }
+.pillar-trending { background: #ef4444; color: white; }
+.pillar-software { background: #10b981; color: white; }
+.pillar-dj { background: #8b5cf6; color: white; }
+.pillar-visualizer { background: #f59e0b; color: white; }
+
+.card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.format-tag {
+    background: var(--hover-overlay);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.add-idea-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.add-idea-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}

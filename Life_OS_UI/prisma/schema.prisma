@@ -161,3 +161,16 @@ model Invoice {
   clientId        String
   client          Client   @relation(fields: [clientId], references: [id])
 }
+
+model ContentItem {
+  id              String   @id @default(uuid())
+  title           String
+  pillar          String   // AI, Trending, Software, DJ, Visualizer
+  format          String   // Shorts, Reel, Longform, Audio
+  status          String   @default("Idea") // Idea, Production, Scheduled, Posted
+  platform        String?  // YouTube, TikTok, X, Instagram
+  scheduledDate   DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

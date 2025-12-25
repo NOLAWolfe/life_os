@@ -14,6 +14,7 @@ import debtRouter from './server/modules/financial_engine/api/debtController.js'
 import qaRouter from './server/modules/professional_engine/api/qaController.js';
 import clientRouter from './server/modules/social_engine/api/clientController.js';
 import invoiceRouter from './server/modules/social_engine/api/invoiceController.js';
+import contentRouter from './server/modules/social_engine/api/contentController.js';
 import mealRouter from './server/modules/life_admin/api/mealController.js';
 
 const app = express();
@@ -68,6 +69,7 @@ app.use('/api/finance/debts', debtRouter);
 app.use('/api/professional', qaRouter);
 app.use('/api/social/clients', clientRouter);
 app.use('/api/social/invoices', invoiceRouter);
+app.use('/api/social/content', contentRouter);
 app.use('/api/life-admin/meals', mealRouter);
 
 // --- 4. LEGACY / OTHER ROUTES ---
