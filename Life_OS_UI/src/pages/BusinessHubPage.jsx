@@ -15,24 +15,24 @@ const BusinessHubPage = () => {
                     <h1>💼 Business Hub</h1>
                     <p>Enterprise Resource Planning: Invoices, CRM, and Forecasting.</p>
                 </div>
-                
+
                 {/* Module Toggles */}
                 <div className="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
-                    <button 
+                    <button
                         onClick={() => setActiveTab('ops')}
                         className={`px-4 py-2 text-sm font-bold rounded-md transition-all ${
-                            activeTab === 'ops' 
-                                ? 'bg-blue-600 text-white shadow-lg' 
+                            activeTab === 'ops'
+                                ? 'bg-blue-600 text-white shadow-lg'
                                 : 'text-gray-400 hover:text-white'
                         }`}
                     >
                         Operations
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab('music')}
                         className={`px-4 py-2 text-sm font-bold rounded-md transition-all ${
-                            activeTab === 'music' 
-                                ? 'bg-purple-600 text-white shadow-lg' 
+                            activeTab === 'music'
+                                ? 'bg-purple-600 text-white shadow-lg'
                                 : 'text-gray-400 hover:text-white'
                         }`}
                     >
@@ -40,7 +40,7 @@ const BusinessHubPage = () => {
                     </button>
                 </div>
             </header>
-            
+
             {activeTab === 'ops' && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 h-full animate-fade-in">
                     {/* Left Column: Client & Money */}
@@ -61,10 +61,12 @@ const BusinessHubPage = () => {
                     <div className="flex flex-col gap-8">
                         <SetlistCritic />
                     </div>
-                    
+
                     <div className="flex flex-col gap-8">
                         <div className="p-6 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] border-dashed">
-                            <h3 className="text-lg font-bold mb-2 text-[var(--text-primary)]">🚀 Crate Digger (Coming Soon)</h3>
+                            <h3 className="text-lg font-bold mb-2 text-[var(--text-primary)]">
+                                🚀 Crate Digger (Coming Soon)
+                            </h3>
                             <p className="text-sm text-[var(--text-secondary)]">
                                 Automated Apple Music Sync & Library Analysis.
                             </p>

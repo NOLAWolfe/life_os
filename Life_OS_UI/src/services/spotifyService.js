@@ -21,7 +21,7 @@ const mockRecommendations = {
  * (Currently returns mock data)
  */
 export const getTopTracks = async () => {
-    console.log("Fetching top tracks (mock)");
+    console.log('Fetching top tracks (mock)');
     return Promise.resolve(mockTopTracks);
 };
 
@@ -31,7 +31,7 @@ export const getTopTracks = async () => {
  * @param {object} seed - The seed object for recommendations.
  */
 export const getRecommendations = async (seed) => {
-    console.log("Fetching recommendations for seed:", seed, "(mock)");
+    console.log('Fetching recommendations for seed:', seed, '(mock)');
     return Promise.resolve(mockRecommendations);
 };
 
@@ -42,7 +42,7 @@ export const getRecommendations = async (seed) => {
  * @param {string[]} trackUris - An array of track URIs to add to the playlist.
  */
 export const createPlaylist = async (name, trackUris) => {
-    console.log("Creating playlist:", { name, trackUris }, "(mock)");
+    console.log('Creating playlist:', { name, trackUris }, '(mock)');
     return Promise.resolve({
         id: `playlist_${Date.now()}`,
         name: name,
@@ -56,11 +56,11 @@ export const createPlaylist = async (name, trackUris) => {
  * @param {string} tracklist - A string of track names, one per line.
  */
 export const analyzeSetlist = async (tracklist) => {
-    console.log("Analyzing setlist (mock):", tracklist);
+    console.log('Analyzing setlist (mock):', tracklist);
     const feedback = [
-        "Track 2 -> Track 3: Major key clash (4A -> 8B). This will sound jarring.",
-        "Track 4: BPM jump is too aggressive (+15 BPM). Smooth it out.",
-        "Overall energy level is flat. Consider adding a peak-time track earlier.",
+        'Track 2 -> Track 3: Major key clash (4A -> 8B). This will sound jarring.',
+        'Track 4: BPM jump is too aggressive (+15 BPM). Smooth it out.',
+        'Overall energy level is flat. Consider adding a peak-time track earlier.',
     ];
     return Promise.resolve(feedback);
 };

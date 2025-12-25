@@ -17,45 +17,60 @@ const CHECKS = [
     { type: 'dir', path: 'src/components/System', name: 'System Module' },
 
     // 2. Critical File Logic
-    { type: 'content', path: 'src/components/System/Navbar/Navbar.jsx', match: 'data-workspace', name: 'Workspace Switcher Logic' },
-    { type: 'content', path: 'src/pages/DashboardPage.jsx', match: 'components/Finance', name: 'Financial Dashboard Imports' },
-    
+    {
+        type: 'content',
+        path: 'src/components/System/Navbar/Navbar.jsx',
+        match: 'data-workspace',
+        name: 'Workspace Switcher Logic',
+    },
+    {
+        type: 'content',
+        path: 'src/pages/DashboardPage.jsx',
+        match: 'components/Finance',
+        name: 'Financial Dashboard Imports',
+    },
+
     // 3. Security / Cleanup
     { type: 'missing', path: 'src/components/Finance/CsvUploader', name: 'Legacy CsvUploader' },
-    { type: 'missing', path: 'public/Transactions.csv', name: 'Public PII CSVs' }
+    { type: 'missing', path: 'public/Transactions.csv', name: 'Public PII CSVs' },
 ];
 
 async function checkServerHealth() {
-    console.log("⏳ [TEST] checking Server Health...");
+    console.log('⏳ [TEST] checking Server Health...');
 
-    const checkHealth = () => new Promise((resolve) => {
-        const req = http.get('http://localhost:4001/api/health', (res) => {
-            if (res.statusCode === 200) {
-                console.log("✅ [PASS] Server is active & healthy (HTTP 200)");
-                resolve(true);
-            } else {
-                console.error(`❌ [FAIL] Server responded with status: ${res.statusCode}`);
-                resolve(false);
-            }
+    const checkHealth = () =>
+        new Promise((resolve) => {
+            const req = http.get('http://localhost:4001/api/health', (res) => {
+                if (res.statusCode === 200) {
+                    console.log('✅ [PASS] Server is active & healthy (HTTP 200)');
+                    resolve(true);
+                } else {
+                    console.error(`❌ [FAIL] Server responded with status: ${res.statusCode}`);
+                    resolve(false);
+                }
+            });
+
+            req.on('error', () => resolve(false));
         });
-
-        req.on('error', () => resolve(false));
-    });
 
     // 1. Try to ping existing server first
     const isRunning = await checkHealth();
     if (isRunning) return true;
 
     // 2. If not running, spawn our own instance
-    console.log("   ...Server not detected. Spawning temporary instance...");
+    console.log('   ...Server not detected. Spawning temporary instance...');
     return new Promise((resolve) => {
         const serverProcess = spawn('node', ['server.js'], { cwd: ROOT_DIR, stdio: 'pipe' });
-        
+
         let started = false;
         let output = '';
 
-        serverProcess.stdout.on('data', (data) => { output += data.toString(); });
-        serverProcess.stderr.on('data', (data) => { output += data.toString(); });
+        serverProcess.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+        serverProcess.stderr.on('data', (data) => {
+            output += data.toString();
+        });
 
         const cleanup = () => {
             if (!serverProcess.killed) serverProcess.kill();
@@ -64,11 +79,11 @@ async function checkServerHealth() {
         const timeout = setTimeout(async () => {
             const success = await checkHealth();
             if (success) {
-                console.log("✅ [PASS] Temporary Server Booted Successfully");
+                console.log('✅ [PASS] Temporary Server Booted Successfully');
                 started = true;
             } else {
-                console.error("❌ [FAIL] Temporary Server failed to respond");
-                console.error("--- Server Log Dump ---");
+                console.error('❌ [FAIL] Temporary Server failed to respond');
+                console.error('--- Server Log Dump ---');
                 console.error(output.slice(-500));
             }
             cleanup();
@@ -79,7 +94,7 @@ async function checkServerHealth() {
             if (!started) {
                 clearTimeout(timeout);
                 console.error(`❌ [FAIL] Server crashed immediately (Exit Code: ${code})`);
-                console.error("--- Crash Log ---");
+                console.error('--- Crash Log ---');
                 console.error(output);
                 resolve(false);
             }
@@ -88,7 +103,7 @@ async function checkServerHealth() {
 }
 
 async function runChecks() {
-    console.log("🏥 Running System Health Check...\n");
+    console.log('🏥 Running System Health Check...\n');
     let passed = 0;
     let failed = 0;
 
@@ -110,7 +125,9 @@ async function runChecks() {
                     console.log(`✅ [PASS] ${check.name} verified.`);
                     passed++;
                 } else {
-                    console.error(`❌ [FAIL] ${check.name} missing required code: "${check.match}"`);
+                    console.error(
+                        `❌ [FAIL] ${check.name} missing required code: "${check.match}"`
+                    );
                     failed++;
                 }
             } else if (check.type === 'missing') {

@@ -6,7 +6,7 @@ The `BalancesWidget` currently shows a list of names and numbers, but it doesn't
 
 - [ ] **Step 1: The Data Archaeology**
     - Open `src/services/tillerService.js` and find `processAccountsData`.
-    - Observe how it maps the `type` property. 
+    - Observe how it maps the `type` property.
     - **Hint:** Look at the raw `public/Accounts.csv`. Does the column named "Type" actually contain consistent values like "Credit Card" or "Savings"? Or is it messy?
 
 - [ ] **Step 2: Normalization Logic**
@@ -20,9 +20,9 @@ The `BalancesWidget` currently shows a list of names and numbers, but it doesn't
 
 - [ ] **Step 4: The Tailwind Struggle (Styling)**
     - Apply Tailwind classes to your new "Type" badge.
-    - **Challenge:** Can you make the background color change based on the type? 
-    - **Hint:** Think about using a helper function or a template literal in the `className`: `` className={`badge ${account.type === 'Credit Card' ? 'bg-red-500' : 'bg-green-500'}`} ``.
-    - *Wait!* You're using Tailwind now. Use classes like `px-2 py-1 rounded text-xs font-bold`.
+    - **Challenge:** Can you make the background color change based on the type?
+    - **Hint:** Think about using a helper function or a template literal in the `className`: ``className={`badge ${account.type === 'Credit Card' ? 'bg-red-500' : 'bg-green-500'}`}``.
+    - _Wait!_ You're using Tailwind now. Use classes like `px-2 py-1 rounded text-xs font-bold`.
 
 - [ ] **Step 5: The Layout Pivot (Flex/Grid)**
     - The balances list is currently a simple list.
@@ -34,6 +34,7 @@ The `BalancesWidget` currently shows a list of names and numbers, but it doesn't
     - **Hint:** This might require using `Object.groupBy()` or a `.reduce()` in your `BalancesWidget.jsx` before you start `.map()`-ing.
 
 ## 💡 Breadcrumbs
+
 - **Tailwind Docs:** Look up "Flexbox" and "Background Color."
 - **JS Tip:** `account.type?.toLowerCase()` is your friend to prevent "Undefined" crashes.
 - **CSS Variable Warning:** Remember that `BalancesWidget.css` still exists! If your Tailwind classes aren't working, check if an old CSS rule is "fighting" them with higher specificity.

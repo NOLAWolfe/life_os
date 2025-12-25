@@ -18,63 +18,130 @@ const BusinessHubPage = lazy(() => import('./pages/BusinessHubPage'));
 
 // Placeholder component for pages we haven't built yet
 const PlaceholderPage = ({ title }) => (
-  <div className="page-container">
-    <header>
-        <h1>{title}</h1>
-    </header>
-    <main>
-        <p>This page is under construction.</p>
-    </main>
-  </div>
+    <div className="page-container">
+        <header>
+            <h1>{title}</h1>
+        </header>
+        <main>
+            <p>This page is under construction.</p>
+        </main>
+    </div>
 );
 
 // Loading fallback
 const PageLoader = () => (
-  <div className="flex items-center justify-center h-[60vh]">
-    <div className="text-lg font-medium text--text-secondary animate-pulse">Loading Life.io Module...</div>
-  </div>
+    <div className="flex items-center justify-center h-[60vh]">
+        <div className="text-lg font-medium text--text-secondary animate-pulse">
+            Loading Life.io Module...
+        </div>
+    </div>
 );
 
 // Layout wrapper for authenticated app routes
 const AppLayout = ({ children }) => (
-  <>
-    <Navbar />
-    <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-360 mx-auto w-full box-border">
-      {children}
-    </main>
-  </>
+    <>
+        <Navbar />
+        <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-360 mx-auto w-full box-border">
+            {children}
+        </main>
+    </>
 );
 
 function App() {
-  return (
-    <UserProvider>
-      <FinancialProvider>
-        <div className="App">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Public Route */}
-              <Route path="/" element={<LandingPage />} />
+    return (
+        <UserProvider>
+            <FinancialProvider>
+                <div className="App">
+                    <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                            {/* Public Route */}
+                            <Route path="/" element={<LandingPage />} />
 
-              {/* Private App Routes (Nested under /app for clearer separation) */}
-              <Route path="/app" element={<AppLayout><DashboardPage /></AppLayout>} />
-              <Route path="/app/finance" element={<AppLayout><FinancialDashboard /></AppLayout>} />
-              <Route path="/app/professional-hub" element={<AppLayout><ProfessionalHubPage /></AppLayout>} />
-              <Route path="/app/workout" element={<AppLayout><WorkoutPage /></AppLayout>} />
-              <Route path="/app/meal-planner" element={<AppLayout><MealPlannerPage /></AppLayout>} />
-              <Route path="/app/creative" element={<AppLayout><CreativePage /></AppLayout>} />
-              <Route path="/app/business" element={<AppLayout><BusinessHubPage /></AppLayout>} />
-              <Route path="/app/health" element={<AppLayout><PlaceholderPage title="Health Hub" /></AppLayout>} />
-              
-              {/* Legacy Redirects (Handle old bookmarks) */}
-              <Route path="/finance" element={<Navigate to="/app/finance" replace />} />
-              <Route path="/professional-hub" element={<Navigate to="/app/professional-hub" replace />} />
-              <Route path="/app/dj-world" element={<Navigate to="/app/business" replace />} />
-            </Routes>
-          </Suspense>
-        </div>
-      </FinancialProvider>
-    </UserProvider>
-  );
+                            {/* Private App Routes (Nested under /app for clearer separation) */}
+                            <Route
+                                path="/app"
+                                element={
+                                    <AppLayout>
+                                        <DashboardPage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/finance"
+                                element={
+                                    <AppLayout>
+                                        <FinancialDashboard />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/professional-hub"
+                                element={
+                                    <AppLayout>
+                                        <ProfessionalHubPage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/workout"
+                                element={
+                                    <AppLayout>
+                                        <WorkoutPage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/meal-planner"
+                                element={
+                                    <AppLayout>
+                                        <MealPlannerPage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/creative"
+                                element={
+                                    <AppLayout>
+                                        <CreativePage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/business"
+                                element={
+                                    <AppLayout>
+                                        <BusinessHubPage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/health"
+                                element={
+                                    <AppLayout>
+                                        <PlaceholderPage title="Health Hub" />
+                                    </AppLayout>
+                                }
+                            />
+
+                            {/* Legacy Redirects (Handle old bookmarks) */}
+                            <Route
+                                path="/finance"
+                                element={<Navigate to="/app/finance" replace />}
+                            />
+                            <Route
+                                path="/professional-hub"
+                                element={<Navigate to="/app/professional-hub" replace />}
+                            />
+                            <Route
+                                path="/app/dj-world"
+                                element={<Navigate to="/app/business" replace />}
+                            />
+                        </Routes>
+                    </Suspense>
+                </div>
+            </FinancialProvider>
+        </UserProvider>
+    );
 }
 
 export default App;

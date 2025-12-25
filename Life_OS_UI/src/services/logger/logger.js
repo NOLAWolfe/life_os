@@ -8,7 +8,7 @@ const LOG_LEVELS = {
     INFO: 'INFO',
     WARN: 'WARN',
     ERROR: 'ERROR',
-    DEBUG: 'DEBUG'
+    DEBUG: 'DEBUG',
 };
 
 const formatMessage = (level, message, context = {}) => {
@@ -18,7 +18,7 @@ const formatMessage = (level, message, context = {}) => {
         level,
         message,
         context,
-        app: 'Life_OS_UI'
+        app: 'Life_OS_UI',
     };
 };
 
@@ -40,19 +40,23 @@ const logger = {
         console.log(`[${log.timestamp}] [${log.level}] ${log.message}`, log.context);
         saveLog(log);
     },
-    
+
     warn: (message, context) => {
         const log = formatMessage(LOG_LEVELS.WARN, message, context);
         console.warn(`[${log.timestamp}] [${log.level}] ${log.message}`, log.context);
         saveLog(log);
     },
-    
+
     error: (message, context, error) => {
-        const log = formatMessage(LOG_LEVELS.ERROR, message, { ...context, error: error?.message, stack: error?.stack });
+        const log = formatMessage(LOG_LEVELS.ERROR, message, {
+            ...context,
+            error: error?.message,
+            stack: error?.stack,
+        });
         console.error(`[${log.timestamp}] [${log.level}] ${log.message}`, log.context);
         saveLog(log);
     },
-    
+
     debug: (message, context) => {
         if (import.meta.env.DEV) {
             const log = formatMessage(LOG_LEVELS.DEBUG, message, context);
@@ -67,7 +71,7 @@ const logger = {
 
     clearHistory: () => {
         localStorage.removeItem('life_os_logs');
-    }
+    },
 };
 
 export default logger;

@@ -9,7 +9,7 @@ router.get('/stories', async (req, res) => {
         const stories = await qaService.getUserStories();
         res.json(stories);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch stories" });
+        res.status(500).json({ error: 'Failed to fetch stories' });
     }
 });
 
@@ -18,7 +18,7 @@ router.post('/stories', async (req, res) => {
         const story = await qaService.createUserStory(req.body);
         res.json(story);
     } catch (error) {
-        res.status(500).json({ error: "Failed to create story" });
+        res.status(500).json({ error: 'Failed to create story' });
     }
 });
 
@@ -28,7 +28,7 @@ router.get('/bugs', async (req, res) => {
         const bugs = await qaService.getBugs();
         res.json(bugs);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch bugs" });
+        res.status(500).json({ error: 'Failed to fetch bugs' });
     }
 });
 
@@ -37,7 +37,7 @@ router.post('/bugs', async (req, res) => {
         const bug = await qaService.createBug(req.body);
         res.json(bug);
     } catch (error) {
-        res.status(500).json({ error: "Failed to create bug" });
+        res.status(500).json({ error: 'Failed to create bug' });
     }
 });
 

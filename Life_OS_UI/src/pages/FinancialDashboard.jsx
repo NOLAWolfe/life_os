@@ -7,18 +7,24 @@ import './FinancialDashboard.css';
 const BalancesWidget = lazy(() => import('../components/Finance/BalancesWidget/BalancesWidget'));
 const SpendingTrends = lazy(() => import('../components/Finance/SpendingTrends/SpendingTrends'));
 const BudgetVsActuals = lazy(() => import('../components/Finance/BudgetVsActuals/BudgetVsActuals'));
-const DebtPayoffPlanner = lazy(() => import('../components/Finance/DebtPayoffPlanner/DebtPayoffPlanner'));
+const DebtPayoffPlanner = lazy(
+    () => import('../components/Finance/DebtPayoffPlanner/DebtPayoffPlanner')
+);
 const LeakDetector = lazy(() => import('../components/Finance/LeakDetector/LeakDetector'));
 const PaymentFlow = lazy(() => import('../components/Finance/PaymentFlow/PaymentFlow'));
 const IncomeStreams = lazy(() => import('../components/Finance/IncomeStreams/IncomeStreams'));
 const BankConnection = lazy(() => import('../components/Finance/BankConnection/BankConnection'));
-const TransactionMapper = lazy(() => import('../components/Finance/TransactionMapper/TransactionMapper'));
+const TransactionMapper = lazy(
+    () => import('../components/Finance/TransactionMapper/TransactionMapper')
+);
 const DataDebugger = lazy(() => import('../components/System/DataDebugger/DataDebugger'));
 
 // Loading fallback for widgets
 const WidgetLoader = () => (
     <div className="flex items-center justify-center min-h-[200px] w-full bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
-        <div className="text-sm text-[var(--text-secondary)] animate-pulse">Initializing Widget...</div>
+        <div className="text-sm text-[var(--text-secondary)] animate-pulse">
+            Initializing Widget...
+        </div>
     </div>
 );
 
@@ -45,19 +51,19 @@ const FinancialDashboard = () => {
             <div className="dashboard-wrapper">
                 {/* TIER 1 TABS (Main Sections) */}
                 <div className="dashboard-tabs">
-                    <button 
+                    <button
                         className={`tab-button ${activeTab === 'strategy' ? 'active' : ''}`}
                         onClick={() => handleMainTabChange('strategy')}
                     >
                         🗺️ Strategy & Planning
                     </button>
-                    <button 
+                    <button
                         className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
                         onClick={() => handleMainTabChange('analytics')}
                     >
                         📊 Analytics & Trends
                     </button>
-                    <button 
+                    <button
                         className={`tab-button ${activeTab === 'data' ? 'active' : ''}`}
                         onClick={() => handleMainTabChange('data')}
                     >
@@ -69,25 +75,80 @@ const FinancialDashboard = () => {
                 <div className="sub-tabs">
                     {activeTab === 'strategy' && (
                         <>
-                            <button className={`sub-tab-button ${subTab === 'map' ? 'active' : ''}`} onClick={() => setSubTab('map')}>Visual Map</button>
-                            <button className={`sub-tab-button ${subTab === 'plan' ? 'active' : ''}`} onClick={() => setSubTab('plan')}>Written Plan</button>
-                            <button className={`sub-tab-button ${subTab === 'bills' ? 'active' : ''}`} onClick={() => setSubTab('bills')}>Bills List</button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'map' ? 'active' : ''}`}
+                                onClick={() => setSubTab('map')}
+                            >
+                                Visual Map
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'plan' ? 'active' : ''}`}
+                                onClick={() => setSubTab('plan')}
+                            >
+                                Written Plan
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'bills' ? 'active' : ''}`}
+                                onClick={() => setSubTab('bills')}
+                            >
+                                Bills List
+                            </button>
                         </>
                     )}
                     {activeTab === 'analytics' && (
                         <>
-                            <button className={`sub-tab-button ${subTab === 'overview' ? 'active' : ''}`} onClick={() => setSubTab('overview')}>Overview</button>
-                            <button className={`sub-tab-button ${subTab === 'income' ? 'active' : ''}`} onClick={() => setSubTab('income')}>Income</button>
-                            <button className={`sub-tab-button ${subTab === 'spending' ? 'active' : ''}`} onClick={() => setSubTab('spending')}>Spending</button>
-                            <button className={`sub-tab-button ${subTab === 'debt' ? 'active' : ''}`} onClick={() => setSubTab('debt')}>Debt & Leaks</button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'overview' ? 'active' : ''}`}
+                                onClick={() => setSubTab('overview')}
+                            >
+                                Overview
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'income' ? 'active' : ''}`}
+                                onClick={() => setSubTab('income')}
+                            >
+                                Income
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'spending' ? 'active' : ''}`}
+                                onClick={() => setSubTab('spending')}
+                            >
+                                Spending
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'debt' ? 'active' : ''}`}
+                                onClick={() => setSubTab('debt')}
+                            >
+                                Debt & Leaks
+                            </button>
                         </>
                     )}
                     {activeTab === 'data' && (
                         <>
-                            <button className={`sub-tab-button ${subTab === 'upload' ? 'active' : ''}`} onClick={() => setSubTab('upload')}>Upload Files</button>
-                            <button className={`sub-tab-button ${subTab === 'connect' ? 'active' : ''}`} onClick={() => setSubTab('connect')}>Bank Connect</button>
-                            <button className={`sub-tab-button ${subTab === 'mapper' ? 'active' : ''}`} onClick={() => setSubTab('mapper')}>🧙‍♂️ Sorting Hat</button>
-                            <button className={`sub-tab-button ${subTab === 'debug' ? 'active' : ''}`} onClick={() => setSubTab('debug')}>🕵️ Data Debugger</button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'upload' ? 'active' : ''}`}
+                                onClick={() => setSubTab('upload')}
+                            >
+                                Upload Files
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'connect' ? 'active' : ''}`}
+                                onClick={() => setSubTab('connect')}
+                            >
+                                Bank Connect
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'mapper' ? 'active' : ''}`}
+                                onClick={() => setSubTab('mapper')}
+                            >
+                                🧙‍♂️ Sorting Hat
+                            </button>
+                            <button
+                                className={`sub-tab-button ${subTab === 'debug' ? 'active' : ''}`}
+                                onClick={() => setSubTab('debug')}
+                            >
+                                🕵️ Data Debugger
+                            </button>
                         </>
                     )}
                 </div>
@@ -100,17 +161,22 @@ const FinancialDashboard = () => {
                             <div className="h-full flex flex-col">
                                 {/* Hero Section: The Strategy Map */}
                                 <div className="w-full flex-1 min-h-[700px]">
-                                    <FeatureGate 
-                                        minTier={TIERS.PRO} 
+                                    <FeatureGate
+                                        minTier={TIERS.PRO}
                                         fallback={
                                             <div className="h-full flex flex-col items-center justify-center bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-8 text-center">
                                                 <div className="text-6xl mb-4">🗺️</div>
-                                                <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Unlock the Money Map</h2>
+                                                <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">
+                                                    Unlock the Money Map
+                                                </h2>
                                                 <p className="text-[var(--text-secondary)] max-w-md mb-6">
-                                                    Visualize your entire financial flow, detect drift, and optimize your strategy.
-                                                    See exactly where every dollar goes.
+                                                    Visualize your entire financial flow, detect
+                                                    drift, and optimize your strategy. See exactly
+                                                    where every dollar goes.
                                                 </p>
-                                                <button className="btn-primary">Upgrade to Pro</button>
+                                                <button className="btn-primary">
+                                                    Upgrade to Pro
+                                                </button>
                                             </div>
                                         }
                                     >
@@ -132,7 +198,7 @@ const FinancialDashboard = () => {
                                             </FeatureGate>
                                             <SpendingTrends />
                                         </div>
-                                        
+
                                         {/* Middle Row: Strategy Widgets (Moved here) */}
                                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                                             <FeatureGate minTier={TIERS.PRO}>
@@ -185,13 +251,17 @@ const FinancialDashboard = () => {
                             <div className="h-full">
                                 {subTab === 'upload' && (
                                     <div className="max-w-2xl mx-auto space-y-4">
-                                        <h2 className="text-xl font-bold text-orange-400">Sync Management</h2>
+                                        <h2 className="text-xl font-bold text-orange-400">
+                                            Sync Management
+                                        </h2>
                                         <div className="p-6 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
                                             <p className="mb-4 text-sm text-[var(--text-secondary)]">
-                                                Direct CSV uploads have been deprecated in favor of the **Tiller Live Sync Engine**. 
+                                                Direct CSV uploads have been deprecated in favor of
+                                                the **Tiller Live Sync Engine**.
                                             </p>
                                             <p className="text-sm text-[var(--text-secondary)]">
-                                                Use the **Bank Connect** tab to configure your live feed, or trigger a manual sync via the CLI.
+                                                Use the **Bank Connect** tab to configure your live
+                                                feed, or trigger a manual sync via the CLI.
                                             </p>
                                         </div>
                                     </div>

@@ -20,7 +20,7 @@ const transactionService = {
         const desc = (name || '').toLowerCase();
         const acc = (accountName || '').toLowerCase();
         const inst = (institution || '').toLowerCase();
-        
+
         // Logic: Navy Federal + Cash App/Venmo = Likely DJ Income
         if (inst.includes('navy federal') || acc.includes('navy federal')) {
             if (desc.includes('cash app') || desc.includes('venmo')) {
@@ -36,18 +36,30 @@ const transactionService = {
     detectLateralMovement: (name, category) => {
         const desc = (name || '').toLowerCase();
         const cat = (category || '').toLowerCase();
-        const userName = (process.env.VITE_USER_NAME || '').toLowerCase(); 
+        const userName = (process.env.VITE_USER_NAME || '').toLowerCase();
         const userNameAlt = (process.env.VITE_USER_NAME_ALT || '').toLowerCase();
 
         // 1. Explicit Category
-        if (cat.includes('transfer') || cat.includes('credit card payment') || cat.includes('payment')) return true;
+        if (
+            cat.includes('transfer') ||
+            cat.includes('credit card payment') ||
+            cat.includes('payment')
+        )
+            return true;
 
         // 2. Self-Transfer keywords
         if (userName && desc.includes(userName)) return true;
         if (userNameAlt && desc.includes(userNameAlt)) return true;
-        
-        const lateralKeywords = ['online transfer', 'transfer from', 'transfer to', 'internal transfer', 'zelle transfer', 'venmo transfer'];
-        if (lateralKeywords.some(kw => desc.includes(kw))) return true;
+
+        const lateralKeywords = [
+            'online transfer',
+            'transfer from',
+            'transfer to',
+            'internal transfer',
+            'zelle transfer',
+            'venmo transfer',
+        ];
+        if (lateralKeywords.some((kw) => desc.includes(kw))) return true;
 
         return false;
     },
@@ -65,31 +77,36 @@ const transactionService = {
                 const amountVal = raw['Amount'];
                 const descVal = raw['Description'] || raw['Full Description'];
                 const accountName = raw['Account'];
-                
+
                 if (!dateVal || !amountVal || !descVal) continue;
 
                 // Improved amount cleaning to handle (100.00) as -100.00
                 let strVal = String(amountVal).trim();
                 const isNegative = strVal.includes('(') || strVal.includes('-');
-                const cleaned = strVal.replace(/[^0-9.]/g, "");
-                let amount = cleaned === "" ? 0 : parseFloat(cleaned);
+                const cleaned = strVal.replace(/[^0-9.]/g, '');
+                let amount = cleaned === '' ? 0 : parseFloat(cleaned);
                 if (isNegative) amount = -amount;
 
                 if (isNaN(amount)) continue;
 
                 // Standardized ID generation matching frontend tillerService.js
                 const cleanDesc = descVal.toLowerCase().replace(/[^a-z0-9]/g, '');
-                const id = raw['Transaction ID'] || `tiller_${dateVal}_${amount.toFixed(2)}_${cleanDesc}`;
+                const id =
+                    raw['Transaction ID'] || `tiller_${dateVal}_${amount.toFixed(2)}_${cleanDesc}`;
 
                 // 2. Run Business Logic
                 const category = raw['Category'] || 'Uncategorized';
-                const isSideHustle = transactionService.detectSideHustle(descVal, accountName, raw['Institution']);
+                const isSideHustle = transactionService.detectSideHustle(
+                    descVal,
+                    accountName,
+                    raw['Institution']
+                );
                 const isLateral = transactionService.detectLateralMovement(descVal, category);
 
                 // 3. Resolve Account Relation (Optional but good)
                 // We try to find the account ID to link foreign key
                 // For Tiller, we might need to lookup by name if ID isn't in this row
-                
+
                 const transactionData = {
                     id: id,
                     date: dateVal,
@@ -106,12 +123,12 @@ const transactionService = {
                 await transactionRepository.save(transactionData);
                 results.success++;
             } catch (error) {
-                console.error("Failed to save transaction:", error);
+                console.error('Failed to save transaction:', error);
                 results.failed++;
             }
         }
         return results;
-    }
+    },
 };
 
 export default transactionService;

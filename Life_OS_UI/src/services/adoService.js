@@ -37,7 +37,7 @@ export const addUserStory = async (story) => {
         const response = await fetch('/api/professional/stories', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(story)
+            body: JSON.stringify(story),
         });
         if (!response.ok) throw new Error('Failed to add story');
         return await response.json();
@@ -55,7 +55,7 @@ export const addBug = async (bug) => {
         const response = await fetch('/api/professional/bugs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bug)
+            body: JSON.stringify(bug),
         });
         if (!response.ok) throw new Error('Failed to add bug');
         return await response.json();
@@ -69,7 +69,7 @@ const adoService = {
     getMyUserStories,
     getMyBugs,
     addUserStory,
-    addBug
+    addBug,
 };
 
 export default adoService;

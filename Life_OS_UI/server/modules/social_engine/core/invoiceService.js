@@ -6,7 +6,7 @@ const generateInvoiceNumber = async () => {
     // Find the last invoice created this year
     const lastInvoice = await prisma.invoice.findFirst({
         where: { number: { startsWith: `INV-${year}` } },
-        orderBy: { number: 'desc' }
+        orderBy: { number: 'desc' },
     });
 
     let nextNum = 1;
@@ -21,30 +21,30 @@ const generateInvoiceNumber = async () => {
 };
 
 export const getInvoices = async () => {
-  return await repo.getAllInvoices();
+    return await repo.getAllInvoices();
 };
 
 export const addInvoice = async (invoiceData) => {
-  // Auto-generate number if not provided
-  if (!invoiceData.number) {
-      invoiceData.number = await generateInvoiceNumber();
-  }
-  
-  // Ensure items is a string (if passed as object)
-  if (typeof invoiceData.items === 'object') {
-      invoiceData.items = JSON.stringify(invoiceData.items);
-  }
+    // Auto-generate number if not provided
+    if (!invoiceData.number) {
+        invoiceData.number = await generateInvoiceNumber();
+    }
 
-  return await repo.createInvoice(invoiceData);
+    // Ensure items is a string (if passed as object)
+    if (typeof invoiceData.items === 'object') {
+        invoiceData.items = JSON.stringify(invoiceData.items);
+    }
+
+    return await repo.createInvoice(invoiceData);
 };
 
 export const modifyInvoice = async (id, invoiceData) => {
-  if (typeof invoiceData.items === 'object') {
-      invoiceData.items = JSON.stringify(invoiceData.items);
-  }
-  return await repo.updateInvoice(id, invoiceData);
+    if (typeof invoiceData.items === 'object') {
+        invoiceData.items = JSON.stringify(invoiceData.items);
+    }
+    return await repo.updateInvoice(id, invoiceData);
 };
 
 export const removeInvoice = async (id) => {
-  return await repo.deleteInvoice(id);
+    return await repo.deleteInvoice(id);
 };

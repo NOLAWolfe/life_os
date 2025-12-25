@@ -9,9 +9,9 @@ import { TransactionSchema, AccountSchema, DebtSchema } from './schemas';
 const validate = (schema, data, context) => {
     const result = schema.safeParse(data);
     if (!result.success) {
-        logger.warn(`Schema Validation Failed: ${context}`, { 
+        logger.warn(`Schema Validation Failed: ${context}`, {
             errors: result.error.format(),
-            data 
+            data,
         });
     }
     return data;
@@ -21,16 +21,16 @@ const validate = (schema, data, context) => {
  * Robustly cleans a string representation of a number.
  */
 export const cleanNum = (val) => {
-    if (val === undefined || val === null || val === "") return 0;
+    if (val === undefined || val === null || val === '') return 0;
     if (typeof val === 'number') return val;
-    
+
     let strVal = String(val).trim();
     if (!strVal) return 0;
 
     const isNegative = strVal.includes('(') || strVal.includes('-');
-    const cleaned = strVal.replace(/[^0-9.]/g, "");
-    const num = cleaned === "" ? 0 : parseFloat(cleaned);
-    
+    const cleaned = strVal.replace(/[^0-9.]/g, '');
+    const num = cleaned === '' ? 0 : parseFloat(cleaned);
+
     return isNegative ? -num : num;
 };
 
@@ -44,18 +44,24 @@ export const fetchAccountsFromDb = async (userId) => {
     const res = await fetch(`/api/finance/accounts${query}`);
     if (!res.ok) throw new Error('Failed to fetch accounts from DB');
     const data = await res.json();
-    
-    return data.map(acc => validate(AccountSchema, {
-        account_id: acc.id,
-        name: securityService.sanitize(acc.name),
-        institution: acc.institution || 'Unknown',
-        type: acc.type || 'Other',
-        balances: {
-            current: acc.balance
-        },
-        class: acc.class?.toUpperCase() || 'ASSET',
-        lastUpdate: acc.lastUpdated
-    }, `Account: ${acc.name}`));
+
+    return data.map((acc) =>
+        validate(
+            AccountSchema,
+            {
+                account_id: acc.id,
+                name: securityService.sanitize(acc.name),
+                institution: acc.institution || 'Unknown',
+                type: acc.type || 'Other',
+                balances: {
+                    current: acc.balance,
+                },
+                class: acc.class?.toUpperCase() || 'ASSET',
+                lastUpdate: acc.lastUpdated,
+            },
+            `Account: ${acc.name}`
+        )
+    );
 };
 
 /**
@@ -67,18 +73,24 @@ export const fetchTransactionsFromDb = async (userId) => {
     if (!res.ok) throw new Error('Failed to fetch transactions from DB');
     const data = await res.json();
 
-    return data.map(t => validate(TransactionSchema, {
-        id: t.id,
-        date: t.date,
-        name: securityService.sanitize(t.description),
-        amount: Math.abs(t.amount),
-        type: t.type,
-        category: t.category || 'Uncategorized',
-        accountName: securityService.sanitize(t.account?.name) || 'Unknown',
-        institution: t.account?.institution || 'N/A',
-        isLateral: t.isLateral,
-        isSideHustle: t.isSideHustle
-    }, `Transaction: ${t.description}`));
+    return data.map((t) =>
+        validate(
+            TransactionSchema,
+            {
+                id: t.id,
+                date: t.date,
+                name: securityService.sanitize(t.description),
+                amount: Math.abs(t.amount),
+                type: t.type,
+                category: t.category || 'Uncategorized',
+                accountName: securityService.sanitize(t.account?.name) || 'Unknown',
+                institution: t.account?.institution || 'N/A',
+                isLateral: t.isLateral,
+                isSideHustle: t.isSideHustle,
+            },
+            `Transaction: ${t.description}`
+        )
+    );
 };
 
 /**
@@ -89,17 +101,23 @@ export const fetchDebtsFromDb = async (userId) => {
     const res = await fetch(`/api/finance/debts${query}`);
     if (!res.ok) throw new Error('Failed to fetch debts from DB');
     const data = await res.json();
-    
-    return data.map(d => validate(DebtSchema, {
-        name: d.name,
-        originalName: d.name,
-        interestRate: d.interestRate,
-        minPayment: d.minPayment,
-        currentBalance: d.balance,
-        payoffMonth: d.dueDate || 'Unknown',
-        active: true,
-        priority: d.priority
-    }, `Debt: ${d.name}`));
+
+    return data.map((d) =>
+        validate(
+            DebtSchema,
+            {
+                name: d.name,
+                originalName: d.name,
+                interestRate: d.interestRate,
+                minPayment: d.minPayment,
+                currentBalance: d.balance,
+                payoffMonth: d.dueDate || 'Unknown',
+                active: true,
+                priority: d.priority,
+            },
+            `Debt: ${d.name}`
+        )
+    );
 };
 
 /**
@@ -109,7 +127,7 @@ export const uploadAccountsToDb = async (accounts, userId) => {
     const res = await fetch('/api/finance/accounts/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-User-ID': userId },
-        body: JSON.stringify(accounts)
+        body: JSON.stringify(accounts),
     });
     return await res.json();
 };
@@ -121,7 +139,7 @@ export const uploadTransactionsToDb = async (transactions, userId) => {
     const res = await fetch('/api/finance/txns/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-User-ID': userId },
-        body: JSON.stringify(transactions)
+        body: JSON.stringify(transactions),
     });
     return await res.json();
 };
@@ -135,7 +153,7 @@ export const uploadTransactionsToDb = async (transactions, userId) => {
 export const processIncomeData = (transactions) => {
     if (!transactions || !Array.isArray(transactions) || transactions.length === 0) return [];
 
-    const dates = transactions.map(t => new Date(t.date)).filter(d => !isNaN(d));
+    const dates = transactions.map((t) => new Date(t.date)).filter((d) => !isNaN(d));
     let monthsDivisor = 1;
     if (dates.length > 1) {
         const newest = new Date(Math.max(...dates));
@@ -145,16 +163,16 @@ export const processIncomeData = (transactions) => {
         monthsDivisor = Math.max(diffInDays / 30.44, 1);
     }
 
-    const incomeTransactions = transactions.filter(t => {
+    const incomeTransactions = transactions.filter((t) => {
         if (t.type !== 'credit') return false;
         if (t.isSideHustle) return true;
         if (t.isLateral) return false;
         return true;
     });
-    
+
     const streamsMap = new Map();
 
-    incomeTransactions.forEach(t => {
+    incomeTransactions.forEach((t) => {
         let source = t.category;
         // Simplify category arrays if present
         if (Array.isArray(source)) source = source[0];
@@ -163,16 +181,16 @@ export const processIncomeData = (transactions) => {
         if (t.isSideHustle) {
             source = 'DJ Business / Side Hustle';
         }
-        
+
         if (!streamsMap.has(source)) {
             streamsMap.set(source, {
                 name: source,
                 total: 0,
                 count: 0,
-                transactions: []
+                transactions: [],
             });
         }
-        
+
         const stream = streamsMap.get(source);
         stream.total += t.amount;
         stream.count += 1;
@@ -180,10 +198,10 @@ export const processIncomeData = (transactions) => {
     });
 
     return Array.from(streamsMap.values())
-        .map(stream => ({
+        .map((stream) => ({
             ...stream,
             average: stream.total / stream.count,
-            monthlyAvg: stream.total / monthsDivisor
+            monthlyAvg: stream.total / monthsDivisor,
         }))
         .sort((a, b) => b.total - a.total);
 };
@@ -197,7 +215,7 @@ export const calculateCashFlow = (transactions) => {
         return { income: 0, expenses: 0, surplus: 0, months: 0 };
     }
 
-    const dates = transactions.map(t => new Date(t.date)).filter(d => !isNaN(d));
+    const dates = transactions.map((t) => new Date(t.date)).filter((d) => !isNaN(d));
     if (dates.length < 2) return { income: 0, expenses: 0, surplus: 0, months: 1 };
 
     const newest = new Date(Math.max(...dates));
@@ -209,7 +227,7 @@ export const calculateCashFlow = (transactions) => {
     let totalIncome = 0;
     let totalExpenses = 0;
 
-    transactions.forEach(t => {
+    transactions.forEach((t) => {
         if (t.type === 'credit') {
             if (t.isSideHustle) {
                 totalIncome += t.amount;
@@ -230,7 +248,7 @@ export const calculateCashFlow = (transactions) => {
         monthlyIncome,
         monthlyExpenses,
         surplus: monthlyIncome - monthlyExpenses,
-        months
+        months,
     };
 };
 
@@ -242,7 +260,7 @@ const tillerService = {
     uploadTransactionsToDb,
     processIncomeData,
     calculateCashFlow,
-    cleanNum
+    cleanNum,
 };
 
 export default tillerService;

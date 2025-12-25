@@ -26,5 +26,6 @@ The `TodoTracker` component is currently a "Read-Only" roadmap. To make Life.io 
     - **Hint:** Calculate `(completedTodos / totalTodos) * 100` and use a Tailwind `div` with a dynamic width: `style={{ width: `${percent}%` }}`.
 
 ## 💡 Breadcrumbs
+
 - **React Hook:** `useState(() => JSON.parse(localStorage.getItem('roadmap')) || initialData)`.
 - **Flexbox Hell Warning:** If you put the checkbox next to the text, use `flex items-center gap-2` to keep them aligned.

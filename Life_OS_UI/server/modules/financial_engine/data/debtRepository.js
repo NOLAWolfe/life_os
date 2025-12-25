@@ -11,7 +11,7 @@ const debtRepository = {
                 interestRate: debtItem.interestRate,
                 minPayment: debtItem.minPayment,
                 priority: debtItem.priority,
-                category: debtItem.category
+                category: debtItem.category,
             },
             create: {
                 id: `debt-${debtItem.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`,
@@ -20,14 +20,14 @@ const debtRepository = {
                 interestRate: debtItem.interestRate,
                 minPayment: debtItem.minPayment,
                 priority: debtItem.priority,
-                category: debtItem.category
-            }
+                category: debtItem.category,
+            },
         });
     },
 
     getAll: async () => {
         return await prisma.debtItem.findMany();
-    }
+    },
 };
 
 export default debtRepository;

@@ -24,10 +24,11 @@ You want to track your personal reading goals. This mission requires you to "lay
 
 - [ ] **Step 5: Obsidian Integration (Conceptual)**
     - Look at `src/components/ObsidianConnector/ObsidianConnector.jsx`.
-    - **Investigation:** How does it fetch data? 
+    - **Investigation:** How does it fetch data?
     - **Hint:** Your goal for the future is to have "Daily Reads" automatically pull titles from an "Articles to Read" folder in Obsidian. For now, just add a button that says "Sync with Obsidian" (it doesn't have to work yet!).
 
 ## 💡 Breadcrumbs
+
 - **Folder Structure:** Keep it consistent with `src/components/BalancesWidget/`, etc.
 - **Tailwind:** Try `hover:scale-105 transition-transform` on your cards for that "Life.io" aesthetic feel.
 - **State Management:** Since this is "Personal Goals," should this stay in the component or eventually move to a `GoalsContext`? (Start in the component for now).

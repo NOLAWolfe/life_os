@@ -8,9 +8,9 @@
  * @param {object} userStory - The user story object to analyze.
  */
 export const summarizeUserStory = async (userStory) => {
-    console.log("Summarizing user story (mock):", userStory.id);
+    console.log('Summarizing user story (mock):', userStory.id);
 
-    let summary = "No summary available.";
+    let summary = 'No summary available.';
     if (userStory.id === 26354) {
         summary = `**Testing Requirements for Login:**
 - **Scenario 1: Valid Credentials**
@@ -43,9 +43,9 @@ export const summarizeUserStory = async (userStory) => {
  * @param {object} userStory - The user story object to generate scenarios for.
  */
 export const generateScenarios = async (userStory) => {
-    console.log("Generating scenarios for user story (mock):", userStory.id);
+    console.log('Generating scenarios for user story (mock):', userStory.id);
 
-    let scenarios = "No scenarios available.";
+    let scenarios = 'No scenarios available.';
     if (userStory.id === 26354) {
         scenarios = `
 import { test, expect } from '@playwright/test';
@@ -81,9 +81,9 @@ test.describe('Login Functionality', () => {
  * @param {object} userStory - The user story object to generate a stencil for.
  */
 export const generateStencil = async (userStory) => {
-    console.log("Generating stencil for user story (mock):", userStory.id);
+    console.log('Generating stencil for user story (mock):', userStory.id);
 
-    let stencil = "No stencil available.";
+    let stencil = 'No stencil available.';
     if (userStory.id === 26354) {
         stencil = `
 // FILE: tests/login.spec.js

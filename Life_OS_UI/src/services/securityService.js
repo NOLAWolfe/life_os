@@ -28,12 +28,12 @@ const securityService = {
     maskName: (str) => {
         if (!str) return '';
         let masked = str;
-        
+
         if (USER_NAME && USER_NAME.length > 2) {
             const regex = new RegExp(USER_NAME, 'gi');
             masked = masked.replace(regex, 'User');
         }
-        
+
         if (USER_NAME_ALT && USER_NAME_ALT.length > 2) {
             const regexAlt = new RegExp(USER_NAME_ALT, 'gi');
             masked = masked.replace(regexAlt, 'User');
@@ -47,7 +47,7 @@ const securityService = {
      */
     sanitize: (str) => {
         return securityService.maskName(securityService.maskAccount(str));
-    }
+    },
 };
 
 export default securityService;

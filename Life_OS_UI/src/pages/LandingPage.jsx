@@ -9,13 +9,22 @@ const LandingPage = () => {
         <div className="landing-page">
             <header className="hero-section">
                 <div className="hero-content">
-                    <h1 className="hero-title">Life.io <span className="version-badge">v2.2</span></h1>
-                    <p className="hero-subtitle">The Operating System for High-Performance Living.</p>
+                    <h1 className="hero-title">
+                        Life.io <span className="version-badge">v2.2</span>
+                    </h1>
+                    <p className="hero-subtitle">
+                        The Operating System for High-Performance Living.
+                    </p>
                     <div className="cta-group">
                         <button className="btn-primary" onClick={() => navigate('/app')}>
                             Launch Dashboard
                         </button>
-                        <button className="btn-secondary" onClick={() => window.open('https://github.com/NOLAWolfe/life_os', '_blank')}>
+                        <button
+                            className="btn-secondary"
+                            onClick={() =>
+                                window.open('https://github.com/NOLAWolfe/life_os', '_blank')
+                            }
+                        >
                             View Source
                         </button>
                     </div>

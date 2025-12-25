@@ -1,16 +1,16 @@
 name: Life_OS
 packages:
-  - path: server.js
+    - path: server.js
 
-  - path: server/modules/financial_engine
+    - path: server/modules/financial_engine
 
-  - path: server/modules/professional_engine
+    - path: server/modules/professional_engine
 
-  - path: server/modules/life_admin
+    - path: server/modules/life_admin
 
-  - path: server/modules/social_engine
+    - path: server/modules/social_engine
 
-  - path: server/shared
+    - path: server/shared
 
-  - path: src/services
+    - path: src/services
 language: javascript

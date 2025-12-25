@@ -3,6 +3,7 @@
 In this lesson, we will build the foundation of the "Pet Tracker" module. We start with the **Data Layer** because "Data dominates Code" (if your data structure is wrong, your code will be messy).
 
 ## Step 1: The Schema (Prisma)
+
 We need to tell our database what a "Pet" and a "Feeding Log" look like.
 
 1.  Open `prisma/schema.prisma`.
@@ -39,6 +40,7 @@ model PetLog {
 ---
 
 ## Step 2: The Directory Structure
+
 We follow the **Modular Engine** pattern. Create these folders:
 
 ```bash
@@ -50,7 +52,8 @@ mkdir -p server/modules/pet_engine/api
 ---
 
 ## Step 3: The Repository (Data Access)
-The **Repository** is the *only* file allowed to touch Prisma. It handles the raw database operations.
+
+The **Repository** is the _only_ file allowed to touch Prisma. It handles the raw database operations.
 
 Create `server/modules/pet_engine/data/petRepository.js`:
 
@@ -62,21 +65,21 @@ const petRepository = {
     getPetsByUser: async (userId) => {
         return await prisma.pet.findMany({
             where: { userId },
-            include: { logs: { orderBy: { timestamp: 'desc' }, take: 5 } } // Include recent logs
+            include: { logs: { orderBy: { timestamp: 'desc' }, take: 5 } }, // Include recent logs
         });
     },
 
     createPet: async (userId, name, type) => {
         return await prisma.pet.create({
-            data: { userId, name, type }
+            data: { userId, name, type },
         });
     },
 
     addLog: async (petId, action, note) => {
         return await prisma.petLog.create({
-            data: { petId, action, note }
+            data: { petId, action, note },
         });
-    }
+    },
 };
 
 export default petRepository;
@@ -85,8 +88,10 @@ export default petRepository;
 ---
 
 ## 🔍 Why this pattern?
-*   **Security:** `getPetsByUser` *requires* a `userId`. We can't accidentally fetch everyone's pets.
-*   **Separation:** If we switch from SQLite to Postgres later, we only change this file, not the whole app.
+
+- **Security:** `getPetsByUser` _requires_ a `userId`. We can't accidentally fetch everyone's pets.
+- **Separation:** If we switch from SQLite to Postgres later, we only change this file, not the whole app.
 
 ---
+
 **Next Step:** In Lesson 3, we will build the **Service Layer** and apply Zod validation.

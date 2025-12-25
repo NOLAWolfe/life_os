@@ -9,7 +9,7 @@ const accountRepository = {
      */
     findById: async (id) => {
         return await prisma.financialAccount.findUnique({
-            where: { id }
+            where: { id },
         });
     },
 
@@ -18,7 +18,7 @@ const accountRepository = {
      */
     findAll: async () => {
         return await prisma.financialAccount.findMany({
-            orderBy: { lastUpdated: 'desc' }
+            orderBy: { lastUpdated: 'desc' },
         });
     },
 
@@ -31,17 +31,17 @@ const accountRepository = {
             where: { id: accountData.id },
             update: {
                 balance: accountData.balance,
-                lastUpdated: new Date()
+                lastUpdated: new Date(),
             },
             create: {
                 id: accountData.id,
                 name: accountData.name,
                 institution: accountData.institution,
                 type: accountData.type,
-                balance: accountData.balance
-            }
+                balance: accountData.balance,
+            },
         });
-    }
+    },
 };
 
 export default accountRepository;

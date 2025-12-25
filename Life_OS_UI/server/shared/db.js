@@ -13,9 +13,9 @@ const prisma = new PrismaClient({
 export const connectDB = async () => {
     try {
         await prisma.$connect();
-        console.log("✅ [Database] Successfully connected to SQLite.");
+        console.log('✅ [Database] Successfully connected to SQLite.');
     } catch (error) {
-        console.error("❌ [Database] CRITICAL FAILURE: Could not connect to database.");
+        console.error('❌ [Database] CRITICAL FAILURE: Could not connect to database.');
         console.error(error);
         process.exit(1); // Die immediately if DB is broken
     }

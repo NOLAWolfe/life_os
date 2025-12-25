@@ -20,10 +20,9 @@
    but since we have CSS variables, we can stick to standard card background or make it subtle. 
    Overriding background in dark mode might look bad. Let's keep it simple. 
 */
-:root[class~="dark"] .small-win-widget.warning {
+:root[class~='dark'] .small-win-widget.warning {
     background: #2d1a1a; /* Darker red tint */
 }
-
 
 .widget-header {
     display: flex;

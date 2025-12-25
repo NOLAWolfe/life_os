@@ -78,7 +78,9 @@
     font-size: 1rem;
     border: none;
     cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
+    transition:
+        transform 0.1s,
+        opacity 0.2s;
 }
 
 .connect-btn:hover {

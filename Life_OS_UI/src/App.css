@@ -1,64 +1,66 @@
 #root {
-  width: 100%;
+    width: 100%;
 }
 
 .App {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Table Styling */
 table {
-  width: 90%;
-  margin: 2rem auto;
-  border-collapse: collapse;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  border-radius: 8px;
-  overflow: hidden; /* Esures rounded corners on children */
-  background-color: var(--card-background);
+    width: 90%;
+    margin: 2rem auto;
+    border-collapse: collapse;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden; /* Esures rounded corners on children */
+    background-color: var(--card-background);
 }
 
-th,td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-color);
+th,
+td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
 }
 
-thead th{
-  background-color: var(--border-color);
-  color: var(--heading-color);
-  font-weight: bold;
-  text-transform: uppercase;
+thead th {
+    background-color: var(--border-color);
+    color: var(--heading-color);
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
-tbody tr:hover{
-  background-color: var(--border-color);
+tbody tr:hover {
+    background-color: var(--border-color);
 }
 
-.balance-header, .balance-cell{
-  text-align: right;
-  font-weight: bold;
+.balance-header,
+.balance-cell {
+    text-align: right;
+    font-weight: bold;
 }
 
 .error-message {
-  color: #ff6b6b;
-  background-color: var(--card-background);
-  border: 1px solid #ff6b6b;
-  padding: 10px;
-  border-radius: 5px;
-  margin: 1rem auto;
-  width: fit-content;
+    color: #ff6b6b;
+    background-color: var(--card-background);
+    border: 1px solid #ff6b6b;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 1rem auto;
+    width: fit-content;
 }
 
 .app-logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: filter 300ms;
 }
 .app-logo:hover {
-  filter: drop-shadow(0 0 2em #FFD700aa);
+    filter: drop-shadow(0 0 2em #ffd700aa);
 }

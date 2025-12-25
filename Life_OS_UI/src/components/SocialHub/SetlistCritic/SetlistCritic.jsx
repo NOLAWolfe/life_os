@@ -10,7 +10,7 @@ const SetlistCritic = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!tracklist) {
-            alert("Please enter a tracklist to analyze.");
+            alert('Please enter a tracklist to analyze.');
             return;
         }
         setLoading(true);
@@ -26,7 +26,7 @@ const SetlistCritic = () => {
             <form onSubmit={handleSubmit}>
                 <textarea
                     value={tracklist}
-                    onChange={e => setTracklist(e.target.value)}
+                    onChange={(e) => setTracklist(e.target.value)}
                     placeholder="Song 1 by Artist A&#10;Song 2 by Artist B&#10;Song 3 by Artist C"
                     rows="10"
                 />

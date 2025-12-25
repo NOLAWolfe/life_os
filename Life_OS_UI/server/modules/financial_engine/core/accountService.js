@@ -23,17 +23,17 @@ const accountService = {
                 // Sanitize and Map
                 // Logic pulled from old tillerService.js
                 const cleanBalance = (val) => {
-                    if (val === undefined || val === null || val === "") return 0;
+                    if (val === undefined || val === null || val === '') return 0;
                     let strVal = String(val).trim();
                     const isNegative = strVal.includes('(') || strVal.includes('-');
-                    const cleaned = strVal.replace(/[^0-9.]/g, "");
-                    const num = cleaned === "" ? 0 : parseFloat(cleaned);
+                    const cleaned = strVal.replace(/[^0-9.]/g, '');
+                    const num = cleaned === '' ? 0 : parseFloat(cleaned);
                     return isNegative ? -num : num;
                 };
 
                 const name = raw['Account'] || raw['Name'] || 'Unnamed Account';
                 const institution = raw['Institution'] || 'N/A';
-                
+
                 // Robust ID generation matching frontend tillerService.js
                 let accountId = raw['Account Id'] || raw['Account ID'] || raw['Account #'];
                 if (!accountId) {
@@ -46,18 +46,18 @@ const accountService = {
                     name: name,
                     institution: institution,
                     type: (raw['Type'] || 'Other').toLowerCase(),
-                    balance: cleanBalance(raw['Last Balance'] || raw['Balance'])
+                    balance: cleanBalance(raw['Last Balance'] || raw['Balance']),
                 };
 
                 await accountRepository.save(accountData);
                 results.success++;
             } catch (error) {
-                console.error("Failed to save account:", error);
+                console.error('Failed to save account:', error);
                 results.failed++;
             }
         }
         return results;
-    }
+    },
 };
 
 export default accountService;

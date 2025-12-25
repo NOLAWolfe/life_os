@@ -43,10 +43,10 @@ erDiagram
 
 The server is organized into specialized engines, each with its own Repository, Service, and Controller.
 
-*   **Financial Engine**: Processes Tiller syncs, calculates "The Hottest Dollar", and manages drift detection.
-*   **Professional Engine**: Manages Agile workflows (User Stories, Bugs) and prepares data for AI Analysis.
-*   **Social Engine**: Manages Clients, Invoices, and DJ performance metrics.
-*   **Life Admin Engine**: (Upcoming) Will manage health, reading, and personal logistics.
+- **Financial Engine**: Processes Tiller syncs, calculates "The Hottest Dollar", and manages drift detection.
+- **Professional Engine**: Manages Agile workflows (User Stories, Bugs) and prepares data for AI Analysis.
+- **Social Engine**: Manages Clients, Invoices, and DJ performance metrics.
+- **Life Admin Engine**: (Upcoming) Will manage health, reading, and personal logistics.
 
 ## 3. UI Component Hierarchy (Frontend)
 
@@ -92,14 +92,13 @@ graph LR
     GS(Google Sheets / Tiller) -->|MCP Sync| FE(Financial Engine)
     FE -->|Prisma Upsert| SQL(SQLite DB)
     SQL -->|Fetch| UI(React Dashboard)
-    
+
     ADO(Azure DevOps) -.->|Future Connector| PE(Professional Engine)
     PE --> SQL
 ```
 
-
-
 ## 📊 Data Ingestion Layer
-*   **Legacy Engine:** Tiller CSV exports (Accounts, Transactions, Categories) via `tillerService.js`.
-*   **Next-Gen Engine (Primary):** Direct Bank Connection via Teller.io / Plaid (Pay-as-you-go).
-*   **Flow:** Webhook -> `financial_engine` (API) -> SQLite (Prisma).
+
+- **Legacy Engine:** Tiller CSV exports (Accounts, Transactions, Categories) via `tillerService.js`.
+- **Next-Gen Engine (Primary):** Direct Bank Connection via Teller.io / Plaid (Pay-as-you-go).
+- **Flow:** Webhook -> `financial_engine` (API) -> SQLite (Prisma).

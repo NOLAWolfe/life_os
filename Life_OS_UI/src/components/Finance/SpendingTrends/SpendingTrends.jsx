@@ -18,11 +18,11 @@ const SpendingTrends = () => {
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
-        
+
         // Filter transactions based on Time Range
-        const filteredTransactions = transactions.filter(t => {
+        const filteredTransactions = transactions.filter((t) => {
             if (t.type !== 'debit' || t.isLateral) return false;
-            
+
             const tDate = new Date(t.date);
             if (isNaN(tDate)) return false;
 
@@ -52,7 +52,7 @@ const SpendingTrends = () => {
         const trends = {};
         let total = 0;
 
-        filteredTransactions.forEach(transaction => {
+        filteredTransactions.forEach((transaction) => {
             const category = transaction.category[0] || 'Uncategorized';
             trends[category] = (trends[category] || 0) + transaction.amount;
             total += transaction.amount;
@@ -61,7 +61,7 @@ const SpendingTrends = () => {
         const sortedSpending = Object.entries(trends)
             .map(([category, amount]) => ({ category, amount }))
             .sort((a, b) => b.amount - a.amount);
-            
+
         const topCategories = sortedSpending.slice(0, 8);
         const otherCategories = sortedSpending.slice(8);
         const otherTotal = otherCategories.reduce((sum, item) => sum + item.amount, 0);
@@ -70,19 +70,28 @@ const SpendingTrends = () => {
             topCategories.push({ category: 'Other', amount: otherTotal });
         }
 
-        const chartLabels = topCategories.map(item => item.category);
-        const chartData = topCategories.map(item => item.amount);
-        
+        const chartLabels = topCategories.map((item) => item.category);
+        const chartData = topCategories.map((item) => item.amount);
+
         const chart = {
             labels: chartLabels,
-            datasets: [{
-                label: 'Spending',
-                data: chartData,
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E7E9ED', '#767676'
-                ],
-                borderWidth: 0,
-            }]
+            datasets: [
+                {
+                    label: 'Spending',
+                    data: chartData,
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF',
+                        '#FF9F40',
+                        '#E7E9ED',
+                        '#767676',
+                    ],
+                    borderWidth: 0,
+                },
+            ],
         };
 
         return { table: sortedSpending, chart, total };
@@ -95,7 +104,7 @@ const SpendingTrends = () => {
         <div className="spending-trends-container widget-card">
             <div className="widget-header flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold">Spending Trends</h3>
-                <select 
+                <select
                     className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs"
                     value={timeRange}
                     onChange={(e) => setTimeRange(e.target.value)}
@@ -113,30 +122,40 @@ const SpendingTrends = () => {
                 <div className="spending-content">
                     <div className="chart-section flex flex-col items-center justify-center p-4 relative">
                         <div className="h-48 w-48 relative">
-                            <Doughnut 
-                                data={spendingData.chart} 
+                            <Doughnut
+                                data={spendingData.chart}
                                 options={{
                                     cutout: '70%',
-                                    plugins: { legend: { display: false } }
-                                }} 
+                                    plugins: { legend: { display: false } },
+                                }}
                             />
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                 <span className="text-xs text-[var(--text-secondary)]">Total</span>
                                 <span className="text-lg font-bold">
-                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(spendingData.total)}
+                                    {new Intl.NumberFormat('en-US', {
+                                        style: 'currency',
+                                        currency: 'USD',
+                                        maximumFractionDigits: 0,
+                                    }).format(spendingData.total)}
                                 </span>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="table-section mt-4 max-h-60 overflow-y-auto pr-2">
                         <table className="w-full text-sm">
                             <tbody>
                                 {spendingData.table.map(({ category, amount }) => (
-                                    <tr key={category} className="border-b border-[var(--border-color)] last:border-0 hover:bg-[var(--bg-secondary)]">
+                                    <tr
+                                        key={category}
+                                        className="border-b border-[var(--border-color)] last:border-0 hover:bg-[var(--bg-secondary)]"
+                                    >
                                         <td className="py-2">{category}</td>
                                         <td className="py-2 text-right font-mono">
-                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)}
+                                            {new Intl.NumberFormat('en-US', {
+                                                style: 'currency',
+                                                currency: 'USD',
+                                            }).format(amount)}
                                         </td>
                                         <td className="py-2 text-right text-xs text-[var(--text-secondary)] w-12">
                                             {((amount / spendingData.total) * 100).toFixed(1)}%

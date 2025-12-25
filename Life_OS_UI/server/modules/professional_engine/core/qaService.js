@@ -20,7 +20,7 @@ const qaService = {
 
     createBug: async (bugData) => {
         return await qaRepository.saveBug(bugData);
-    }
+    },
 };
 
 export default qaService;

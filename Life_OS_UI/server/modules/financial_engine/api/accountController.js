@@ -16,7 +16,7 @@ router.get('/', async (req, res, next) => {
 
 // POST /api/finance/accounts/upload
 // Receives the raw JSON array parsed from the CSV by the frontend
-// (In a full enterprise app, we'd upload the file and parse it here, 
+// (In a full enterprise app, we'd upload the file and parse it here,
 // but to keep the frontend changes minimal, we'll accept the JSON for now)
 router.post('/upload', async (req, res, next) => {
     try {
@@ -26,7 +26,7 @@ router.post('/upload', async (req, res, next) => {
         }
 
         const result = await accountService.importTillerAccounts(rawAccounts);
-        res.json({ message: "Import complete", ...result });
+        res.json({ message: 'Import complete', ...result });
     } catch (error) {
         next(new AppError('Failed to import accounts', 500));
     }

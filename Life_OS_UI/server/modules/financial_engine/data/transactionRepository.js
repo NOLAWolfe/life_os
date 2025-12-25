@@ -11,12 +11,12 @@ const transactionRepository = {
         return await prisma.transaction.findMany({
             where: filters,
             orderBy: { date: 'desc' },
-            include: { account: true }
+            include: { account: true },
         });
     },
 
     /**
-     * Upsert a transaction. 
+     * Upsert a transaction.
      * This is the "Magic Function" for live data.
      * If Plaid sends an update for an existing ID, we update it.
      * If it's new, we create it.
@@ -29,7 +29,7 @@ const transactionRepository = {
                 amount: data.amount,
                 category: data.category,
                 isLateral: data.isLateral,
-                isSideHustle: data.isSideHustle
+                isSideHustle: data.isSideHustle,
             },
             create: {
                 id: data.id,
@@ -40,10 +40,10 @@ const transactionRepository = {
                 category: data.category,
                 isLateral: data.isLateral,
                 isSideHustle: data.isSideHustle,
-                accountId: data.accountId
-            }
+                accountId: data.accountId,
+            },
         });
-    }
+    },
 };
 
 export default transactionRepository;

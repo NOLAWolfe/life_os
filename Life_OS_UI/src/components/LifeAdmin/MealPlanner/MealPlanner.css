@@ -7,7 +7,9 @@
 }
 
 .meal-day-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .meal-day-card:hover {
@@ -25,8 +27,14 @@
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .meal-day-card {
@@ -34,13 +42,27 @@
 }
 
 /* Delay animations for staggering effect */
-.meal-day-card:nth-child(1) { animation-delay: 0.05s; }
-.meal-day-card:nth-child(2) { animation-delay: 0.1s; }
-.meal-day-card:nth-child(3) { animation-delay: 0.15s; }
-.meal-day-card:nth-child(4) { animation-delay: 0.2s; }
-.meal-day-card:nth-child(5) { animation-delay: 0.25s; }
-.meal-day-card:nth-child(6) { animation-delay: 0.3s; }
-.meal-day-card:nth-child(7) { animation-delay: 0.35s; }
+.meal-day-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+.meal-day-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+.meal-day-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+.meal-day-card:nth-child(4) {
+    animation-delay: 0.2s;
+}
+.meal-day-card:nth-child(5) {
+    animation-delay: 0.25s;
+}
+.meal-day-card:nth-child(6) {
+    animation-delay: 0.3s;
+}
+.meal-day-card:nth-child(7) {
+    animation-delay: 0.35s;
+}
 
 /* Custom Scrollbar for selects if needed */
 select {

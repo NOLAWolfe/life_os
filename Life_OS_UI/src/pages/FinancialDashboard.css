@@ -108,7 +108,7 @@
         grid-template-columns: 2fr 1fr; /* Flowchart gets 2/3rds */
         grid-template-rows: auto;
     }
-    
+
     .strategy-main {
         grid-row: 1;
     }

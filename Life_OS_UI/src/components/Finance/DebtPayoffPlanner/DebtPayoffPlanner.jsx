@@ -28,7 +28,11 @@ const DebtPayoffPlanner = () => {
             <header className="debt-planner-header">
                 <h3>Debt Payoff Planner</h3>
                 <div className="total-debt-badge">
-                    Total Debt: ${totalCurrentDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    Total Debt: $
+                    {totalCurrentDebt.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    })}
                 </div>
             </header>
 
@@ -45,9 +49,9 @@ const DebtPayoffPlanner = () => {
                     <label>Monthly Extra:</label>
                     <div className="input-with-symbol">
                         <span>$</span>
-                        <input 
-                            type="number" 
-                            value={extraPayment} 
+                        <input
+                            type="number"
+                            value={extraPayment}
                             onChange={(e) => setExtraPayment(Number(e.target.value))}
                             min="0"
                             step="10"
@@ -59,9 +63,20 @@ const DebtPayoffPlanner = () => {
             {payoffInfo?.status === 'NEGATIVE_AMORTIZATION' || payoffInfo?.isInfinite ? (
                 <div className="debt-warning-alert">
                     <h4>ℹ️ Strategic Note: Long-term Debt Structure</h4>
-                    <p>Some of your loans (possibly student loans) are structured with minimum payments that barely cover interest. This is a common predatory tactic.</p>
-                    {payoffInfo.trapDebts.length > 0 && <p>Focus area: <strong>{payoffInfo.trapDebts.join(', ')}</strong></p>}
-                    <p>To see these balances actually decrease, we recommend a small "Active Plan" adjustment of at least <strong>$50-$100</strong> extra per month when your budget allows.</p>
+                    <p>
+                        Some of your loans (possibly student loans) are structured with minimum
+                        payments that barely cover interest. This is a common predatory tactic.
+                    </p>
+                    {payoffInfo.trapDebts.length > 0 && (
+                        <p>
+                            Focus area: <strong>{payoffInfo.trapDebts.join(', ')}</strong>
+                        </p>
+                    )}
+                    <p>
+                        To see these balances actually decrease, we recommend a small "Active Plan"
+                        adjustment of at least <strong>$50-$100</strong> extra per month when your
+                        budget allows.
+                    </p>
                 </div>
             ) : payoffInfo ? (
                 <div className="payoff-summary">
@@ -72,14 +87,16 @@ const DebtPayoffPlanner = () => {
                     <div className="summary-card">
                         <span className="summary-label">Total Interest to Pay</span>
                         <span className="summary-value">
-                            {payoffInfo.totalInterest > 1000000 
-                                ? `$${(payoffInfo.totalInterest / 1000000).toFixed(1)}M` 
+                            {payoffInfo.totalInterest > 1000000
+                                ? `$${(payoffInfo.totalInterest / 1000000).toFixed(1)}M`
                                 : `$${payoffInfo.totalInterest.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                         </span>
                     </div>
                     <div className="summary-card">
                         <span className="summary-label">Months to Freedom</span>
-                        <span className="summary-value">{payoffInfo.totalMonths >= 720 ? '720+' : payoffInfo.totalMonths}</span>
+                        <span className="summary-value">
+                            {payoffInfo.totalMonths >= 720 ? '720+' : payoffInfo.totalMonths}
+                        </span>
                     </div>
                 </div>
             ) : null}
@@ -92,29 +109,31 @@ const DebtPayoffPlanner = () => {
                     <span>Rate</span>
                     <span>Min Pay</span>
                 </div>
-                {debtAccounts.filter(d => d.currentBalance > 0).map((debt, index) => (
-                    <div key={index} className="debt-row">
-                        <span className="debt-name">{debt.name}</span>
-                        <span className="debt-balance">${debt.currentBalance.toLocaleString()}</span>
-                        <span className="debt-rate">{debt.interestRate}%</span>
-                        <span className="debt-min">${debt.minPayment}</span>
-                    </div>
-                ))}
+                {debtAccounts
+                    .filter((d) => d.currentBalance > 0)
+                    .map((debt, index) => (
+                        <div key={index} className="debt-row">
+                            <span className="debt-name">{debt.name}</span>
+                            <span className="debt-balance">
+                                ${debt.currentBalance.toLocaleString()}
+                            </span>
+                            <span className="debt-rate">{debt.interestRate}%</span>
+                            <span className="debt-min">${debt.minPayment}</span>
+                        </div>
+                    ))}
             </div>
-            
+
             <div className="ai-recommendation">
                 <h4>Active Plan Recommendation</h4>
                 <p>
-                    {strategy === 'avalanche' ? 
-                        "The Avalanche method is mathematically superior, saving you the most in interest." :
-                        strategy === 'snowball' ?
-                        "The Snowball method focuses on psychological wins by clearing small balances fast." :
-                        "The Hybrid method gives you a quick psychological win before switching to interest optimization."
-                    }
-                    {extraPayment > 0 ? 
-                        ` Your extra $${extraPayment} is being applied to your highest priority debt first.` :
-                        " Consider adding even $50/month to see how much faster you could be debt-free."
-                    }
+                    {strategy === 'avalanche'
+                        ? 'The Avalanche method is mathematically superior, saving you the most in interest.'
+                        : strategy === 'snowball'
+                          ? 'The Snowball method focuses on psychological wins by clearing small balances fast.'
+                          : 'The Hybrid method gives you a quick psychological win before switching to interest optimization.'}
+                    {extraPayment > 0
+                        ? ` Your extra $${extraPayment} is being applied to your highest priority debt first.`
+                        : ' Consider adding even $50/month to see how much faster you could be debt-free.'}
                 </p>
             </div>
         </div>

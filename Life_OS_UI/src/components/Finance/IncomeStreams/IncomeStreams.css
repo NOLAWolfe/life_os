@@ -35,7 +35,7 @@
 
 .passive-ratio {
     font-size: 0.8rem;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
 }
@@ -72,7 +72,7 @@
 
 .stream-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .stream-header {
@@ -107,9 +107,18 @@
     font-weight: 700;
 }
 
-.tag-active { background-color: #e3f2fd; color: #1565c0; }
-.tag-side { background-color: #fff3e0; color: #ef6c00; }
-.tag-passive { background-color: #e8f5e9; color: #2e7d32; }
+.tag-active {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+.tag-side {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+.tag-passive {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
 
 .stream-stats {
     display: flex;

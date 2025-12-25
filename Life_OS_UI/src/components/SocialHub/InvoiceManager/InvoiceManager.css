@@ -74,11 +74,26 @@
     text-transform: uppercase;
 }
 
-.status-draft { background: #4a5568; color: #cbd5e0; }
-.status-sent { background: #3182ce; color: #bee3f8; }
-.status-paid { background: #2f855a; color: #c6f6d5; }
-.status-review { background: #6b46c1; color: #e9d8fd; } /* Purple for Review */
-.status-overdue { background: #c53030; color: #fff5f5; }
+.status-draft {
+    background: #4a5568;
+    color: #cbd5e0;
+}
+.status-sent {
+    background: #3182ce;
+    color: #bee3f8;
+}
+.status-paid {
+    background: #2f855a;
+    color: #c6f6d5;
+}
+.status-review {
+    background: #6b46c1;
+    color: #e9d8fd;
+} /* Purple for Review */
+.status-overdue {
+    background: #c53030;
+    color: #fff5f5;
+}
 
 .invoice-client {
     color: var(--text-secondary);

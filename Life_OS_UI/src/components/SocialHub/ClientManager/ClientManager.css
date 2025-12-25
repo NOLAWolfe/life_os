@@ -35,7 +35,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: transform 0.2s, border-color 0.2s;
+    transition:
+        transform 0.2s,
+        border-color 0.2s;
 }
 
 .client-card:hover {
@@ -69,9 +71,18 @@
     text-transform: uppercase;
 }
 
-.status-active { background: rgba(var(--success-rgb), 0.15); color: var(--success-color); }
-.status-lead { background: rgba(var(--warning-rgb), 0.15); color: var(--warning-color); }
-.status-archived { background: var(--bg-tertiary); color: var(--text-secondary); }
+.status-active {
+    background: rgba(var(--success-rgb), 0.15);
+    color: var(--success-color);
+}
+.status-lead {
+    background: rgba(var(--warning-rgb), 0.15);
+    color: var(--warning-color);
+}
+.status-archived {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
 
 .add-client-form {
     display: flex;

@@ -8,7 +8,7 @@ const qaRepository = {
     // --- User Stories ---
     findAllStories: async () => {
         return await prisma.userStory.findMany({
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
         });
     },
 
@@ -21,8 +21,8 @@ const qaRepository = {
                     description: data.description,
                     state: data.state,
                     assignedTo: data.assignedTo,
-                    acceptanceCriteria: data.acceptanceCriteria
-                }
+                    acceptanceCriteria: data.acceptanceCriteria,
+                },
             });
         }
         return await prisma.userStory.create({
@@ -31,21 +31,21 @@ const qaRepository = {
                 description: data.description,
                 state: data.state || 'New',
                 assignedTo: data.assignedTo,
-                acceptanceCriteria: data.acceptanceCriteria
-            }
+                acceptanceCriteria: data.acceptanceCriteria,
+            },
         });
     },
 
     deleteStory: async (id) => {
         return await prisma.userStory.delete({
-            where: { id: parseInt(id) }
+            where: { id: parseInt(id) },
         });
     },
 
     // --- Bugs ---
     findAllBugs: async () => {
         return await prisma.bug.findMany({
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
         });
     },
 
@@ -56,24 +56,24 @@ const qaRepository = {
                 data: {
                     title: data.title,
                     state: data.state,
-                    severity: parseInt(data.severity)
-                }
+                    severity: parseInt(data.severity),
+                },
             });
         }
         return await prisma.bug.create({
             data: {
                 title: data.title,
                 state: data.state || 'Active',
-                severity: parseInt(data.severity) || 3
-            }
+                severity: parseInt(data.severity) || 3,
+            },
         });
     },
 
     deleteBug: async (id) => {
         return await prisma.bug.delete({
-            where: { id: parseInt(id) }
+            where: { id: parseInt(id) },
         });
-    }
+    },
 };
 
 export default qaRepository;

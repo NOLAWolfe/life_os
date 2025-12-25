@@ -9,8 +9,16 @@ export const useFinancials = () => {
 };
 
 export const FinancialProvider = ({ children }) => {
-    const { data: accounts = [], isLoading: accountsLoading, refetch: refetchAccounts } = useAccounts();
-    const { data: transactions = [], isLoading: txnsLoading, refetch: refetchTxns } = useTransactions();
+    const {
+        data: accounts = [],
+        isLoading: accountsLoading,
+        refetch: refetchAccounts,
+    } = useAccounts();
+    const {
+        data: transactions = [],
+        isLoading: txnsLoading,
+        refetch: refetchTxns,
+    } = useTransactions();
     const { data: debtAccounts = [], isLoading: debtsLoading, refetch: refetchDebts } = useDebts();
 
     const [categories, setCategories] = useState([]);
@@ -23,11 +31,7 @@ export const FinancialProvider = ({ children }) => {
      * Master Sync: Triggers React Query refetch for all financial data.
      */
     const refreshFromDb = async () => {
-        await Promise.all([
-            refetchAccounts(),
-            refetchTxns(),
-            refetchDebts()
-        ]);
+        await Promise.all([refetchAccounts(), refetchTxns(), refetchDebts()]);
     };
 
     // Update income streams and cash flow whenever transactions change
@@ -52,38 +56,37 @@ export const FinancialProvider = ({ children }) => {
             setError(null);
         } catch (e) {
             setError(e.message);
-            console.error("Error processing Tiller categories data:", e);
+            console.error('Error processing Tiller categories data:', e);
         }
     };
 
-    const value = useMemo(() => ({
-        accounts,
-        transactions,
-        incomeStreams,
-        cashFlow,
-        categories,
-        debtAccounts,
-        summaryBalances,
-        loading,
-        error,
-        handleBalancesUpload,
-        handleCategoriesUpload,
-        refreshFromDb
-    }), [
-        accounts,
-        transactions,
-        incomeStreams,
-        cashFlow,
-        categories,
-        debtAccounts,
-        summaryBalances,
-        loading,
-        error
-    ]);
-
-    return (
-        <FinancialContext.Provider value={value}>
-            {children}
-        </FinancialContext.Provider>
+    const value = useMemo(
+        () => ({
+            accounts,
+            transactions,
+            incomeStreams,
+            cashFlow,
+            categories,
+            debtAccounts,
+            summaryBalances,
+            loading,
+            error,
+            handleBalancesUpload,
+            handleCategoriesUpload,
+            refreshFromDb,
+        }),
+        [
+            accounts,
+            transactions,
+            incomeStreams,
+            cashFlow,
+            categories,
+            debtAccounts,
+            summaryBalances,
+            loading,
+            error,
+        ]
     );
+
+    return <FinancialContext.Provider value={value}>{children}</FinancialContext.Provider>;
 };

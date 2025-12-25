@@ -3,6 +3,7 @@
 This is the React-based frontend for the Life.io "Operating System". It serves as the unified dashboard for financial management, personal productivity, and creative workflows.
 
 ## Tech Stack
+
 - **Framework:** React 18+ (Vite)
 - **Styling:** CSS Modules, Tailwind CSS, and global theme variables in `index.css`.
 - **State Management:** React Context (`FinancialContext.jsx`) for global financial data.
@@ -12,6 +13,7 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
 - **APIs:** Integrations with `adoService` (Azure DevOps), `spotifyService`, and local Python-based health services.
 
 ## Core Components
+
 - **Dashboard:** A widget-based layout featuring `BalancesWidget`, `SmallWinWidget`, and `Calendar`.
 - **Financial Hub (The "War Room"):**
     - `PaymentFlow`: Interactive strategy map with drift detection and node inspection.
@@ -23,18 +25,21 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
 - **Health/Workout:** Trackers for meals and exercises.
 
 ## Development Conventions
+
 - **Component Structure:** Each component has its own folder containing `.jsx` and `.css` files.
 - **Service Layer:** API calls and data processing logic are encapsulated in `src/services/`.
 - **Theming:** Use CSS variables (e.g., `--primary-color`, `--bg-dark`) defined in `index.css` for consistent styling.
 - **Mocking:** For features without a live backend, use mock data services in `src/services/` to simulate API behavior.
 
 ## Key Files
+
 - `src/App.jsx`: Main routing and layout.
 - `src/contexts/FinancialContext.jsx`: Central hub for financial data parsed from CSVs.
 - `src/services/tillerService.js`: Logic for processing Tiller CSV exports (includes robust header deduplication).
 - `src/pages/FinancialDashboard.jsx`: The main tabbed interface (Strategy, Analytics, Data).
 
 ## Session Log (Dec 19, 2025)
+
 - **Financial Strategy Overhaul:**
     - Created **Payment Strategy Flowchart** (`@xyflow/react`) to visualize money movement.
     - Implemented **Drift Detection**: Flags bills paid from the wrong account based on user-defined rules.
@@ -50,12 +55,13 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
     - Fixed connectivity issues with `BudgetVsActuals` and `SpendingTrends` by improving data parsing.
 
 ## Session Log (Dec 22, 2025)
+
 - **The "Enterprise" Refactor:**
     - **SQLite Core:** Migrated `FinancialContext` and `adoService` to fully rely on the local SQLite database. Removed legacy JSON/CSV dependency.
     - **Professional Engine:** Replaced `professional_data.json` with a robust `UserStory` and `Bug` Prisma schema.
     - **Agile Board:** Upgraded `ProfessionalHubPage` with a Kanban-style board and rich descriptions for "Demo Mode".
 - **The "Sorting Hat" & Debt:**
-    - **Live Debt Sync:** Bypassed Tiller header errors to extract *actual* Interest Rates and Min Payments from the "Debt Payoff Planner" sheet.
+    - **Live Debt Sync:** Bypassed Tiller header errors to extract _actual_ Interest Rates and Min Payments from the "Debt Payoff Planner" sheet.
     - **Normalized Data:** Updated `tillerService` to map DB fields (`description` -> `name`) for seamless UI integration.
 - **Security & Organization:**
     - **PII Cleanup:** Removed all `.env.example` and `public/*.csv` files to prevent data leaks.
@@ -72,9 +78,11 @@ This is the React-based frontend for the Life.io "Operating System". It serves a
     - **Cleanup:** Public CSVs and legacy JSONs purged.
 
 ## Development Conventions
+
 - **Component Structure:** Organized by Domain (`src/components/{Domain}/{Widget}`).
 
 ## Key Files
+
 - `src/App.jsx`: Main routing and layout.
 - `src/contexts/FinancialContext.jsx`: Central hub for financial data (now SQLite-first).
 - `server/modules/`: Modular backend engines (`financial_engine`, `professional_engine`).

@@ -19,7 +19,7 @@ const tillerSyncService = {
         const desc = (row['Description'] || '').toLowerCase();
         const inst = (row['Institution'] || '').toLowerCase();
         const acc = (row['Account'] || '').toLowerCase();
-        
+
         // Navy Federal + Cash App/Venmo = Likely DJ Income
         if (inst.includes('navy federal') || acc.includes('navy federal')) {
             if (desc.includes('cash app') || desc.includes('venmo')) {
@@ -37,8 +37,15 @@ const tillerSyncService = {
         if (cat.includes('transfer') || cat.includes('credit card payment')) return true;
 
         // 2. Common Keywords
-        const lateralKeywords = ['online transfer', 'transfer from', 'transfer to', 'internal transfer', 'zelle transfer', 'venmo transfer'];
-        if (lateralKeywords.some(kw => desc.includes(kw))) return true;
+        const lateralKeywords = [
+            'online transfer',
+            'transfer from',
+            'transfer to',
+            'internal transfer',
+            'zelle transfer',
+            'venmo transfer',
+        ];
+        if (lateralKeywords.some((kw) => desc.includes(kw))) return true;
 
         return false;
     },
@@ -50,7 +57,7 @@ const tillerSyncService = {
     mapTillerRowToTransaction: (row, accountId) => {
         const isLateral = tillerSyncService.checkIsLateral(row);
         const isSideHustle = tillerSyncService.checkIsSideHustle(row);
-        
+
         return {
             id: row['Transaction ID'] || `ext-${Date.now()}-${Math.random()}`,
             date: new Date(row['Date']),
@@ -60,7 +67,7 @@ const tillerSyncService = {
             type: tillerSyncService.cleanMoney(row['Amount']) < 0 ? 'debit' : 'credit',
             accountId: accountId,
             isLateral: isLateral,
-            isSideHustle: isSideHustle
+            isSideHustle: isSideHustle,
         };
     },
 
@@ -78,7 +85,7 @@ const tillerSyncService = {
                     institution: row['Institution'],
                     balance: tillerSyncService.cleanMoney(row['Balance']) || 0,
                     type: row['Type'] ? row['Type'].toLowerCase() : 'unknown',
-                    class: row['Class'] ? row['Class'].toLowerCase() : 'unknown'
+                    class: row['Class'] ? row['Class'].toLowerCase() : 'unknown',
                 });
             } catch (err) {
                 console.error(`❌ Failed to sync balance for ${row['Account']}:`, err.message);
@@ -94,12 +101,12 @@ const tillerSyncService = {
             try {
                 // Ensure account exists (Tiller usually provides Account ID or Name)
                 const accountId = row['Account ID'] || row['Account'];
-                
+
                 // We don't overwrite balance here, just ensure the record exists
                 await accountRepository.save({
                     id: accountId,
                     name: row['Account'] || 'Unknown Account',
-                    institution: row['Institution'] || 'Unknown'
+                    institution: row['Institution'] || 'Unknown',
                 });
 
                 const txData = tillerSyncService.mapTillerRowToTransaction(row, accountId);
@@ -145,7 +152,7 @@ const tillerSyncService = {
                     minPayment: minPayment,
                     balance: balance,
                     category: 'credit_card', // Default, logic can improve
-                    priority: parseInt(row[5]) || 0
+                    priority: parseInt(row[5]) || 0,
                 });
                 syncedCount++;
             } catch (err) {
@@ -153,7 +160,7 @@ const tillerSyncService = {
             }
         }
         return { totalProcessed: debtRows.length, successfullySynced: syncedCount };
-    }
+    },
 };
 
 export default tillerSyncService;

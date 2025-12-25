@@ -4,19 +4,23 @@ import { describe, it, expect, vi } from 'vitest';
 
 // Mock localStorage
 const localStorageMock = (() => {
-  let store = {};
-  return {
-    getItem: (key) => store[key] || null,
-    setItem: (key, value) => { store[key] = value.toString(); },
-    clear: () => { store = {}; }
-  };
+    let store = {};
+    return {
+        getItem: (key) => store[key] || null,
+        setItem: (key, value) => {
+            store[key] = value.toString();
+        },
+        clear: () => {
+            store = {};
+        },
+    };
 })();
 
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 // Mock window.location.reload
 Object.defineProperty(window, 'location', {
-  value: { reload: vi.fn() }
+    value: { reload: vi.fn() },
 });
 
 describe('UserContext', () => {
@@ -38,7 +42,7 @@ describe('UserContext', () => {
 
     it('should switch identity and trigger reload', () => {
         const { result } = renderHook(() => useUser(), { wrapper: UserProvider });
-        
+
         act(() => {
             result.current.switchIdentity('user-999');
         });

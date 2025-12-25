@@ -7,7 +7,7 @@ const InvoiceManager = () => {
     const [invoices, setInvoices] = useState([]);
     const [clients, setClients] = useState([]);
     const [activeInvoice, setActiveInvoice] = useState(null); // 'new' or invoice object
-    
+
     // Form State
     const [formClient, setFormClient] = useState('');
     const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
@@ -45,20 +45,20 @@ const InvoiceManager = () => {
     const handleSave = async () => {
         if (!formClient) return alert('Select a client');
 
-        const total = formItems.reduce((sum, item) => sum + (item.qty * item.rate), 0);
-        
+        const total = formItems.reduce((sum, item) => sum + item.qty * item.rate, 0);
+
         const payload = {
             clientId: formClient,
             date: new Date(formDate),
             totalAmount: total,
             items: formItems,
-            status: 'Draft'
+            status: 'Draft',
         };
 
         const res = await fetch('/api/social/invoices', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-User-ID': user.id },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
         });
 
         if (res.ok) {
@@ -78,10 +78,10 @@ const InvoiceManager = () => {
     };
 
     const calculateTotal = () => {
-        return formItems.reduce((sum, item) => sum + (item.qty * item.rate), 0).toFixed(2);
+        return formItems.reduce((sum, item) => sum + item.qty * item.rate, 0).toFixed(2);
     };
 
-    const filteredInvoices = invoices.filter(inv => {
+    const filteredInvoices = invoices.filter((inv) => {
         if (view === 'review') return inv.status === 'Review' || inv.source !== 'Manual';
         return true;
     });
@@ -90,7 +90,7 @@ const InvoiceManager = () => {
         const res = await fetch(`/api/social/invoices/${invoiceId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'X-User-ID': user.id },
-            body: JSON.stringify({ status: 'Review', notes: 'Flagged for review/updates.' })
+            body: JSON.stringify({ status: 'Review', notes: 'Flagged for review/updates.' }),
         });
         if (res.ok) fetchInvoices();
     };
@@ -100,35 +100,56 @@ const InvoiceManager = () => {
             <div className="flex justify-between items-center mb-4">
                 <h2>🧾 Invoice Command Center</h2>
                 <div className="flex gap-2">
-                    <button 
+                    <button
                         className={`text-xs px-3 py-1 rounded ${view === 'all' ? 'bg-gray-600' : 'bg-gray-800'}`}
                         onClick={() => setView('all')}
                     >
                         All Invoices
                     </button>
-                    <button 
+                    <button
                         className={`text-xs px-3 py-1 rounded ${view === 'review' ? 'bg-purple-600' : 'bg-gray-800'}`}
                         onClick={() => setView('review')}
                     >
-                        Needs Review ({invoices.filter(i => i.status === 'Review' || i.source !== 'Manual').length})
+                        Needs Review (
+                        {
+                            invoices.filter((i) => i.status === 'Review' || i.source !== 'Manual')
+                                .length
+                        }
+                        )
                     </button>
-                    <button className="btn-primary text-sm ml-2" onClick={handleNewInvoice}>+ New Invoice</button>
+                    <button className="btn-primary text-sm ml-2" onClick={handleNewInvoice}>
+                        + New Invoice
+                    </button>
                 </div>
             </div>
 
             <div className="invoice-dashboard">
                 {/* List Pane */}
                 <div className="invoice-list-pane">
-                    {filteredInvoices.map(inv => (
-                        <div key={inv.id} className={`invoice-card ${inv.status === 'Review' ? 'border-l-4 border-purple-500' : ''}`} onClick={() => setActiveInvoice(inv)}>
+                    {filteredInvoices.map((inv) => (
+                        <div
+                            key={inv.id}
+                            className={`invoice-card ${inv.status === 'Review' ? 'border-l-4 border-purple-500' : ''}`}
+                            onClick={() => setActiveInvoice(inv)}
+                        >
                             <div className="invoice-header">
                                 <span className="invoice-number">{inv.number}</span>
-                                <span className={`invoice-status status-${inv.status.toLowerCase()}`}>{inv.status}</span>
+                                <span
+                                    className={`invoice-status status-${inv.status.toLowerCase()}`}
+                                >
+                                    {inv.status}
+                                </span>
                             </div>
-                            <span className="invoice-client">{inv.client?.name || 'Unknown Client'}</span>
+                            <span className="invoice-client">
+                                {inv.client?.name || 'Unknown Client'}
+                            </span>
                             <div className="flex justify-between items-center mt-1">
-                                <span className="invoice-amount font-mono">${inv.totalAmount.toLocaleString()}</span>
-                                <span className="text-[10px] text-gray-500 uppercase">{inv.source}</span>
+                                <span className="invoice-amount font-mono">
+                                    ${inv.totalAmount.toLocaleString()}
+                                </span>
+                                <span className="text-[10px] text-gray-500 uppercase">
+                                    {inv.source}
+                                </span>
                             </div>
                         </div>
                     ))}
@@ -142,14 +163,25 @@ const InvoiceManager = () => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Client</label>
-                                    <select value={formClient} onChange={e => setFormClient(e.target.value)}>
+                                    <select
+                                        value={formClient}
+                                        onChange={(e) => setFormClient(e.target.value)}
+                                    >
                                         <option value="">-- Select Client --</option>
-                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {clients.map((c) => (
+                                            <option key={c.id} value={c.id}>
+                                                {c.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
                                     <label>Date</label>
-                                    <input type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
+                                    <input
+                                        type="date"
+                                        value={formDate}
+                                        onChange={(e) => setFormDate(e.target.value)}
+                                    />
                                 </div>
                             </div>
 
@@ -157,27 +189,65 @@ const InvoiceManager = () => {
                                 <thead>
                                     <tr>
                                         <th>Description</th>
-                                        <th style={{width: '60px'}}>Qty</th>
-                                        <th style={{width: '80px'}}>Rate</th>
-                                        <th style={{width: '80px', textAlign: 'right'}}>Total</th>
+                                        <th style={{ width: '60px' }}>Qty</th>
+                                        <th style={{ width: '80px' }}>Rate</th>
+                                        <th style={{ width: '80px', textAlign: 'right' }}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {formItems.map((item, idx) => (
                                         <tr key={idx}>
-                                            <td><input value={item.desc} onChange={e => updateItem(idx, 'desc', e.target.value)} placeholder="Service..." /></td>
-                                            <td><input type="number" value={item.qty} onChange={e => updateItem(idx, 'qty', parseFloat(e.target.value))} /></td>
-                                            <td><input type="number" value={item.rate} onChange={e => updateItem(idx, 'rate', parseFloat(e.target.value))} /></td>
-                                            <td style={{textAlign: 'right'}}>${(item.qty * item.rate).toFixed(2)}</td>
+                                            <td>
+                                                <input
+                                                    value={item.desc}
+                                                    onChange={(e) =>
+                                                        updateItem(idx, 'desc', e.target.value)
+                                                    }
+                                                    placeholder="Service..."
+                                                />
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="number"
+                                                    value={item.qty}
+                                                    onChange={(e) =>
+                                                        updateItem(
+                                                            idx,
+                                                            'qty',
+                                                            parseFloat(e.target.value)
+                                                        )
+                                                    }
+                                                />
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="number"
+                                                    value={item.rate}
+                                                    onChange={(e) =>
+                                                        updateItem(
+                                                            idx,
+                                                            'rate',
+                                                            parseFloat(e.target.value)
+                                                        )
+                                                    }
+                                                />
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                ${(item.qty * item.rate).toFixed(2)}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                            <button className="btn-add-item" onClick={addItem}>+ Add Line Item</button>
+                            <button className="btn-add-item" onClick={addItem}>
+                                + Add Line Item
+                            </button>
 
                             <div className="text-right mt-4">
                                 <h3 className="text-xl">Total: ${calculateTotal()}</h3>
-                                <button className="btn-primary mt-2" onClick={handleSave}>Save Draft</button>
+                                <button className="btn-primary mt-2" onClick={handleSave}>
+                                    Save Draft
+                                </button>
                             </div>
                         </div>
                     ) : activeInvoice ? (
@@ -185,11 +255,16 @@ const InvoiceManager = () => {
                             <div className="flex justify-between items-start mb-6">
                                 <div>
                                     <h3 className="text-2xl font-bold">{activeInvoice.number}</h3>
-                                    <p className="text-gray-400">{activeInvoice.client?.name} • {new Date(activeInvoice.date).toLocaleDateString()}</p>
-                                    <span className="text-xs bg-gray-800 px-2 py-1 rounded text-gray-500 mt-2 inline-block">Source: {activeInvoice.source}</span>
+                                    <p className="text-gray-400">
+                                        {activeInvoice.client?.name} •{' '}
+                                        {new Date(activeInvoice.date).toLocaleDateString()}
+                                    </p>
+                                    <span className="text-xs bg-gray-800 px-2 py-1 rounded text-gray-500 mt-2 inline-block">
+                                        Source: {activeInvoice.source}
+                                    </span>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button 
+                                    <button
                                         className="bg-purple-900 text-purple-200 px-4 py-2 rounded text-sm font-bold border border-purple-700 hover:bg-purple-800"
                                         onClick={() => handleFlag(activeInvoice.id)}
                                     >
@@ -200,20 +275,32 @@ const InvoiceManager = () => {
                                     </button>
                                 </div>
                             </div>
-                            
+
                             {/* Simple Item Display */}
                             <div className="bg-gray-900/50 p-4 rounded border border-gray-800">
-                                <h4 className="text-xs font-bold text-gray-500 uppercase mb-4">Line Items</h4>
+                                <h4 className="text-xs font-bold text-gray-500 uppercase mb-4">
+                                    Line Items
+                                </h4>
                                 <div className="space-y-2">
-                                    {activeInvoice.items && JSON.parse(activeInvoice.items).map((item, idx) => (
-                                        <div key={idx} className="flex justify-between text-sm border-b border-gray-800 pb-2">
-                                            <span>{item.desc} (x{item.qty})</span>
-                                            <span className="font-mono">${(item.qty * item.rate).toLocaleString()}</span>
-                                        </div>
-                                    ))}
+                                    {activeInvoice.items &&
+                                        JSON.parse(activeInvoice.items).map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="flex justify-between text-sm border-b border-gray-800 pb-2"
+                                            >
+                                                <span>
+                                                    {item.desc} (x{item.qty})
+                                                </span>
+                                                <span className="font-mono">
+                                                    ${(item.qty * item.rate).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        ))}
                                 </div>
                                 <div className="text-right mt-4 pt-4 border-t border-gray-700">
-                                    <span className="text-xl font-bold">${activeInvoice.totalAmount.toLocaleString()}</span>
+                                    <span className="text-xl font-bold">
+                                        ${activeInvoice.totalAmount.toLocaleString()}
+                                    </span>
                                 </div>
                             </div>
 

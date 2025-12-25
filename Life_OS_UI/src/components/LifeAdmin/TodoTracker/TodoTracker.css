@@ -1,24 +1,24 @@
 .todo-tracker-container {
-  margin-top: 4rem;
-  text-align: center;
+    margin-top: 4rem;
+    text-align: center;
 }
 
 .modules-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-  text-align: left;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+    text-align: left;
 }
 
 .module-card {
-  background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: var(--card-shadow);
-  display: flex;
-  flex-direction: column;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
 }
 
 .module-header {
@@ -31,8 +31,8 @@
 }
 
 .module-card h3 {
-  margin: 0;
-  color: #FFD700; /* Gold */
+    margin: 0;
+    color: #ffd700; /* Gold */
 }
 
 .progress-text {
@@ -56,16 +56,16 @@
 }
 
 .module-card ul {
-  list-style-type: none; /* Remove default marker */
-  padding-left: 0;
-  margin: 0;
-  flex-grow: 1; /* Pushes add-section down */
+    list-style-type: none; /* Remove default marker */
+    padding-left: 0;
+    margin: 0;
+    flex-grow: 1; /* Pushes add-section down */
 }
 
 .module-card li {
-  margin-bottom: 0.75rem;
-  color: var(--text-primary);
-  transition: opacity 0.2s;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    transition: opacity 0.2s;
 }
 
 .module-card li.completed {
@@ -80,7 +80,7 @@
     cursor: pointer;
 }
 
-.todo-item input[type="checkbox"] {
+.todo-item input[type='checkbox'] {
     margin-top: 0.25rem;
     cursor: pointer;
     accent-color: var(--primary-color);
