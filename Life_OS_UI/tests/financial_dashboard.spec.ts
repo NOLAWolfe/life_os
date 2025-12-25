@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Financial Dashboard Full-Scope Auditor
@@ -8,8 +12,9 @@ import * as path from 'path';
 test.describe('Financial Dashboard - Domain Audit', () => {
     test.beforeEach(async ({ page }) => {
         // Navigate to the Financial Dashboard
-        await page.goto('http://localhost:5173'); // Adjust if running on a different port
+        await page.goto('http://localhost:5173/app/finance');
         await page.waitForSelector('.financial-dashboard');
+        await page.waitForLoadState('networkidle'); // Wait for lazy loads
     });
 
     test('Page Structure & Title Verification', async ({ page }) => {
@@ -39,7 +44,7 @@ test.describe('Financial Dashboard - Domain Audit', () => {
         const subTabs = page.locator('.sub-tab-button');
 
         // Default sub-tab is Visual Map
-        await expect(page.locator('.payment-flow-container')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.flow-content-wrapper')).toBeVisible({ timeout: 10000 });
 
         // Switch to Written Plan
         await subTabs.filter({ hasText: 'Written Plan' }).click();
@@ -53,10 +58,9 @@ test.describe('Financial Dashboard - Domain Audit', () => {
 
         // Check for high-value widgets in Overview
         const widgets = [
-            '.income-streams-container',
+            '.income-streams-widget',
             '.spending-trends-container',
-            '.leak-detector-container',
-            '.debt-payoff-planner',
+            '.debt-planner-container',
         ];
 
         for (const selector of widgets) {
@@ -70,7 +74,7 @@ test.describe('Financial Dashboard - Domain Audit', () => {
         const dateStr = new Date().toISOString().split('T')[0];
 
         // 1. Snapshot: Main Strategy Map
-        const strategyMap = page.locator('.payment-flow-container');
+        const strategyMap = page.locator('.flow-content-wrapper');
         if (await strategyMap.isVisible()) {
             await strategyMap.screenshot({
                 path: `${snapshotDir}/Audit_StrategyMap_${dateStr}.png`,
@@ -97,7 +101,7 @@ test.describe('Financial Dashboard - Domain Audit', () => {
         await page.locator('.tab-button').filter({ hasText: 'Data Management' }).click();
         await page.locator('.sub-tab-button').filter({ hasText: 'Data Debugger' }).click();
 
-        await expect(page.locator('.data-debugger-container')).toBeVisible();
+        await expect(page.locator('.data-debugger')).toBeVisible();
         await expect(page.locator('h2')).toContainText('Data Debugger');
     });
 });

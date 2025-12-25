@@ -28,6 +28,63 @@ const strategyService = {
     },
 
     /**
+     * THE TRUTH ENFORCER: Syncs graph nodes with Real DB Accounts.
+     * 1. Removes any "Account" or "Hub" node that doesn't exist in the real 'accounts' list.
+     * 2. Adds missing 'accounts'.
+     * 3. Preserves 'Bill' nodes (user created).
+     */
+    syncNodesWithRealData: (currentNodes, accounts, debtAccounts) => {
+        if (!accounts) return { nodes: currentNodes, hasChanges: false };
+
+        const validAccountIds = new Set(accounts.map(a => a.account_id));
+        const validDebtNames = new Set((debtAccounts || []).map(d => d.name.toLowerCase()));
+
+        // 1. Filter out Stale/Fake Accounts
+        const cleanedNodes = currentNodes.filter(node => {
+            // Always keep Income, Bills, Groups, and Remaining Funds
+            if (node.id === 'income' || node.id.startsWith('dynamic-income')) return true;
+            if (node.type === 'bill' || node.type === 'billGroup' || node.className?.includes('node-bill')) return true;
+            if (node.id === 'node-remaining-funds') return true;
+
+            // For Hubs and Accounts (Liabilities), strictly check against Real Data
+            if (node.className?.includes('node-hub') || node.className?.includes('node-account')) {
+                // If it's a generated ID (fallback), check name match? No, stick to ID if possible.
+                // But our generate logic uses deterministic IDs based on name sometimes.
+                // Let's rely on the fact that generateAccountNodes will re-add them if valid.
+                // So here, we aggressively remove *unless* we can confirm it's real.
+                
+                // Allow if it matches a Real Account ID exactly
+                if (validAccountIds.has(node.id)) return true;
+
+                // Allow if it matches a Real Account Name (for deterministic fallback IDs)
+                const isRealName = accounts.some(acc => 
+                    node.data.label.includes(acc.name) || 
+                    acc.name.includes(node.data.label.replace('🏦 ', '').replace('💳 ', ''))
+                );
+                if (isRealName) return true;
+
+                return false; // DELETE FAKE NODE
+            }
+
+            return true; 
+        });
+
+        // 2. Generate/Add Real Accounts
+        // reuse existing logic but pass the cleaned list
+        const { newNodes } = strategyService.generateAccountNodes(accounts, cleanedNodes);
+        
+        // 3. Generate/Add Real Debts
+        const { newNodes: newDebts, updatedNodes: nodesWithDebts } = strategyService.generateDebtNodes(debtAccounts || [], [...cleanedNodes, ...newNodes]);
+
+        // Detect if changes actually happened (ignoring order)
+        const finalNodes = nodesWithDebts.concat(newDebts);
+        const hasChanges = finalNodes.length !== currentNodes.length || 
+                           finalNodes.some(n => !currentNodes.find(c => c.id === n.id));
+
+        return { nodes: finalNodes, hasChanges };
+    },
+
+    /**
      * Generates Hub and Liability nodes from account data.
      */
     generateAccountNodes: (accounts, currentNodes) => {

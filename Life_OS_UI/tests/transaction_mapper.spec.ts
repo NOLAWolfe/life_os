@@ -7,13 +7,14 @@ import { test, expect } from '@playwright/test';
 test.describe('The Sorting Hat - Transaction Mapping', () => {
     test.beforeEach(async ({ page }) => {
         // 1. Navigate to the Financial Dashboard
-        await page.goto('http://localhost:5173/finance');
+        await page.goto('http://localhost:5173/app/finance');
 
         // 2. Switch to the Data tab
         await page.click('button:has-text("Data Management")');
 
         // 3. Select the Sorting Hat sub-tab
         await page.click('button:has-text("Sorting Hat")');
+        await page.waitForLoadState('networkidle');
     });
 
     test('should display the Sorting Hat interface', async ({ page }) => {

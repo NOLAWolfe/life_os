@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test('Dashboard loads and renders core components', async ({ page }) => {
-    // 1. Visit the App (assuming local dev server usually runs on 5173)
-    await page.goto('http://localhost:5173');
+    // 1. Navigate to the App Dashboard
+    await page.goto('http://localhost:5173/app/finance');
 
     // 2. Check for the main title
     await expect(page.locator('h1')).toContainText('Financial Dashboard');

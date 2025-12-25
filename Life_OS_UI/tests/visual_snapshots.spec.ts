@@ -1,17 +1,16 @@
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
-/**
- * Visual Snapshot Auditor
- * This script navigates to the Life_OS UI and captures snapshots of key widgets.
- * These are stored in Obsidian for a "Visual Audit Trail".
- */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 test('Capture Financial Widget Snapshots', async ({ page }) => {
-    // 1. Navigate to the local dev server
-    await page.goto('http://localhost:5173'); // Adjust port if necessary
+    // 1. Navigate to the App Dashboard
+    await page.goto('http://localhost:5173/app/finance');
 
     // 2. Wait for the Dashboard to load
-    await page.waitForSelector('.dashboard-container');
+    await page.waitForSelector('.financial-dashboard');
 
     const snapshotDir = path.resolve(__dirname, '../../LifeVault/Snapshots');
     const dateStr = new Date().toISOString().split('T')[0];

@@ -1,4 +1,20 @@
 @import 'tailwindcss';
+
+@theme {
+    --color-primary: var(--text-main);
+    --color-secondary: var(--text-dim);
+    --color-accent: var(--primary-color);
+    --color-success: var(--success-color);
+    --color-warning: var(--warning-color);
+    --color-error: var(--error-color);
+
+    --color-page: var(--bg-page);
+    --color-card: var(--bg-card);
+    --color-border: var(--border-main);
+    --color-input: var(--input-bg);
+
+    --shadow-card: var(--card-shadow);
+}
 :root {
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -12,6 +28,13 @@
     --success-color: #2e7d32;
     --warning-color: #fbc02d;
     --error-color: #d32f2f;
+
+    /* Enterprise Aliases */
+    --bg-page: var(--page-background);
+    --bg-card: var(--card-background);
+    --text-main: var(--text-primary);
+    --text-dim: var(--text-secondary);
+    --border-main: var(--border-color);
 
     /* Base Dark Theme Palette */
     --page-background: #121212;
