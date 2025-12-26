@@ -12,6 +12,27 @@ datasource db {
 }
 
 // --------------------------------------------------------
+// MODULE: System & Identity (The "Brain")
+// --------------------------------------------------------
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  name              String?
+  role              String   @default("user") // guest, free, pro, admin
+  
+  // UX Personalization
+  installedTools    String   @default("[\"finance\", \"life_admin\"]") // JSON array of active modules
+  dashboardLayout   String   @default("{}") // JSON blob of widget positions
+  
+  // Legal & Compliance
+  termsAcceptedAt   DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// --------------------------------------------------------
 // MODULE: Financial Engine (The "Money Maker")
 // --------------------------------------------------------
 

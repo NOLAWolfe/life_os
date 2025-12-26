@@ -17,6 +17,7 @@ import invoiceRouter from './server/modules/social_engine/api/invoiceController.
 import contentRouter from './server/modules/social_engine/api/contentController.js';
 import mealRouter from './server/modules/life_admin/api/mealController.js';
 import dailyReadsRouter from './server/modules/life_admin/api/dailyReadsController.js';
+import userRouter from './server/modules/system_engine/api/userController.js';
 
 const app = express();
 const PORT = 4001;
@@ -25,9 +26,11 @@ const PORT = 4001;
 app.use(helmet()); // Sets various security headers
 
 // Global Rate Limiter: Max 100 requests per 15 minutes
+// Bypass in Test/Dev to avoid CI failures
+const isTest = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development';
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: isTest ? 10000 : 100,
     message: {
         status: 'fail',
         message: 'Too many requests from this IP, please try again in 15 minutes.',
@@ -86,6 +89,8 @@ app.use('/api/social/invoices', invoiceRouter);
 app.use('/api/social/content', contentRouter);
 app.use('/api/life-admin/meals', mealRouter);
 app.use('/api/daily-reads', dailyReadsRouter);
+console.log('✅ Mounting System User Router...');
+app.use('/api/system/user', userRouter);
 
 // --- 4. STATIC ASSETS (Production) ---
 const __filename = fileURLToPath(import.meta.url);
