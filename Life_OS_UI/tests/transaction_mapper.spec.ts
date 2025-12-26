@@ -34,13 +34,19 @@ test.describe('The Sorting Hat - Transaction Mapping', () => {
     });
 
     test('should allow selecting a transaction to map', async ({ page }) => {
+        // Ensure the orphan list is visible and has items before proceeding
         const firstOrphan = page.locator('.orphan-item').first();
-        const orphanName = await firstOrphan.locator('.font-medium').innerText();
+        await expect(firstOrphan).toBeVisible({ timeout: 15000 }); // Longer timeout for visibility
+
+        // Get the text content, making sure the element is attached and visible
+        const orphanNameElement = firstOrphan.locator('.font-medium');
+        await expect(orphanNameElement).toBeVisible({ timeout: 15000 });
+        const orphanName = await orphanNameElement.textContent();
 
         await firstOrphan.click();
 
         // Verify action panel updates
-        await expect(page.locator('.mapping-action h3')).toContainText(orphanName);
+        await expect(page.locator('.mapping-action h3')).toContainText(orphanName || ''); // Use empty string if null
         await expect(page.locator('input[placeholder*="netflix"]')).toBeVisible();
     });
 });
