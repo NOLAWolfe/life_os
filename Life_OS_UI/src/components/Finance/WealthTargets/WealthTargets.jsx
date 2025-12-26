@@ -3,62 +3,90 @@ import { useFinancials } from '../../../contexts/FinancialContext';
 import './WealthTargets.css';
 
 const WealthTargets = () => {
-    const { incomeStreams, transactions } = useFinancials();
+    const { incomeStreams, transactions, accounts } = useFinancials();
 
-    // Moonshot goal: $1,000,000 annual income
-    const MOONSHOT_GOAL = 1000000;
+    // 10X Goals
+    const INCOME_GOAL = 1000000; // $1M Annual
+    const NET_WORTH_GOAL = 5000000; // $5M Net Worth
 
-    // Calculate annual run rate based on the date range of transactions
+    // 1. Calculate Current Net Worth
+    const currentNetWorth = React.useMemo(() => {
+        if (!accounts) return 0;
+        return accounts.reduce((sum, acc) => {
+            return sum + (acc.balances?.current || 0);
+        }, 0);
+    }, [accounts]);
+
+    // 2. Calculate annual run rate
     const annualRunRate = React.useMemo(() => {
-        if (!transactions || transactions.length === 0) return 0;
+        if (!incomeStreams || incomeStreams.length === 0) return 0;
+        const totalMonthly = incomeStreams.reduce((acc, s) => acc + (s.monthlyAvg || 0), 0);
+        return totalMonthly * 12;
+    }, [incomeStreams]);
 
-        const totalIncome = incomeStreams.reduce((acc, stream) => acc + stream.total, 0);
-
-        // Find date range
-        const dates = transactions.map((t) => new Date(t.date)).filter((d) => !isNaN(d));
-        if (dates.length < 2) return totalIncome * 12; // Fallback
-
-        const newest = new Date(Math.max(...dates));
-        const oldest = new Date(Math.min(...dates));
-
-        // Calculate difference in months (min 1 month to avoid division by zero)
-        const diffInMs = newest - oldest;
-        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-        const diffInMonths = Math.max(diffInDays / 30.44, 1); // 30.44 is avg month length
-
-        return (totalIncome / diffInMonths) * 12;
-    }, [incomeStreams, transactions]);
-
-    const progressPercent = Math.min((annualRunRate / MOONSHOT_GOAL) * 100, 100);
+    const incomeProgress = Math.min((annualRunRate / INCOME_GOAL) * 100, 100);
+    const nwProgress = Math.min((currentNetWorth / NET_WORTH_GOAL) * 100, 100);
 
     return (
         <div className="wealth-targets-widget widget-card">
-            <div className="widget-header">
-                <h2 className="widget-title">10X Target (Offense)</h2>
-                <span className="badge moonshot">Moonshot</span>
-            </div>
-
-            <div className="target-metric">
-                <span className="label">Annual Run Rate</span>
-                <span className="value">
-                    ${annualRunRate.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </span>
-            </div>
-
-            <div className="progress-section">
-                <div className="progress-labels">
-                    <span>$0</span>
-                    <span className="goal-text">Target: ${MOONSHOT_GOAL.toLocaleString()}</span>
+            <div className="widget-header mb-6">
+                <h2 className="widget-title">10X Targets</h2>
+                <div className="flex gap-2">
+                    <span className="badge moonshot">Moonshot</span>
+                    <span className="badge defensive">Offense-Only</span>
                 </div>
-                <div className="main-progress-bar">
-                    <div className="progress-fill" style={{ width: `${progressPercent}%` }}>
-                        <span className="percent-label">{progressPercent.toFixed(1)}%</span>
+            </div>
+
+            <div className="targets-grid grid grid-cols-1 gap-8">
+                {/* Metric 1: Annual Income */}
+                <div className="target-item">
+                    <div className="flex justify-between items-end mb-2">
+                        <div className="label-group">
+                            <span className="label text-[10px] uppercase font-bold text-gray-500">Annual Run Rate</span>
+                            <h3 className="value text-2xl font-black text-white">
+                                ${Math.round(annualRunRate).toLocaleString()}
+                            </h3>
+                        </div>
+                        <div className="goal-status text-right">
+                            <span className="text-[10px] text-gray-500 block uppercase">Target</span>
+                            <span className="text-xs font-bold text-green-400">${(INCOME_GOAL/1000000).toFixed(1)}M</span>
+                        </div>
                     </div>
+                    <div className="progress-container h-3 bg-gray-800 rounded-full overflow-hidden border border-white/5">
+                        <div 
+                            className="progress-fill h-full bg-gradient-to-r from-green-600 to-green-400" 
+                            style={{ width: `${incomeProgress}%` }}
+                        ></div>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-1">{incomeProgress.toFixed(2)}% of the way to the 10X line.</p>
+                </div>
+
+                {/* Metric 2: Net Worth */}
+                <div className="target-item">
+                    <div className="flex justify-between items-end mb-2">
+                        <div className="label-group">
+                            <span className="label text-[10px] uppercase font-bold text-gray-500">Total Net Worth</span>
+                            <h3 className={`value text-2xl font-black ${currentNetWorth < 0 ? 'text-red-400' : 'text-blue-400'}`}>
+                                ${Math.round(currentNetWorth).toLocaleString()}
+                            </h3>
+                        </div>
+                        <div className="goal-status text-right">
+                            <span className="text-[10px] text-gray-500 block uppercase">Target</span>
+                            <span className="text-xs font-bold text-blue-400">${(NET_WORTH_GOAL/1000000).toFixed(1)}M</span>
+                        </div>
+                    </div>
+                    <div className="progress-container h-3 bg-gray-800 rounded-full overflow-hidden border border-white/5">
+                        <div 
+                            className="progress-fill h-full bg-gradient-to-r from-blue-600 to-blue-400" 
+                            style={{ width: `${Math.max(0, nwProgress)}%` }}
+                        ></div>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-1">{Math.max(0, nwProgress).toFixed(2)}% Scaled.</p>
                 </div>
             </div>
 
-            <div className="strategy-note">
-                "You cannot hit a target you do not see." - Grant Cardone
+            <div className="strategy-note mt-8 pt-4 border-t border-white/5 text-[10px] italic text-gray-500">
+                "Go small, stay small. 10X your targets. The actions required are different." - Grant Cardone
             </div>
         </div>
     );
