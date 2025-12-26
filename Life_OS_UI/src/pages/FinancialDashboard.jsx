@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { TIERS } from '../contexts/UserContext';
 import FeatureGate from '../components/System/FeatureGate';
+import HottestDollarBar from '../components/Finance/HottestDollarBar/HottestDollarBar';
 import './FinancialDashboard.css';
 
 // Lazy load widgets
@@ -286,6 +287,7 @@ const FinancialDashboard = () => {
                     </Suspense>
                 </div>
             </div>
+            <HottestDollarBar />
         </div>
     );
 };

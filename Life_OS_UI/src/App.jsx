@@ -47,7 +47,6 @@ const AppLayout = ({ children }) => (
         <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-360 mx-auto w-full box-border">
             {children}
         </main>
-        <HottestDollarBar />
     </>
 );
 

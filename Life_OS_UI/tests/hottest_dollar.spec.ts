@@ -46,8 +46,8 @@ test.describe('Hottest Dollar Engine - Smoke Test', () => {
         });
     });
 
-    test('should display the Hottest Dollar Bar on the dashboard', async ({ page }) => {
-        await page.goto('/app');
+    test('should display the Hottest Dollar Bar on the finance dashboard', async ({ page }) => {
+        await page.goto('/app/finance');
         
         const bar = page.locator('.hottest-dollar-bar');
         await expect(bar).toBeVisible({ timeout: 15000 });
