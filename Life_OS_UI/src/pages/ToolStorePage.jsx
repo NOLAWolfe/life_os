@@ -77,7 +77,7 @@ const ToolStorePage = () => {
         setStagedTools(user?.installedTools || []);
     }, [user]);
 
-    const hasChanges = JSON.stringify(stagedTools.sort()) !== JSON.stringify(user?.installedTools.sort());
+    const hasChanges = JSON.stringify(stagedTools.sort()) !== JSON.stringify((user?.installedTools || []).sort());
 
     const handleToggleTool = (toolId) => {
         const isInstalled = stagedTools.includes(toolId);
