@@ -5,25 +5,32 @@ import {
     suggestKeyword,
     getAllBillNodes,
 } from '../../../services/mappingService';
+import { initialNodes, initialEdges } from '../../../services/defaults';
+import strategyService from '../../../services/strategyService';
 import './TransactionMapper.css';
 
 const TransactionMapper = () => {
-    const { transactions } = useFinancials();
+    const { transactions, accounts, debtAccounts } = useFinancials();
     const [mappingRules, setMappingRules] = useState({});
-    const [nodes, setNodes] = useState([]);
-    const [edges, setEdges] = useState([]);
+    const [nodes, setNodes] = useState(initialNodes);
+    const [edges, setEdges] = useState(initialEdges);
 
-    // Load existing config from LocalStorage (Shared with PaymentFlow)
+    // Load config & SYNC with Real Data
     useEffect(() => {
         const savedRules = localStorage.getItem('paymentFlowRules');
         if (savedRules) setMappingRules(JSON.parse(savedRules));
 
         const savedNodes = localStorage.getItem('paymentFlowNodes');
-        if (savedNodes) setNodes(JSON.parse(savedNodes));
+        const baseNodes = savedNodes ? JSON.parse(savedNodes) : initialNodes;
 
         const savedEdges = localStorage.getItem('paymentFlowEdges');
         if (savedEdges) setEdges(JSON.parse(savedEdges));
-    }, []);
+
+        // Enforce Truth
+        const { nodes: syncedNodes } = strategyService.syncNodesWithRealData(baseNodes, accounts || [], debtAccounts || []);
+        setNodes(syncedNodes);
+
+    }, [accounts, debtAccounts]);
 
     const orphans = useMemo(() => {
         return getOrphanedTransactions(transactions, mappingRules);

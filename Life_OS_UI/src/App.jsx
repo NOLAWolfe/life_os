@@ -15,6 +15,8 @@ const MealPlannerPage = lazy(() => import('./pages/MealPlannerPage'));
 const CreativePage = lazy(() => import('./pages/CreativePage'));
 const ProfessionalHubPage = lazy(() => import('./pages/ProfessionalHubPage'));
 const BusinessHubPage = lazy(() => import('./pages/BusinessHubPage'));
+const ToolStorePage = lazy(() => import('./pages/ToolStorePage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 // Placeholder component for pages we haven't built yet
 const PlaceholderPage = ({ title }) => (
@@ -32,7 +34,7 @@ const PlaceholderPage = ({ title }) => (
 const PageLoader = () => (
     <div className="flex items-center justify-center h-[60vh]">
         <div className="text-lg font-medium text--text-secondary animate-pulse">
-            Loading Life.io Module...
+            Loading Vantage OS Module...
         </div>
     </div>
 );
@@ -111,6 +113,22 @@ function App() {
                                 element={
                                     <AppLayout>
                                         <BusinessHubPage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/store"
+                                element={
+                                    <AppLayout>
+                                        <ToolStorePage />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/app/profile"
+                                element={
+                                    <AppLayout>
+                                        <ProfilePage />
                                     </AppLayout>
                                 }
                             />

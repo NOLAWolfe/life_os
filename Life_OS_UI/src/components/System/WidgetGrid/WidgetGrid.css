@@ -1,0 +1,17 @@
+.widget-grid-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.widget-flex-item {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    flex: 1 1 300px; /* Flex-grow, flex-shrink, flex-basis */
+    min-height: 200px;
+    padding: 16px;
+}

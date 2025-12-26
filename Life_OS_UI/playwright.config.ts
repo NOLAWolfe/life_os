@@ -13,6 +13,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
     testDir: './tests',
+    testMatch: '**/*.spec.ts', // Explicitly match E2E spec files
+    testIgnore: '**/unit/**', // Ignore unit test directory
     /* Run tests in files in parallel */
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -24,10 +26,10 @@ export default defineConfig({
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: process.env.CI
         ? [
-              ['junit', { outputFile: 'test-results/results.xml' }], // Azure DevOps standard
-              ['html', { outputFolder: `playwright-report-${Date.now()}`, open: 'never' }], // Persistent artifact
+              ['junit', { outputFile: 'test-results/results.xml' }],
+              ['html', { outputFolder: 'playwright-report', open: 'never' }],
           ]
-        : [['html', { outputFolder: 'playwright-report', open: 'never' }]], // Local: Overwrite & Silent
+        : [['html', { outputFolder: 'playwright-report', open: 'never' }]],
 
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
@@ -49,7 +51,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: 'npm run dev:ui', // Vite server
+        command: 'npm run dev', // Vite + Express
         url: 'http://localhost:5173',
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000,

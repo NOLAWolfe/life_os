@@ -1,44 +1,39 @@
-# Life_OS_UI Project Context
+# Vantage OS UI (Life_OS_UI)
 
-This is the React-based frontend for the Life.io "Operating System". It serves as the unified dashboard for financial management, personal productivity, and creative workflows.
+This is the React-based frontend for **Vantage OS** (formerly Life.io). It serves as the unified dashboard for financial management, personal productivity, and creative workflows.
 
 ## Tech Stack
 
 - **Framework:** React 18+ (Vite)
 - **Styling:** CSS Modules, Tailwind CSS, and global theme variables in `index.css`.
-- **State Management:** React Context (`FinancialContext.jsx`) for global financial data.
+- **State Management:** 
+    - `UserContext.jsx`: Handles Identity, Permissions, and **Grid Layouts**.
+    - `FinancialContext.jsx`: Global financial data.
 - **Routing:** React Router (implicit in `App.jsx`).
-- **Data Ingestion:** CSV parsing for Tiller/Plaid exports via `tillerService.js`.
-- **Visualization:** `@xyflow/react` for interactive flowcharts, `chart.js` for graphs.
-- **APIs:** Integrations with `adoService` (Azure DevOps), `spotifyService`, and local Python-based health services.
+- **Data Ingestion:** Prisma (SQLite) + Tiller CSV Sync.
+- **Visualization:** `@xyflow/react` for interactive flowcharts, `react-grid-layout` for Dashboards.
 
 ## Core Components
 
-- **Dashboard:** A widget-based layout featuring `BalancesWidget`, `SmallWinWidget`, and `Calendar`.
-- **Financial Hub (The "War Room"):**
-    - `PaymentFlow`: Interactive strategy map with drift detection and node inspection.
-    - `LeakDetector`: Analyzes micro-spending and amortizes ghost bills.
-    - `IncomeStreams`: Wealth creation tool with active/passive classification and 10X targets.
-    - `DebtPayoffPlanner`: Strategic debt reduction calculator.
-- **Professional Hub:** QA-focused tools for user story and bug tracking.
-- **Creative Page:** DJ-specific utilities and creative planning tools.
-- **Health/Workout:** Trackers for meals and exercises.
+- **Tool Store:** (`/app/store`) App-store style interface to enable/disable modules.
+- **Vantage Dashboard:** Draggable grid layout featuring:
+    - `BalancesWidget`, `SmallWinWidget`, `Calendar`.
+    - `WealthTargets`, `WealthMentor`.
+- **Financial War Room:**
+    - `PaymentFlow`: Interactive strategy map.
+    - `LeakDetector`: Analyzes micro-spending.
+- **Professional Hub:** QA tools, Agile Board.
 
-## Development Conventions
+## Session Log (Dec 26, 2025)
 
-- **Component Structure:** Each component has its own folder containing `.jsx` and `.css` files.
-- **Service Layer:** API calls and data processing logic are encapsulated in `src/services/`.
-- **Theming:** Use CSS variables (e.g., `--primary-color`, `--bg-dark`) defined in `index.css` for consistent styling.
-- **Mocking:** For features without a live backend, use mock data services in `src/services/` to simulate API behavior.
+- **The "Vantage" Rebrand:**
+    - **Identity:** Renamed from "Life.io" to **Vantage OS**.
+    - **Personalization:** Implemented `User` model in Prisma with `installedTools` and `dashboardLayout`.
+    - **UI:** Added `ToolStorePage` for managing active modules.
+    - **UX:** Implemented `react-grid-layout` for a draggable, distinct "OS" feel.
+    - **Legal:** Added "Compliance Epic" to Professional Hub (Terms, GDPR, ADA).
 
-## Key Files
-
-- `src/App.jsx`: Main routing and layout.
-- `src/contexts/FinancialContext.jsx`: Central hub for financial data parsed from CSVs.
-- `src/services/tillerService.js`: Logic for processing Tiller CSV exports (includes robust header deduplication).
-- `src/pages/FinancialDashboard.jsx`: The main tabbed interface (Strategy, Analytics, Data).
-
-## Session Log (Dec 19, 2025)
+## Session Log (Dec 22, 2025)
 
 - **Financial Strategy Overhaul:**
     - Created **Payment Strategy Flowchart** (`@xyflow/react`) to visualize money movement.

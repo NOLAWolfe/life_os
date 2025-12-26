@@ -1,0 +1,13 @@
+.booking-agent-container {
+    transition: all 0.3s ease;
+}
+
+.booking-agent-container section {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.booking-agent-container section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}

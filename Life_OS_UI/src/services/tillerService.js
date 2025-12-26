@@ -44,6 +44,7 @@ export const fetchAccountsFromDb = async (userId) => {
     const res = await fetch(`/api/finance/accounts${query}`);
     if (!res.ok) throw new Error('Failed to fetch accounts from DB');
     const data = await res.json();
+    if (!data || !Array.isArray(data)) return [];
 
     return data.map((acc) =>
         validate(
@@ -72,6 +73,7 @@ export const fetchTransactionsFromDb = async (userId) => {
     const res = await fetch(`/api/finance/txns${query}`);
     if (!res.ok) throw new Error('Failed to fetch transactions from DB');
     const data = await res.json();
+    if (!data || !Array.isArray(data)) return [];
 
     return data.map((t) =>
         validate(
@@ -101,6 +103,7 @@ export const fetchDebtsFromDb = async (userId) => {
     const res = await fetch(`/api/finance/debts${query}`);
     if (!res.ok) throw new Error('Failed to fetch debts from DB');
     const data = await res.json();
+    if (!data || !Array.isArray(data)) return [];
 
     return data.map((d) =>
         validate(

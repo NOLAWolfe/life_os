@@ -9,11 +9,11 @@ const LandingPage = () => {
         <div className="landing-page">
             <header className="hero-section">
                 <div className="hero-content">
-                    <h1 className="hero-title">
-                        Life.io <span className="version-badge">v2.2</span>
+                    <h1 className="hero-title" style={{ fontFamily: 'monospace', letterSpacing: '-2px' }}>
+                        VANTAGE <span style={{ color: 'var(--primary-color)' }}>OS</span> <span className="version-badge">v3.0</span>
                     </h1>
                     <p className="hero-subtitle">
-                        The Operating System for High-Performance Living.
+                        The Enterprise Operating System for High-Performance Living.
                     </p>
                     <div className="cta-group">
                         <button className="btn-primary" onClick={() => navigate('/app')}>
@@ -22,7 +22,7 @@ const LandingPage = () => {
                         <button
                             className="btn-secondary"
                             onClick={() =>
-                                window.open('https://github.com/NOLAWolfe/life_os', '_blank')
+                                window.open('https://github.com/NOLAWolfe/vantage_os', '_blank')
                             }
                         >
                             View Source

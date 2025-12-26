@@ -13,7 +13,9 @@ const FeatureGate = ({ minTier = TIERS.FREE, children, fallback = null }) => {
 
     if (isGodMode) return children;
 
-    const userLevel = TIER_LEVELS[user.tier] || 0;
+    // Use user.role if available, fallback to tier for legacy compatibility
+    const userRole = user?.role || user?.tier || TIERS.GUEST;
+    const userLevel = TIER_LEVELS[userRole] || 0;
     const requiredLevel = TIER_LEVELS[minTier] || 1;
 
     if (userLevel >= requiredLevel) {

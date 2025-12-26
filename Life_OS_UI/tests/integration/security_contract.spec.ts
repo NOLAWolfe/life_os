@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('API Security Contract (Rate Limiting)', () => {
     test('should block requests after exceeding the limit (5 per min)', async ({ request }) => {
-        const url = 'http://localhost:4001/api/debug/rate-limit-test';
+        const url = '/api/debug/rate-limit-test';
 
         // 1. First 5 should pass
         for (let i = 0; i < 5; i++) {

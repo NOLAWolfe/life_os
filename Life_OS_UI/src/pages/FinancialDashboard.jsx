@@ -43,7 +43,7 @@ const FinancialDashboard = () => {
     return (
         <div className="financial-dashboard">
             <header className="page-header mb-6">
-                <h1>Financial Dashboard</h1>
+                <h1 style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>FINANCE WAR ROOM</h1>
                 <p>Track your balances, spending, and debt payoff progress.</p>
             </header>
 

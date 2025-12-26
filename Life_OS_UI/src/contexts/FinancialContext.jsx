@@ -12,20 +12,40 @@ export const FinancialProvider = ({ children }) => {
     const {
         data: accounts = [],
         isLoading: accountsLoading,
+        isError: accountsError,
+        error: accountsErrorDetails,
         refetch: refetchAccounts,
     } = useAccounts();
     const {
         data: transactions = [],
         isLoading: txnsLoading,
+        isError: txnsError,
+        error: txnsErrorDetails,
         refetch: refetchTxns,
     } = useTransactions();
-    const { data: debtAccounts = [], isLoading: debtsLoading, refetch: refetchDebts } = useDebts();
+    const { 
+        data: debtAccounts = [], 
+        isLoading: debtsLoading, 
+        isError: debtsError,
+        error: debtsErrorDetails,
+        refetch: refetchDebts 
+    } = useDebts();
 
     const [categories, setCategories] = useState([]);
     const [summaryBalances, setSummaryBalances] = useState(null);
     const [error, setError] = useState(null);
 
     const loading = accountsLoading || txnsLoading || debtsLoading;
+    
+    // Combine errors
+    const combinedError = error || 
+                         (accountsError ? `Accounts: ${accountsErrorDetails?.message}` : null) ||
+                         (txnsError ? `Transactions: ${txnsErrorDetails?.message}` : null) ||
+                         (debtsError ? `Debts: ${debtsErrorDetails?.message}` : null);
+
+    if (combinedError) {
+        console.error('FinancialContext Error:', combinedError);
+    }
 
     /**
      * Master Sync: Triggers React Query refetch for all financial data.
@@ -70,7 +90,7 @@ export const FinancialProvider = ({ children }) => {
             debtAccounts,
             summaryBalances,
             loading,
-            error,
+            error: combinedError,
             handleBalancesUpload,
             handleCategoriesUpload,
             refreshFromDb,
@@ -84,7 +104,7 @@ export const FinancialProvider = ({ children }) => {
             debtAccounts,
             summaryBalances,
             loading,
-            error,
+            combinedError,
         ]
     );
 

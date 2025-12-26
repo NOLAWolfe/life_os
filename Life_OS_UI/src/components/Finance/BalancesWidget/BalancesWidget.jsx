@@ -10,20 +10,13 @@ const BalancesWidget = () => {
         // Normalizing class name (Asset, Liability)
         let className = account.class
             ? account.class.charAt(0).toUpperCase() + account.class.slice(1).toLowerCase()
-            : 'Other';
+            : 'Asset'; // Default to Asset if undefined
 
-        // Fallback: Infer from type if class is missing
-        if (className === 'Other' && account.type) {
-            const t = account.type.toLowerCase();
-            if (
-                t.includes('check') ||
-                t.includes('save') ||
-                t.includes('invest') ||
-                t.includes('cash')
-            )
-                className = 'Asset';
-            else if (t.includes('card') || t.includes('loan') || t.includes('debt'))
-                className = 'Liability';
+        // Force Liability if type suggests it
+        const t = account.type?.toLowerCase() || '';
+        const currentBalance = account.balances?.current || 0;
+        if (t.includes('credit') || t.includes('loan') || t.includes('debt') || currentBalance < 0) {
+            className = 'Liability';
         }
 
         if (!acc[className]) {
@@ -51,21 +44,21 @@ const BalancesWidget = () => {
             {!loading &&
                 !error &&
                 (accounts.length > 0 ? (
-                    <div className="balances-container space-y-6">
+                    <div className="balances-container space-y-4">
                         {Object.entries(groupedByClass)
                             .sort(([a], [b]) => a.localeCompare(b))
                             .map(([className, group]) => (
                                 <div key={className} className="account-class-group">
                                     <h4
-                                        className={`text-sm font-semibold uppercase tracking-wider mb-2 pb-1 border-b ${className === 'Asset' ? 'text-green-600 border-green-200' : 'text-red-600 border-red-200'}`}
+                                        className={`group-header ${className === 'Asset' ? 'text-green-600' : 'text-red-600'}`}
                                     >
                                         {className}s
                                     </h4>
-                                    <ul className="balances-list divide-y divide-gray-100">
+                                    <ul className="balances-list">
                                         {group.map((account, idx) => (
                                             <li
                                                 key={account.account_id || idx}
-                                                className="flex justify-between items-center py-3"
+                                                className="flex justify-between items-center py-2 border-b border-gray-800/20 last:border-0"
                                             >
                                                 <div className="account-info flex flex-col">
                                                     <div className="flex items-center gap-2">
@@ -98,7 +91,7 @@ const BalancesWidget = () => {
                     </div>
                 ) : (
                     <p className="no-data-message text-center text-gray-500 py-4">
-                        Upload a CSV on the Finance page to see balances.
+                        No financial data found.
                     </p>
                 ))}
         </div>

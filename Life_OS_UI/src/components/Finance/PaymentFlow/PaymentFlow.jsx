@@ -12,6 +12,7 @@ import '@xyflow/react/dist/style.css';
 import { useFinancials } from '../../../contexts/FinancialContext';
 import { getAllBillNodes } from '../../../services/mappingService';
 import strategyService, { STRATEGY_TIERS } from '../../../services/strategyService';
+import { initialNodes, initialEdges } from '../../../services/defaults';
 import BillNode from './BillNode'; // Import Custom Node
 import BillGroupNode from './BillGroupNode';
 import './PaymentFlow.css';
@@ -20,73 +21,6 @@ const nodeTypes = {
     bill: BillNode,
     billGroup: BillGroupNode,
 };
-
-const initialNodes = [
-    // Tier 0: Income (Placeholder if dynamic fails)
-    {
-        id: 'income',
-        data: { label: '💰 Income (Paycheck)' },
-        position: { x: 250, y: 0 },
-        className: 'node-hub',
-    },
-
-    // Tier 1: Hubs
-    {
-        id: 'navy-fed',
-        data: { label: '🏦 Navy Fed (Primary)' },
-        position: { x: 250, y: 150 },
-        className: 'node-hub',
-    },
-
-    // Tier 3: Strategy / MMI
-    {
-        id: 'mmi-group',
-        type: 'bill',
-        data: { label: '🛡️ MMI / Debt Mgmt' },
-        position: { x: 600, y: 450 },
-    },
-
-    // Tier 2: Secondary Accounts / Liabilities
-    {
-        id: 'chase-8211',
-        data: { label: '🏠 Chase 8211 (Joint/House)' },
-        position: { x: 50, y: 300 },
-        className: 'node-account',
-    },
-
-    // Tier 3: Target Bills
-    {
-        id: 'mortgage',
-        type: 'bill',
-        data: { label: 'Mortgage/Housing' },
-        position: { x: -50, y: 450 },
-    },
-    { id: 'auto-loan', type: 'bill', data: { label: 'Auto Loan' }, position: { x: 150, y: 450 } },
-    { id: 'savings', type: 'bill', data: { label: 'Savings' }, position: { x: 250, y: 450 } },
-    {
-        id: 'phone-wifi',
-        type: 'bill',
-        data: { label: 'Utility Bills' },
-        position: { x: 350, y: 450 },
-    },
-    { id: 'subs', type: 'bill', data: { label: 'Subscriptions' }, position: { x: 450, y: 450 } },
-];
-
-const initialEdges = [
-    { id: 'e-inc-navy', source: 'income', target: 'navy-fed', animated: true },
-    { id: 'e-navy-chase', source: 'navy-fed', target: 'chase-8211', label: 'Bulk Transfer' },
-    {
-        id: 'e-navy-mmi',
-        source: 'navy-fed',
-        target: 'mmi-group',
-        label: 'Consolidated Pmt',
-        animated: true,
-        style: { stroke: '#f59e0b', strokeWidth: 2 },
-    },
-    { id: 'e-chase-mortgage', source: 'chase-8211', target: 'mortgage' },
-    { id: 'e-navy-auto', source: 'navy-fed', target: 'auto-loan' },
-    { id: 'e-navy-savings', source: 'navy-fed', target: 'savings' },
-];
 
 const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     const { transactions, accounts, incomeStreams, debtAccounts } = useFinancials();
@@ -113,30 +47,19 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
     const [newRule, setNewRule] = React.useState('');
     const [expandedRows, setExpandedRows] = React.useState({});
 
-    // -- Auto-Populate Accounts (Assets & Liabilities) --
+    // -- THE TRUTH SYNC: Strictly enforce 1-to-1 mapping with DB --
     useEffect(() => {
-        if (!accounts || accounts.length === 0) return;
+        if (!accounts && !debtAccounts) return;
 
-        const { hasChanges, newNodes } = strategyService.generateAccountNodes(accounts, nodes);
-        if (hasChanges) {
-            setNodes((currentNodes) => [...currentNodes, ...newNodes]);
-        }
-    }, [accounts]);
-
-    // -- Auto-Populate Debt Liabilities (Tier 3) --
-    useEffect(() => {
-        if (!debtAccounts || debtAccounts.length === 0) return;
-
-        const { hasChanges, newNodes, updatedNodes } = strategyService.generateDebtNodes(
-            debtAccounts,
-            nodes
-        );
-        if (hasChanges) {
-            // Replace current nodes with the enriched ones, then add any new standalone debt nodes
-            // Note: updatedNodes contains the full list of current nodes with modifications
-            setNodes([...updatedNodes, ...newNodes]);
-        }
-    }, [debtAccounts]);
+        setNodes((currentNodes) => {
+            const { nodes: syncedNodes, hasChanges } = strategyService.syncNodesWithRealData(
+                currentNodes, 
+                accounts || [], 
+                debtAccounts || []
+            );
+            return hasChanges ? syncedNodes : currentNodes;
+        });
+    }, [accounts, debtAccounts]);
 
     // -- Defensive Adapter: Dynamic Income Streams (Tier 0) --
     // Sync Income Streams into State (preserving position)

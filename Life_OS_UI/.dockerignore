@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.github
+*.log
+.env
+*.env
+tests/
+playwright-report/
+test-results/
+appmap.yml
+tmp/
