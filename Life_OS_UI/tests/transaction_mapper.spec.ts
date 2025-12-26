@@ -22,7 +22,7 @@ test.describe('The Sorting Hat - Transaction Mapping', () => {
             route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify({ transactions: MOCK_ORPHAN_TRANSACTIONS }),
+                body: JSON.stringify(MOCK_ORPHAN_TRANSACTIONS),
             });
         });
 
