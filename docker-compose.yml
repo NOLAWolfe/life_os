@@ -7,13 +7,13 @@ services:
       dockerfile: Dockerfile
     container_name: life-os-qa
     ports:
-      - "4001:4001"
+      - "4005:4005"
     volumes:
       - qa-db-data:/app/prisma
     environment:
       - NODE_ENV=production
       - APP_ENV=qa
-      - PORT=4001
+      - PORT=4005
       - DATABASE_URL=file:./dev.db
       - SEED_DATA=true
       - OBSIDIAN_API_KEY=${OBSIDIAN_API_KEY}

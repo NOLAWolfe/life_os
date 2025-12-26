@@ -41,8 +41,8 @@ const strategyService = {
 
         // 1. Filter out Stale/Fake Accounts
         const cleanedNodes = currentNodes.filter(node => {
-            // Always keep Income, Bills, Groups, and Remaining Funds
-            if (node.id === 'income' || node.id.startsWith('dynamic-income')) return true;
+            // Always keep dynamic Income, Bills, Groups, and Remaining Funds
+            if (node.id.startsWith('dynamic-income')) return true;
             if (node.type === 'bill' || node.type === 'billGroup' || node.className?.includes('node-bill')) return true;
             if (node.id === 'node-remaining-funds') return true;
 

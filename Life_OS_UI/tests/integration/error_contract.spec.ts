@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 test.describe('API Error Handling Contract', () => {
     // 1. Verify 404 Catch-All
     test('should return formatted 404 for unknown routes', async ({ request }) => {
-        const response = await request.get('http://localhost:4001/api/ghost-route-xyz');
+        const response = await request.get('/api/ghost-route-xyz');
 
         // Assert Status
         expect(response.status()).toBe(404);
@@ -27,7 +27,7 @@ test.describe('API Error Handling Contract', () => {
     // 2. Verify Operational Error (Trusted Logic)
     test('should return formatted 400 for invalid input', async ({ request }) => {
         // Send object instead of expected array
-        const response = await request.post('http://localhost:4001/api/finance/accounts/upload', {
+        const response = await request.post('/api/finance/accounts/upload', {
             data: { invalid: 'object' },
         });
 

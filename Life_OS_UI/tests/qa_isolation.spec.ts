@@ -9,16 +9,12 @@ test.describe('QA: Data Isolation Contract', () => {
     // 1. Create Context for User A
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
-    await pageA.goto('http://localhost:4001/app/finance');
+    await pageA.goto('/app/finance');
     
-    // Simulate User A adding a unique mapping rule
-    // (Note: This assumes the UI is functional for this action)
-    // await pageA.fill('.rule-input', 'USER_A_PRIVATE_RULE');
-    
-    // 2. Create Context for User B (Isolated)
+    // 2. Create Context for User B & Login
     const contextB = await browser.newContext();
     const pageB = await contextB.newPage();
-    await pageB.goto('http://localhost:4001/app/finance');
+    await pageB.goto('/app/finance');
     
     // 3. Verify User B does not see User A's unique state
     // This is a placeholder for actual isolation verification logic

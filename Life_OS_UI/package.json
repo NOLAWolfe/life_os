@@ -11,11 +11,12 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test": "npx playwright test",
+    "test": "cross-env NODE_ENV=test npx playwright test",
     "test:unit": "vitest",
     "test:ui": "vitest --ui",
-            "prepare": "husky",
-            "start:server": "node server.js",    "record:server": "npx appmap-node node server.js",
+    "prepare": "husky",
+    "start:server": "node server.js",
+    "record:server": "npx appmap-node node server.js",
     "record:suite": "node scripts/record_suite.js"
   },
   "dependencies": {
@@ -50,6 +51,7 @@
     "@vitest/ui": "^4.0.16",
     "appmap-node": "^2.24.3",
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",

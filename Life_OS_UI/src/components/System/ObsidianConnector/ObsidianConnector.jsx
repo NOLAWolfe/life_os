@@ -7,6 +7,10 @@ const ObsidianConnector = () => {
     const [error, setError] = useState('');
 
     const connectVault = async () => {
+        if (!window.showDirectoryPicker) {
+            setError('Your browser does not support the File System Access API. Please use a modern browser like Chrome or Edge.');
+            return;
+        }
         try {
             const handle = await window.showDirectoryPicker();
             setVaultHandle(handle);

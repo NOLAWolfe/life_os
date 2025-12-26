@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { SUPER_ADMIN_USER } from './mocks/user.mock';
 
 /**
  * Professional Hub Domain Test
@@ -6,12 +7,21 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('Professional Hub - Agile Workflow', () => {
     test.beforeEach(async ({ page }) => {
+        // Mock the user API call before navigating
+        await page.route('/api/system/user/admin-user-123', route => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ status: 'success', data: SUPER_ADMIN_USER }),
+            });
+        });
+        
         // 1. Visit the Professional Hub
-        await page.goto('http://localhost:5173/professional-hub');
+        await page.goto('/app/professional-hub');
+        await expect(page.locator('h1:has-text("Professional Hub")')).toBeVisible();
     });
 
     test('should display the Agile Board by default', async ({ page }) => {
-        await expect(page.locator('h1:has-text("Professional Hub")')).toBeVisible();
         await expect(page.locator('.board-view')).toBeVisible();
 
         // Check for Kanban columns
@@ -25,12 +35,12 @@ test.describe('Professional Hub - Agile Workflow', () => {
         const stories = activeColumn.locator('.work-item-card');
 
         // We seeded "Implement PII Obfuscation" as Active
-        await expect(stories.first()).toBeVisible();
+        await expect(stories.first()).toBeVisible({ timeout: 10000 });
         await expect(activeColumn).toContainText('PII Obfuscation');
     });
 
     test('should open the "New Item" form', async ({ page }) => {
-        await page.click('button:has-text("+ New Item")');
+        await page.getByRole('button', { name: '+ New Item' }).click();
 
         await expect(page.locator('form input[placeholder="Title"]')).toBeVisible();
         await expect(page.locator('button:has-text("User Story")')).toHaveClass(/bg-blue-600/);
@@ -38,13 +48,15 @@ test.describe('Professional Hub - Agile Workflow', () => {
 
     test('should toggle between List and Board views', async ({ page }) => {
         // Switch to List
-        await page.click('button:has-text("List")');
+        await page.getByRole('button', { name: 'List' }).click();
+        
         // Expect at least one section to be visible (User Stories)
         await expect(page.locator('.work-item-section').first()).toBeVisible();
         await expect(page.locator('.board-view')).not.toBeVisible();
 
         // Switch back to Board
-        await page.click('button:has-text("Board")');
+        await page.getByRole('button', { name: 'Board' }).click();
         await expect(page.locator('.board-view')).toBeVisible();
     });
 });
+

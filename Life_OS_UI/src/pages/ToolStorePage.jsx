@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import './Page.css';
 
@@ -71,13 +71,17 @@ const TOOLS = [
 
 const ToolStorePage = () => {
     const { user, saveTools, loading: isSaving } = useUser();
-    const [stagedTools, setStagedTools] = useState(user?.installedTools || []);
+    const [stagedTools, setStagedTools] = useState([]);
 
     useEffect(() => {
-        setStagedTools(user?.installedTools || []);
-    }, [user]);
+        if (user?.installedTools) {
+            setStagedTools(user.installedTools);
+        }
+    }, [user?.installedTools]);
 
-    const hasChanges = JSON.stringify(stagedTools.sort()) !== JSON.stringify((user?.installedTools || []).sort());
+    const currentTools = user?.installedTools || [];
+    // Only show changes if we actually have user data to compare against
+    const hasChanges = user && JSON.stringify([...stagedTools].sort()) !== JSON.stringify([...currentTools].sort());
 
     const handleToggleTool = (toolId) => {
         const isInstalled = stagedTools.includes(toolId);
@@ -93,7 +97,9 @@ const ToolStorePage = () => {
     };
 
     const handleCancel = () => {
-        setStagedTools(user.installedTools);
+        if (user?.installedTools) {
+            setStagedTools(user.installedTools);
+        }
     };
 
     return (
@@ -119,7 +125,7 @@ const ToolStorePage = () => {
                     return (
                         <div key={tool.id} style={{
                             background: 'var(--bg-card)',
-                            border: '1px solid var(--border-border)',
+                            border: '1px solid var(--border-color)',
                             borderRadius: '16px',
                             padding: '24px',
                             display: 'flex',
@@ -134,7 +140,7 @@ const ToolStorePage = () => {
                                     fontSize: '10px', 
                                     textTransform: 'uppercase', 
                                     letterSpacing: '1px',
-                                    background: tool.isComingSoon ? 'rgba(255, 165, 0, 0.1)' : 'rgba(255,255,255,0.05)',
+                                    background: tool.isComingSoon ? 'rgba(255, 165, 0, 0.1)' : 'var(--hover-overlay)',
                                     padding: '4px 8px',
                                     borderRadius: '4px',
                                     color: tool.isComingSoon ? 'orange' : 'var(--text-secondary)',
@@ -163,16 +169,15 @@ const ToolStorePage = () => {
                                     marginTop: 'auto',
                                     padding: '12px',
                                     borderRadius: '8px',
-                                    border: 'none',
                                     background: tool.isComingSoon 
                                         ? 'transparent' 
-                                        : (isInstalled ? 'rgba(255, 255, 255, 0.1)' : 'var(--primary-color)'),
+                                        : (isInstalled ? 'var(--hover-overlay)' : 'var(--primary-color)'),
                                     color: tool.isComingSoon 
                                         ? 'var(--text-secondary)' 
-                                        : 'white',
+                                        : (isInstalled ? 'var(--text-primary)' : 'white'),
                                     fontWeight: '600',
                                     cursor: tool.isComingSoon ? 'not-allowed' : 'pointer',
-                                    border: tool.isComingSoon ? '1px dashed var(--border-border)' : 'none',
+                                    border: tool.isComingSoon ? '1px dashed var(--border-color)' : 'none',
                                     transition: 'all 0.2s ease'
                                 }}
                             >
@@ -192,7 +197,7 @@ const ToolStorePage = () => {
                     background: 'var(--bg-card)',
                     padding: '12px 24px',
                     borderRadius: '12px',
-                    border: '1px solid var(--border-border)',
+                    border: '1px solid var(--border-color)',
                     boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
                     display: 'flex',
                     alignItems: 'center',

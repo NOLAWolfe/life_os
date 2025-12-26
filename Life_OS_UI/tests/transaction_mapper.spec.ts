@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { SUPER_ADMIN_USER } from './mocks/user.mock';
+import { MOCK_ORPHAN_TRANSACTIONS } from './mocks/transactions.mock';
 
 /**
  * The Sorting Hat Domain Test
@@ -6,15 +8,34 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('The Sorting Hat - Transaction Mapping', () => {
     test.beforeEach(async ({ page }) => {
+        // Mock the user API call
+        await page.route('/api/system/user/admin-user-123', route => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ status: 'success', data: SUPER_ADMIN_USER }),
+            });
+        });
+
+        // Mock the transactions API call
+        await page.route('/api/finance/txns', route => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ transactions: MOCK_ORPHAN_TRANSACTIONS }),
+            });
+        });
+
         // 1. Navigate to the Financial Dashboard
-        await page.goto('http://localhost:5173/app/finance');
+        await page.goto('/app/finance');
+        await expect(page.locator('h1')).toContainText(/FINANCE WAR ROOM/i, { timeout: 10000 });
 
         // 2. Switch to the Data tab
-        await page.click('button:has-text("Data Management")');
+        await page.getByRole('button', { name: /Data Management/i }).click();
 
         // 3. Select the Sorting Hat sub-tab
-        await page.click('button:has-text("Sorting Hat")');
-        await page.waitForLoadState('networkidle');
+        await page.getByRole('button', { name: /Sorting Hat/i }).click();
+        await expect(page.locator('h2', { hasText: 'Sorting Hat' })).toBeVisible();
     });
 
     test('should display the Sorting Hat interface', async ({ page }) => {

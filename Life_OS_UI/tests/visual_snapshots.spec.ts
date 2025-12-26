@@ -1,16 +1,24 @@
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { SUPER_ADMIN_USER } from './mocks/user.mock';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test('Capture Financial Widget Snapshots', async ({ page }) => {
-    // 1. Navigate to the App Dashboard
-    await page.goto('http://localhost:5173/app/finance');
+    // Mock the user API call before navigating
+    await page.route('/api/system/user/admin-user-123', route => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ status: 'success', data: SUPER_ADMIN_USER }),
+        });
+    });
 
-    // 2. Wait for the Dashboard to load
-    await page.waitForSelector('.financial-dashboard');
+    // 1. Navigate to the App Dashboard
+    await page.goto('/app/finance');
+    await expect(page.locator('h1')).toContainText(/FINANCE WAR ROOM/i, { timeout: 10000 });
 
     const snapshotDir = path.resolve(__dirname, '../../LifeVault/Snapshots');
     const dateStr = new Date().toISOString().split('T')[0];

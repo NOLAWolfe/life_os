@@ -43,7 +43,7 @@ const ProfilePage = () => {
                 {/* Account Info */}
                 <section style={{ 
                     background: 'var(--bg-card)', 
-                    border: '1px solid var(--border-border)', 
+                    border: '1px solid var(--border-color)', 
                     borderRadius: '16px', 
                     padding: '24px' 
                 }}>
@@ -51,11 +51,11 @@ const ProfilePage = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         <div>
                             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '5px' }}>NAME</label>
-                            <input type="text" defaultValue={user?.name} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-border)', padding: '10px', borderRadius: '4px', color: 'white' }} />
+                            <input type="text" defaultValue={user?.name} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', padding: '10px', borderRadius: '4px', color: 'white' }} />
                         </div>
                         <div>
                             <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '5px' }}>EMAIL</label>
-                            <input type="email" defaultValue={user?.email} disabled style={{ width: '100%', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-border)', padding: '10px', borderRadius: '4px', color: 'var(--text-secondary)' }} />
+                            <input type="email" defaultValue={user?.email} disabled style={{ width: '100%', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', padding: '10px', borderRadius: '4px', color: 'var(--text-secondary)' }} />
                         </div>
                     </div>
                 </section>
@@ -63,7 +63,7 @@ const ProfilePage = () => {
                 {/* Subscription / Role */}
                 <section style={{ 
                     background: 'var(--bg-card)', 
-                    border: '1px solid var(--border-border)', 
+                    border: '1px solid var(--border-color)', 
                     borderRadius: '16px', 
                     padding: '24px' 
                 }}>

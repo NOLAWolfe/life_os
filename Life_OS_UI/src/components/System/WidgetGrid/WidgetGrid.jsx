@@ -31,7 +31,8 @@ const WidgetGrid = () => {
     // Use user's layout, or default to all widgets in order
     const layout = user?.dashboardLayout?.widgets || DEFAULT_WIDGETS;
 
-    const visibleWidgets = layout.filter(widgetId => {
+    const visibleWidgets = layout.filter(item => {
+        const widgetId = typeof item === 'string' ? item : item.id;
         const widgetToToolMap = {
             wealth_targets: 'finance',
             wealth_mentor: 'finance',
@@ -50,7 +51,7 @@ const WidgetGrid = () => {
         // If they have no tools installed at all
         if (user?.installedTools?.length === 0) {
             return (
-                <div style={{ padding: '60px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border-border)' }}>
+                <div style={{ padding: '60px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border-color)' }}>
                     <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🛰️</div>
                     <h2 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Command Center Offline</h2>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>
@@ -64,7 +65,7 @@ const WidgetGrid = () => {
         }
         // If they have tools, but no widgets are visible for them
         return (
-             <div style={{ padding: '60px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border-border)' }}>
+             <div style={{ padding: '60px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border-color)' }}>
                 <div style={{ fontSize: '4rem', marginBottom: '20px' }}>✨</div>
                 <h2 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>A Blank Canvas</h2>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>
@@ -79,7 +80,8 @@ const WidgetGrid = () => {
 
     return (
         <div className="widget-grid-container">
-            {visibleWidgets.map((widgetId, index) => {
+            {visibleWidgets.map((item, index) => {
+                const widgetId = typeof item === 'string' ? item : item.id;
                 const Component = WIDGET_COMPONENTS[widgetId];
                 if (!Component) return null;
                 return (

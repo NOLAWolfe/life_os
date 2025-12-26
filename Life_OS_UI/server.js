@@ -20,7 +20,7 @@ import dailyReadsRouter from './server/modules/life_admin/api/dailyReadsControll
 import userRouter from './server/modules/system_engine/api/userController.js';
 
 const app = express();
-const PORT = 4001;
+const PORT = process.env.PORT || 4001;
 
 // --- 1. SECURITY MIDDLEWARE ---
 app.use(helmet()); // Sets various security headers
@@ -30,7 +30,7 @@ app.use(helmet()); // Sets various security headers
 const isTest = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development';
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: isTest ? 10000 : 100,
+    max: isTest ? 10000 : 1000,
     message: {
         status: 'fail',
         message: 'Too many requests from this IP, please try again in 15 minutes.',
@@ -43,7 +43,7 @@ app.use('/api', globalLimiter);
 // Stricter Limiter for Data Mutation (POST, PUT, DELETE)
 const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 10,
+    max: 100,
     message: { status: 'fail', message: 'Too many write operations. Please wait a minute.' },
 });
 

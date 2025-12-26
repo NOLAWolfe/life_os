@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { SUPER_ADMIN_USER } from './mocks/user.mock';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,15 +12,21 @@ const __dirname = path.dirname(__filename);
  */
 test.describe('Financial Dashboard - Domain Audit', () => {
     test.beforeEach(async ({ page }) => {
+        // Mock the user API call before navigating
+        await page.route('/api/system/user/admin-user-123', route => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ status: 'success', data: SUPER_ADMIN_USER }),
+            });
+        });
+
         // Navigate to the Financial Dashboard
-        await page.goto('http://localhost:5173/app/finance');
-        await page.waitForSelector('.financial-dashboard');
-        await page.waitForLoadState('networkidle'); // Wait for lazy loads
+        await page.goto('/app/finance');
+        await expect(page.locator('h1')).toContainText(/FINANCE WAR ROOM/i, { timeout: 10000 });
     });
 
     test('Page Structure & Title Verification', async ({ page }) => {
-        // Updated for Vantage OS Rebrand
-        await expect(page.locator('h1')).toContainText(/FINANCE WAR ROOM/i);
         await expect(page.locator('.dashboard-tabs')).toBeVisible();
     });
 
