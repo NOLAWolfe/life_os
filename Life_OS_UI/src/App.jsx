@@ -5,6 +5,7 @@ import { FinancialProvider } from './contexts/FinancialContext';
 import { UserProvider } from './contexts/UserContext';
 import './App.css';
 import './pages/Page.css'; // Import shared page styles
+import HottestDollarBar from './components/Finance/HottestDollarBar/HottestDollarBar';
 
 // Lazy load pages
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -46,6 +47,7 @@ const AppLayout = ({ children }) => (
         <main className="main-content pt-20 pb-8 px-4 md:px-8 max-w-360 mx-auto w-full box-border">
             {children}
         </main>
+        <HottestDollarBar />
     </>
 );
 

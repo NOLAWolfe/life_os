@@ -466,6 +466,24 @@ const strategyService = {
             return { hub, incomingIncomes, children };
         });
     },
+
+    /**
+     * THE HOTTEST DOLLAR ENGINE
+     * Calculates the "Attack Capital" available after all minimum obligations are met.
+     */
+    calculateHottestDollar: (incomeStreams, totalMonthlyCommitments) => {
+        const totalIncome = (incomeStreams || []).reduce((sum, s) => sum + (s.monthlyAvg || 0), 0);
+        const surplus = totalIncome - totalMonthlyCommitments;
+
+        return {
+            totalIncome,
+            totalCommitments: totalMonthlyCommitments,
+            surplus: surplus, // Can be negative
+            amount: Math.max(0, surplus),
+            isDeficit: surplus < 0,
+            status: surplus > 1000 ? 'GROWTH' : surplus > 0 ? 'STABLE' : 'CRITICAL',
+        };
+    },
 };
 
 export default strategyService;

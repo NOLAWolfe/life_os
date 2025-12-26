@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useMemo } from 'react';
 import tillerService from '../services/tillerService';
+import strategyService from '../services/strategyService';
 import { useAccounts, useTransactions, useDebts } from '../hooks/useFinancialData';
 
 const FinancialContext = createContext();
@@ -65,6 +66,11 @@ export const FinancialProvider = ({ children }) => {
         return tillerService.calculateCashFlow(transactions);
     }, [transactions]);
 
+    const hottestDollar = useMemo(() => {
+        const totalMinPayments = debtAccounts.reduce((sum, d) => sum + (d.minPayment || 0), 0);
+        return strategyService.calculateHottestDollar(incomeStreams, totalMinPayments);
+    }, [incomeStreams, debtAccounts]);
+
     const handleBalancesUpload = (data) => {
         setSummaryBalances(data);
     };
@@ -86,6 +92,7 @@ export const FinancialProvider = ({ children }) => {
             transactions,
             incomeStreams,
             cashFlow,
+            hottestDollar,
             categories,
             debtAccounts,
             summaryBalances,
@@ -100,6 +107,7 @@ export const FinancialProvider = ({ children }) => {
             transactions,
             incomeStreams,
             cashFlow,
+            hottestDollar,
             categories,
             debtAccounts,
             summaryBalances,
