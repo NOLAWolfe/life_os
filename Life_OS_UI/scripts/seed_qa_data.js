@@ -2,13 +2,32 @@ import prisma from '../server/shared/db.js';
 
 async function seedQA() {
     try {
-        console.log('🌱 Seeding Synthetic Professional Data...');
+        console.log('🌱 Seeding Synthetic System Data...');
 
         // 1. Clear existing
+        await prisma.user.deleteMany();
         await prisma.userStory.deleteMany();
         await prisma.bug.deleteMany();
 
-        // 2. Create User Stories
+        // 2. Create Primary User
+        await prisma.user.create({
+            data: {
+                id: 'admin-user-123',
+                email: 'admin@life.io',
+                name: 'Neauxla',
+                role: 'admin',
+                installedTools: JSON.stringify(['finance', 'life_admin', 'professional', 'social', 'health']),
+                dashboardLayout: JSON.stringify({
+                    widgets: [
+                        { id: 'balances', position: { x: 0, y: 0 } },
+                        { id: 'daily_reads', position: { x: 1, y: 0 } },
+                        { id: 'content_factory', position: { x: 0, y: 1 } },
+                    ]
+                })
+            }
+        });
+
+        // 3. Create User Stories
         const stories = [
             {
                 title: 'Implement PII Obfuscation Layer for Tiller Sync',
@@ -46,6 +65,28 @@ async function seedQA() {
                 acceptanceCriteria:
                     '1. Render unassigned transactions.\n2. Allow manual mapping to Bill nodes.\n3. Persist rules to SQLite.',
             },
+            // --- COMPLIANCE EPIC ---
+            {
+                title: 'Legal: Draft Terms of Service & Privacy Policy',
+                description: 'Essential legal shield for the business. Must cover Data Liability (Finance), Assumption of Risk (Health), and UGC (Social).',
+                state: 'New',
+                assignedTo: 'Legal Dept',
+                acceptanceCriteria: '1. Limitation of Liability Clause\n2. Health/Medical Disclaimer\n3. DMCA Safe Harbor registration plan',
+            },
+            {
+                title: 'Compliance: Implement GDPR/CCPA Account Deletion',
+                description: 'Mandatory "Right to be Forgotten". Users must be able to nuke their data from the app settings.',
+                state: 'New',
+                assignedTo: 'Neauxla',
+                acceptanceCriteria: '1. API endpoint to cascade delete User + all relations.\n2. UI Button in Settings (Red Zone).',
+            },
+            {
+                title: 'Accessibility: ADA Compliance Audit',
+                description: 'Ensure the app is usable by screen readers. Critical for "Public Accommodation" laws.',
+                state: 'New',
+                assignedTo: 'QA',
+                acceptanceCriteria: '1. All images/icons have alt text.\n2. Charts have data-table fallbacks.\n3. Keyboard navigation works 100%.',
+            }
         ];
 
         for (const s of stories) {
@@ -110,7 +151,21 @@ async function seedQA() {
             await prisma.dailyRead.create({ data: r });
         }
 
-        console.log(`✅ Seeded ${stories.length} Stories, ${bugs.length} Bugs, and ${reads.length} Reads.`);
+        // 5. Create Transactions for Mapper
+        console.log('💸 Seeding Transactions...');
+        await prisma.transaction.deleteMany(); // Clear old ones
+        await prisma.transaction.create({
+            data: {
+                date: new Date(),
+                description: 'Unknown Vendor 123',
+                amount: -50.00,
+                type: 'debit',
+                category: 'Uncategorized',
+                accountId: null // Orphaned
+            }
+        });
+
+        console.log(`✅ Seeded ${stories.length} Stories, ${bugs.length} Bugs, ${reads.length} Reads, and 1 Transaction.`);
     } catch (error) {
         console.error('❌ Seeding Failed:', error);
     } finally {

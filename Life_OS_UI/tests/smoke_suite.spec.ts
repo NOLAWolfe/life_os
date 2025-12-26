@@ -11,22 +11,36 @@ test.describe('System Smoke Test (Critical Path)', () => {
     // 1. Marketing Page (Public)
     test('Marketing Page should render correctly', async ({ page }) => {
         await page.goto('http://localhost:5173/');
-        await expect(page).toHaveTitle(/Life.io/);
-        await expect(page.locator('h1:has-text("Life.io")')).toBeVisible();
+        await expect(page).toHaveTitle(/Vantage OS/i); 
+        await expect(page.locator('h1')).toContainText(/Life.io|Vantage/i); // Case insensitive
         await expect(page.locator('button:has-text("Launch Dashboard")')).toBeVisible();
     });
 
     // 2. Dashboard (Private)
     test('Dashboard should render core widgets', async ({ page }) => {
+        // Listen for console logs
+        page.on('console', msg => {
+            if (msg.type() === 'error')
+                console.log(`❌ Browser Error: ${msg.text()}`);
+            else
+                console.log(`ℹ️ Browser Log: ${msg.text()}`);
+        });
+
+        // Capture uncaught exceptions
+        page.on('pageerror', exception => {
+            console.log(`💀 Uncaught Exception: "${exception}"`);
+        });
+
         await page.goto('http://localhost:5173/app');
-        await expect(page.locator('h1:has-text("Your Daily Dashboard")')).toBeVisible();
+        // Wait for the grid to initialize, which might take a moment
         await expect(page.locator('.navbar')).toBeVisible();
+        await expect(page.locator('h1')).toContainText(/VANTAGE OS/i);
     });
 
     // 3. Financial Dashboard (The War Room)
     test('Finance Dashboard should load Strategy Map', async ({ page }) => {
         await page.goto('http://localhost:5173/app/finance');
-        await expect(page.locator('h1:has-text("Financial Dashboard")')).toBeVisible();
+        await expect(page.locator('h1')).toContainText(/FINANCE WAR ROOM/i);
         // Verify the visualizer canvas exists
         await expect(page.locator('.react-flow')).toBeVisible({ timeout: 10000 });
     });

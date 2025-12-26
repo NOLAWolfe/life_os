@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const UserContext = createContext();
 
@@ -11,48 +12,76 @@ export const TIERS = {
     ADMIN: 'admin',
 };
 
-const DEFAULT_USER = {
-    id: 'user-123',
-    name: 'Test User',
-    tier: TIERS.PRO, // Default to Pro for dev comfort
-    preferences: {
-        theme: 'dark',
-    },
+const fetchUser = async () => {
+    const response = await fetch('/api/system/user/admin-user-123');
+    const result = await response.json();
+    if (result.status !== 'success') throw new Error(result.message);
+    return result.data;
 };
 
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('life_os_user');
-        return saved ? JSON.parse(saved) : DEFAULT_USER;
-    });
-
+    const queryClient = useQueryClient();
     const [isGodMode, setIsGodMode] = useState(false);
 
-    useEffect(() => {
-        localStorage.setItem('life_os_user', JSON.stringify(user));
-    }, [user]);
+    // Fetch User with React Query (Deduplicates requests, Caches result)
+    const { data: user, isLoading, error } = useQuery({
+        queryKey: ['user', 'admin-user-123'],
+        queryFn: fetchUser,
+        staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+        retry: 1
+    });
 
-    const updateTier = (tier) => {
-        setUser((prev) => ({ ...prev, tier }));
+    // Mutation to update tools
+    const toolMutation = useMutation({
+        mutationFn: async (newTools) => {
+            const response = await fetch(`/api/system/user/${user.id}/preferences`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ installedTools: newTools }),
+            });
+            if (!response.ok) throw new Error('Failed to update tools');
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['user']);
+        },
+    });
+
+    const updateTier = (role) => {
+        // Optimistic update logic could go here, for now just a console log as we don't persist tier changes in this demo context
+        console.log('Role update requested:', role);
+    };
+
+    const toggleTool = (toolId) => {
+        if (!user) return;
+        const isInstalled = user.installedTools.includes(toolId);
+        const newTools = isInstalled
+            ? user.installedTools.filter(t => t !== toolId)
+            : [...user.installedTools, toolId];
+        
+        toolMutation.mutate(newTools);
     };
 
     const toggleGodMode = () => setIsGodMode((prev) => !prev);
 
-    // Simulation: Switch "Active User" to verify data isolation
     const switchIdentity = (identityId) => {
-        setUser((prev) => ({ ...prev, id: identityId, name: `User ${identityId}` }));
-        // In a real app, this would trigger a data refetch/logout
-        window.location.reload(); // Hard reload to force clear query cache
+        window.location.reload();
     };
 
     const value = {
         user,
+        loading: isLoading,
+        error,
         updateTier,
         isGodMode,
         toggleGodMode,
         switchIdentity,
+        toggleTool,
         TIERS,
     };
+
+    if (isLoading) return <div className="p-4 text-center">Loading Vantage Identity...</div>;
+    if (error) return <div className="p-4 text-center text-red-500">System Identity Failed</div>;
 
     return (
         <UserContext.Provider value={value}>
@@ -83,9 +112,9 @@ const GodModePanel = ({ user, updateTier, switchIdentity }) => (
         <h4 style={{ margin: '0 0 8px 0', color: '#888' }}>⚡ God Mode</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label>
-                Tier:
+                Role:
                 <select
-                    value={user.tier}
+                    value={user.role}
                     onChange={(e) => updateTier(e.target.value)}
                     style={{ marginLeft: '5px' }}
                 >
