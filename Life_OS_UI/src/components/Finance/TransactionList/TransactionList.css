@@ -1,0 +1,23 @@
+.transaction-list-container {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.ledger-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+
+.ledger-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.transaction-list-container tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.transaction-list-container tr:last-child {
+    border-bottom: none;
+}

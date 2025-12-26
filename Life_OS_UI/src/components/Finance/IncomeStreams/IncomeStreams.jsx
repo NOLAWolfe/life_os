@@ -201,9 +201,12 @@ const IncomeStreams = () => {
                                                 </span>
                                                 <span
                                                     className="truncate text-gray-300"
-                                                    title={t.name}
+                                                    title={`${t.name} (from ${t.accountName})`}
                                                 >
                                                     {t.name}
+                                                    <span className="text-[9px] text-blue-400 ml-2 opacity-70">
+                                                        [{t.accountName}]
+                                                    </span>
                                                 </span>
                                             </div>
                                             <span className="text-green-500 font-mono text-xs whitespace-nowrap">
