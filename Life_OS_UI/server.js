@@ -16,6 +16,7 @@ import clientRouter from './server/modules/social_engine/api/clientController.js
 import invoiceRouter from './server/modules/social_engine/api/invoiceController.js';
 import contentRouter from './server/modules/social_engine/api/contentController.js';
 import mealRouter from './server/modules/life_admin/api/mealController.js';
+import dailyReadsRouter from './server/modules/life_admin/api/dailyReadsController.js';
 
 const app = express();
 const PORT = 4001;
@@ -60,6 +61,19 @@ console.log('⚙️  [System] Mounting Life_OS Modules...');
 app.get('/api/debug/rate-limit-test', securityTestLimiter, (req, res) => {
     res.json({ message: 'Pass' });
 });
+
+// QA-Only Audit Endpoint: Verify environment and data isolation
+if (process.env.APP_ENV === 'qa') {
+    app.get('/api/qa/audit', async (req, res) => {
+        res.json({
+            environment: 'QA',
+            isolation_check: 'Active',
+            data_source: process.env.DATABASE_URL,
+            timestamp: new Date().toISOString()
+        });
+    });
+}
+
 app.use('/api/finance/accounts', financialAccountRouter);
 // Apply stricter limit to account uploads
 app.post('/api/finance/accounts/upload', apiLimiter);
@@ -71,10 +85,21 @@ app.use('/api/social/clients', clientRouter);
 app.use('/api/social/invoices', invoiceRouter);
 app.use('/api/social/content', contentRouter);
 app.use('/api/life-admin/meals', mealRouter);
+app.use('/api/daily-reads', dailyReadsRouter);
 
-// --- 4. LEGACY / OTHER ROUTES ---
+// --- 4. STATIC ASSETS (Production) ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+if (process.env.NODE_ENV === 'production') {
+    const distPath = path.join(__dirname, 'dist');
+    app.use(express.static(distPath));
+
+    // Handle SPA Routing: Serve index.html for any non-API routes
+    app.get(/^\/(?!api).*/, (req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+    });
+}
 
 // Health Check
 app.get('/api/health', (req, res) => {

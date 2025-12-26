@@ -75,7 +75,42 @@ async function seedQA() {
             await prisma.bug.create({ data: b });
         }
 
-        console.log(`✅ Seeded ${stories.length} Stories and ${bugs.length} Bugs.`);
+        // 4. Create Daily Reads
+        console.log('📚 Seeding Daily Reads...');
+        const reads = [
+            {
+                title: 'The 10X Rule',
+                author: 'Grant Cardone',
+                type: 'book',
+                status: 'in_progress',
+                progress: 45,
+                total: 100,
+                notes: 'Focus on wealth creation and massive action.',
+            },
+            {
+                title: 'Building a Second Brain',
+                author: 'Tiago Forte',
+                type: 'book',
+                status: 'completed',
+                progress: 100,
+                total: 100,
+                notes: 'Essential for Obsidian vault organization.',
+            },
+            {
+                title: 'Prisma Documentation: Advanced Modeling',
+                type: 'article',
+                status: 'in_progress',
+                progress: 1,
+                total: 5,
+                link: 'https://www.prisma.io/docs/',
+            },
+        ];
+
+        for (const r of reads) {
+            await prisma.dailyRead.create({ data: r });
+        }
+
+        console.log(`✅ Seeded ${stories.length} Stories, ${bugs.length} Bugs, and ${reads.length} Reads.`);
     } catch (error) {
         console.error('❌ Seeding Failed:', error);
     } finally {
