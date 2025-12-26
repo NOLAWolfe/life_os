@@ -64,19 +64,23 @@ export const UserProvider = ({ children }) => {
 
     const toggleGodMode = () => setIsGodMode((prev) => !prev);
 
+    const saveTools = (newTools) => {
+        toolMutation.mutate(newTools);
+    };
+
     const switchIdentity = (identityId) => {
         window.location.reload();
     };
 
     const value = {
         user,
-        loading: isLoading,
+        loading: isLoading || toolMutation.isPending,
         error,
         updateTier,
         isGodMode,
         toggleGodMode,
         switchIdentity,
-        toggleTool,
+        saveTools, // Expose the new save function
         TIERS,
     };
 
