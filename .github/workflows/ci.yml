@@ -1,8 +1,8 @@
-name: Life.io CI
+name: Vantage OS - CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'feature/**' ]
   pull_request:
     branches: [ main ]
 
@@ -12,11 +12,12 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v3
-    
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -25,18 +26,18 @@ jobs:
         cache-dependency-path: Life_OS_UI/package-lock.json
 
     - name: Install Dependencies
-      working-directory: ./Life_OS_UI
-      run: npm ci
+      run: cd Life_OS_UI && npm ci
 
-    - name: Lint Code
-      working-directory: ./Life_OS_UI
-      run: npm run lint
-      continue-on-error: true # Warning only for Alpha
-
-    - name: Run Unit Tests
-      working-directory: ./Life_OS_UI
-      run: npm test
+    - name: Install Playwright Browsers
+      run: cd Life_OS_UI && npx playwright install --with-deps
       
-    - name: Build Project
-      working-directory: ./Life_OS_UI
-      run: npm run build
+    - name: Run Playwright Tests
+      run: cd Life_OS_UI && npx playwright test
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: playwright-report
+        path: Life_OS_UI/playwright-report/
+        retention-days: 7

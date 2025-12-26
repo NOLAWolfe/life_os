@@ -1,0 +1,12 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🛡️ Running Pre-Commit Checks..."
+cd Life_OS_UI && npm run lint -- --fix
+EXIT_CODE=$?
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "❌ Linting failed. Aborting commit."
+    exit 1
+fi
+echo "✅ Linting passed."
+exit 0
