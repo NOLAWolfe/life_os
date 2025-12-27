@@ -176,14 +176,19 @@ const TransactionMapper = () => {
                         >
                             <div className="flex justify-between items-start mb-1">
                                 <span
-                                    className="font-medium text-sm truncate w-3/4"
+                                    className="font-medium text-sm truncate w-2/3"
                                     title={orphan.name}
                                 >
                                     {orphan.name}
                                 </span>
-                                <span className="text-xs bg-gray-700 px-1.5 py-0.5 rounded">
-                                    {orphan.count}
-                                </span>
+                                <div className="flex gap-1">
+                                    {orphan.isLikelyBill && (
+                                        <span className="text-[8px] bg-blue-900/50 text-blue-300 px-1 rounded uppercase font-bold">Likely Bill</span>
+                                    )}
+                                    <span className="text-xs bg-gray-700 px-1.5 py-0.5 rounded">
+                                        {orphan.count}
+                                    </span>
+                                </div>
                             </div>
                             <div className="flex justify-between items-center text-xs text-[var(--text-secondary)]">
                                 <div className="flex flex-col">

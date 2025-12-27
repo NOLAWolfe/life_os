@@ -67,9 +67,24 @@ export const FinancialProvider = ({ children }) => {
     }, [transactions]);
 
     const hottestDollar = useMemo(() => {
+        // 1. Get Debt Minimums
         const totalMinPayments = debtAccounts.reduce((sum, d) => sum + (d.minPayment || 0), 0);
-        return strategyService.calculateHottestDollar(incomeStreams, totalMinPayments);
-    }, [incomeStreams, debtAccounts]);
+        
+        // 2. Get Mapped Bill Averages (from Sorting Hat rules)
+        // We need to pull rules from localStorage here to match the strategy view
+        const savedRules = JSON.parse(localStorage.getItem('paymentFlowRules') || '{}');
+        const savedNodes = JSON.parse(localStorage.getItem('paymentFlowNodes') || '[]');
+        
+        const { totalMonthlyCommitments } = strategyService.calculateNodeStats(
+            savedNodes,
+            accounts,
+            transactions,
+            savedRules,
+            debtAccounts
+        );
+
+        return strategyService.calculateHottestDollar(incomeStreams, totalMonthlyCommitments);
+    }, [incomeStreams, debtAccounts, transactions, accounts]);
 
     const handleBalancesUpload = (data) => {
         setSummaryBalances(data);
