@@ -1,7 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import './WealthMentor.css';
-
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useFinancials } from '../../../contexts/FinancialContext';
 import './WealthMentor.css';
 

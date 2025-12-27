@@ -29,7 +29,7 @@ const WealthTargets = () => {
 
     return (
         <div className="wealth-targets-widget widget-card">
-            <div className="widget-header mb-6">
+            <div className="widget-header flex justify-between items-center mb-6">
                 <h2 className="widget-title">10X Targets</h2>
                 <div className="flex gap-2">
                     <span className="badge moonshot">Moonshot</span>
@@ -37,7 +37,7 @@ const WealthTargets = () => {
                 </div>
             </div>
 
-            <div className="targets-grid grid grid-cols-1 gap-8">
+            <div className="targets-grid space-y-8">
                 {/* Metric 1: Annual Income */}
                 <div className="target-item">
                     <div className="flex justify-between items-end mb-2">
@@ -52,13 +52,15 @@ const WealthTargets = () => {
                             <span className="text-xs font-bold text-green-400">${(INCOME_GOAL/1000000).toFixed(1)}M</span>
                         </div>
                     </div>
-                    <div className="progress-container h-3 bg-gray-800 rounded-full overflow-hidden border border-white/5">
+                    <div className="progress-container h-2 bg-gray-800 rounded-full overflow-hidden border border-white/5">
                         <div 
                             className="progress-fill h-full bg-gradient-to-r from-green-600 to-green-400" 
                             style={{ width: `${incomeProgress}%` }}
                         ></div>
                     </div>
-                    <p className="text-[10px] text-gray-500 mt-1">{incomeProgress.toFixed(2)}% of the way to the 10X line.</p>
+                    <p className="text-[9px] text-gray-500 mt-1 uppercase tracking-wider font-bold">
+                        {incomeProgress.toFixed(2)}% of 10X Line
+                    </p>
                 </div>
 
                 {/* Metric 2: Net Worth */}
@@ -75,13 +77,15 @@ const WealthTargets = () => {
                             <span className="text-xs font-bold text-blue-400">${(NET_WORTH_GOAL/1000000).toFixed(1)}M</span>
                         </div>
                     </div>
-                    <div className="progress-container h-3 bg-gray-800 rounded-full overflow-hidden border border-white/5">
+                    <div className="progress-container h-2 bg-gray-800 rounded-full overflow-hidden border border-white/5">
                         <div 
                             className="progress-fill h-full bg-gradient-to-r from-blue-600 to-blue-400" 
                             style={{ width: `${Math.max(0, nwProgress)}%` }}
                         ></div>
                     </div>
-                    <p className="text-[10px] text-gray-500 mt-1">{Math.max(0, nwProgress).toFixed(2)}% Scaled.</p>
+                    <p className="text-[9px] text-gray-500 mt-1 uppercase tracking-wider font-bold">
+                        {Math.max(0, nwProgress).toFixed(2)}% Scaled
+                    </p>
                 </div>
             </div>
 
