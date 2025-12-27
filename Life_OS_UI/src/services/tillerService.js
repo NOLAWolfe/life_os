@@ -158,12 +158,13 @@ export const processIncomeData = (transactions) => {
 
     const dates = transactions.map((t) => new Date(t.date)).filter((d) => !isNaN(d));
     let monthsDivisor = 1;
-    if (dates.length > 1) {
-        const newest = new Date(Math.max(...dates));
+    if (dates.length > 0) {
+        const newest = new Date(); // Use TODAY as the anchor for averaging
         const oldest = new Date(Math.min(...dates));
         const diffInMs = newest - oldest;
         const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-        // Ensure we don't divide by zero and handle partial months gracefully
+        
+        // Use a minimum of 1 month, otherwise calculate true month count
         monthsDivisor = Math.max(diffInDays / 30.44, 1);
     }
 

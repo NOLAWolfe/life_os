@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../../../contexts/UserContext';
+import { useFinancials } from '../../../contexts/FinancialContext';
 import './MealPlanner.css';
 
 const CONSUMERS = {
@@ -13,6 +14,7 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 
 const MealPlanner = () => {
     const { user } = useUser();
+    const { hottestDollar } = useFinancials();
 
     // UI State
     const [activeTab, setActiveTab] = useState(CONSUMERS.USER); // 'Neauxla', 'Partner', 'List'
@@ -24,6 +26,10 @@ const MealPlanner = () => {
     const [weekPlan, setWeekPlan] = useState({});
     const [weekStart, setWeekStart] = useState('');
     const [loading, setLoading] = useState(true);
+
+    const surplus = hottestDollar?.surplus || 0;
+    const weeklyBudget = Math.max(0, surplus / 4); // Basic estimation: 1/4 of surplus for week
+    const isCritical = hottestDollar?.isDeficit;
 
     // Form State
     const [newRecipeName, setNewRecipeName] = useState('');
@@ -261,6 +267,20 @@ const MealPlanner = () => {
                     <p className="text-[var(--text-secondary)]">
                         Week of {new Date(weekStart).toLocaleDateString()}
                     </p>
+                </div>
+
+                {/* Strategic Budget Alert */}
+                <div className={`p-3 rounded-lg border flex items-center gap-3 ${isCritical ? 'bg-red-900/20 border-red-500/50' : 'bg-green-900/20 border-green-500/50'}`}>
+                    <span className="text-xl">{isCritical ? '⚠️' : '💰'}</span>
+                    <div>
+                        <p className="text-[10px] uppercase font-black text-gray-400 leading-tight">Weekly Grocery Attack</p>
+                        <p className={`text-lg font-black leading-tight ${isCritical ? 'text-red-400' : 'text-green-400'}`}>
+                            ${Math.round(weeklyBudget).toLocaleString()}
+                        </p>
+                        <p className="text-[9px] text-gray-500 italic">
+                            {isCritical ? 'Surplus depleted. Keep it lean.' : 'Strategic surplus active.'}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Profile Switcher */}
