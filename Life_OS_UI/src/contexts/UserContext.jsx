@@ -1,16 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-const UserContext = createContext();
-
-export const useUser = () => useContext(UserContext);
-
-export const TIERS = {
-    GUEST: 'guest',
-    FREE: 'free',
-    PRO: 'pro',
-    ADMIN: 'admin',
-};
+import { TIERS } from '../services/defaults';
+import { UserContext } from './contextRegistry';
 
 const fetchUser = async () => {
     const response = await fetch('/api/system/user/admin-user-123');
@@ -52,23 +43,13 @@ export const UserProvider = ({ children }) => {
         console.log('Role update requested:', role);
     };
 
-    const toggleTool = (toolId) => {
-        if (!user) return;
-        const isInstalled = user.installedTools.includes(toolId);
-        const newTools = isInstalled
-            ? user.installedTools.filter(t => t !== toolId)
-            : [...user.installedTools, toolId];
-        
-        toolMutation.mutate(newTools);
-    };
-
     const toggleGodMode = () => setIsGodMode((prev) => !prev);
 
     const saveTools = (newTools) => {
         toolMutation.mutate(newTools);
     };
 
-    const switchIdentity = (identityId) => {
+    const switchIdentity = (_identityId) => {
         window.location.reload();
     };
 

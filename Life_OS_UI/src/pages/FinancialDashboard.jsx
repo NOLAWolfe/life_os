@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { TIERS } from '../contexts/UserContext';
+import { TIERS } from '../services/defaults';
 import FeatureGate from '../components/System/FeatureGate';
 import HottestDollarBar from '../components/Finance/HottestDollarBar/HottestDollarBar';
 import './FinancialDashboard.css';

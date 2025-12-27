@@ -12,8 +12,8 @@ router.get('/', async (req, res) => {
     try {
         const transactions = await transactionService.getDashboardTransactions();
         res.json(transactions);
-    } catch (error) {
-        console.error('Error fetching transactions:', error);
+    } catch (_error) {
+        console.error('Error fetching transactions:', _error);
         res.status(500).json({ error: 'Failed to fetch transactions' });
     }
 });
@@ -28,8 +28,8 @@ router.post('/upload', async (req, res) => {
 
         const result = await transactionService.importTillerTransactions(rawTransactions);
         res.json({ message: 'Import complete', ...result });
-    } catch (error) {
-        console.error('Error importing transactions:', error);
+    } catch (_error) {
+        console.error('Error importing transactions:', _error);
         res.status(500).json({ error: 'Failed to import transactions' });
     }
 });
@@ -58,8 +58,8 @@ router.post('/sync', async (req, res) => {
         }
 
         res.json({ message: 'Tiller Sync Complete', details: results });
-    } catch (error) {
-        console.error('Error during Tiller sync:', error);
+    } catch (_error) {
+        console.error('Error during Tiller sync:', _error);
         res.status(500).json({ error: 'Tiller Sync Failed' });
     }
 });

@@ -1,16 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import React, { useMemo } from 'react';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import './WealthMentor.css';
 
 const WealthMentor = () => {
-    const { hottestDollar, debtAccounts, incomeStreams } = useFinancials();
+    const { hottestDollar, debtAccounts } = useFinancials();
 
     const advice = useMemo(() => {
         const surplus = hottestDollar?.surplus || 0;
-        const totalDebt = (debtAccounts || []).reduce((sum, d) => sum + (d.currentBalance || 0), 0);
-        const activeIncome = (incomeStreams || [])
-            .filter(s => s.type === 'active')
-            .reduce((sum, s) => sum + (s.monthlyAvg || 0), 0);
 
         // 1. Critical Debt Logic (High Interest Priority)
         const highInterestDebt = (debtAccounts || []).find(d => d.interestRate > 20);
@@ -43,7 +39,7 @@ const WealthMentor = () => {
             author: "Grant Cardone",
             action: "Review your 10X Targets. Are your daily actions matching the scale of your goals?"
         };
-    }, [hottestDollar, debtAccounts, incomeStreams]);
+    }, [hottestDollar, debtAccounts]);
 
     return (
         <div className="wealth-mentor-widget widget-card border-l-4 border-accent">

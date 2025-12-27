@@ -1,9 +1,9 @@
 import React from 'react';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import './WealthTargets.css';
 
 const WealthTargets = () => {
-    const { incomeStreams, transactions, accounts } = useFinancials();
+    const { incomeStreams, accounts } = useFinancials();
 
     // 10X Goals
     const INCOME_GOAL = 1000000; // $1M Annual

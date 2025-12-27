@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../../../contexts/UserContext';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import './MealPlanner.css';
 
 const CONSUMERS = {
@@ -13,23 +12,20 @@ const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const MealPlanner = () => {
-    const { user } = useUser();
     const { hottestDollar } = useFinancials();
 
     // UI State
     const [activeTab, setActiveTab] = useState(CONSUMERS.USER); // 'Neauxla', 'Partner', 'List'
-    const [selectedDay, setSelectedDay] = useState(null); // For detail view/adding
-    const [selectedMealType, setSelectedMealType] = useState('Dinner');
-
-    // Data State
-    const [recipes, setRecipes] = useState([]);
-    const [weekPlan, setWeekPlan] = useState({});
-    const [weekStart, setWeekStart] = useState('');
     const [loading, setLoading] = useState(true);
 
     const surplus = hottestDollar?.surplus || 0;
     const weeklyBudget = Math.max(0, surplus / 4); // Basic estimation: 1/4 of surplus for week
     const isCritical = hottestDollar?.isDeficit;
+
+    // Data State
+    const [recipes, setRecipes] = useState([]);
+    const [weekPlan, setWeekPlan] = useState({});
+    const [weekStart, setWeekStart] = useState('');
 
     // Form State
     const [newRecipeName, setNewRecipeName] = useState('');
@@ -181,7 +177,6 @@ const MealPlanner = () => {
                         <div className="space-y-3">
                             {MEAL_TYPES.map((type) => {
                                 const currentRecipeId = dayPlan[type];
-                                const currentRecipe = recipes.find((r) => r.id === currentRecipeId);
 
                                 return (
                                     <div key={type} className="meal-slot">

@@ -35,7 +35,6 @@ class ConnectivityService {
         
         personalEvents.forEach(pEvent => {
             const pStart = new Date(pEvent.start);
-            const pEnd = new Date(pEvent.end);
             
             externalEvents.forEach(eEvent => {
                 const eStart = new Date(eEvent.start || eEvent.date); // Handle different schemas

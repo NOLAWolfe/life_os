@@ -1,5 +1,6 @@
 import React from 'react';
-import { useUser, TIERS } from '../../contexts/UserContext';
+import { useUser } from '../../hooks/useFinancialData';
+import { TIERS } from '../../services/defaults';
 
 const TIER_LEVELS = {
     [TIERS.GUEST]: 0,

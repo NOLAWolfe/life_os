@@ -1,7 +1,6 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs/promises';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { connectDB } from './server/shared/db.js';
@@ -119,12 +118,12 @@ app.get('/api/health', (req, res) => {
 // Handle 404 (Undefined Routes)
 // Note: In Express 5, using '*' can trigger path-to-regexp errors.
 // Using a middleware without a path captures all unmatched requests.
-app.use((req, res, next) => {
-    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+app.use((req, res, _next) => {
+    _next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 // --- 5. GLOBAL ERROR MIDDLEWARE ---
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 

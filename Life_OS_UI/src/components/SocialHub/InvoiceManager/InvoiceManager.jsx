@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../../../contexts/UserContext';
+import { useUser } from '../../../hooks/useFinancialData';
 import './InvoiceManager.css';
 
 const InvoiceManager = () => {
@@ -15,26 +15,28 @@ const InvoiceManager = () => {
 
     const [view, setView] = useState('all'); // 'all', 'review'
 
-    const fetchInvoices = async () => {
+    const fetchInvoices = React.useCallback(async () => {
         const res = await fetch('/api/social/invoices');
         if (res.ok) {
             const data = await res.json();
             setInvoices(data);
         }
-    };
+    }, []);
 
-    const fetchClients = async () => {
+    const fetchClients = React.useCallback(async () => {
         const res = await fetch('/api/social/clients');
         if (res.ok) {
             const data = await res.json();
             setClients(data);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchInvoices();
-        fetchClients();
-    }, []);
+        setTimeout(() => {
+            fetchInvoices();
+            fetchClients();
+        }, 0);
+    }, [fetchInvoices, fetchClients]);
 
     const handleNewInvoice = () => {
         setActiveInvoice('new');

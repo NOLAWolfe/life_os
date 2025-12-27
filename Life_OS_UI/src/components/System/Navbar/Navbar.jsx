@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { useUser } from '../../../contexts/UserContext';
+import { useUser } from '../../../hooks/useFinancialData';
 import './Navbar.css';
 
 const Navbar = () => {

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import {
     getOrphanedTransactions,
     suggestKeyword,
@@ -11,26 +11,29 @@ import './TransactionMapper.css';
 
 const TransactionMapper = () => {
     const { transactions, accounts, debtAccounts } = useFinancials();
-    const [mappingRules, setMappingRules] = useState({});
-    const [nodes, setNodes] = useState(initialNodes);
-    const [edges, setEdges] = useState(initialEdges);
+    const [mappingRules, setMappingRules] = useState(() => {
+        const saved = localStorage.getItem('paymentFlowRules');
+        return saved ? JSON.parse(saved) : {};
+    });
+    const [nodes, setNodes] = useState(() => {
+        const saved = localStorage.getItem('paymentFlowNodes');
+        return saved ? JSON.parse(saved) : initialNodes;
+    });
+    const [edges, setEdges] = useState(() => {
+        const saved = localStorage.getItem('paymentFlowEdges');
+        return saved ? JSON.parse(saved) : initialEdges;
+    });
 
-    // Load config & SYNC with Real Data
+    // Sync with Real Data (derived nodes during render is better, but since it's used in many places, we guard)
     useEffect(() => {
-        const savedRules = localStorage.getItem('paymentFlowRules');
-        if (savedRules) setMappingRules(JSON.parse(savedRules));
-
-        const savedNodes = localStorage.getItem('paymentFlowNodes');
-        const baseNodes = savedNodes ? JSON.parse(savedNodes) : initialNodes;
-
-        const savedEdges = localStorage.getItem('paymentFlowEdges');
-        if (savedEdges) setEdges(JSON.parse(savedEdges));
-
         // Enforce Truth
-        const { nodes: syncedNodes } = strategyService.syncNodesWithRealData(baseNodes, accounts || [], debtAccounts || []);
-        setNodes(syncedNodes);
+        const { nodes: syncedNodes, hasChanges } = strategyService.syncNodesWithRealData(nodes, accounts || [], debtAccounts || []);
+        
+        if (hasChanges) {
+            setTimeout(() => setNodes(syncedNodes), 0);
+        }
 
-    }, [accounts, debtAccounts]);
+    }, [accounts, debtAccounts, nodes]);
 
     const orphans = useMemo(() => {
         return getOrphanedTransactions(transactions, mappingRules);

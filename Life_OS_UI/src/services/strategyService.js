@@ -37,7 +37,6 @@ const strategyService = {
         if (!accounts) return { nodes: currentNodes, hasChanges: false };
 
         const validAccountIds = new Set(accounts.map(a => a.account_id));
-        const validDebtNames = new Set((debtAccounts || []).map(d => d.name.toLowerCase()));
 
         // 1. Filter out Stale/Fake Accounts
         const cleanedNodes = currentNodes.filter(node => {

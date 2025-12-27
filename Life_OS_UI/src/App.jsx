@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/System/Navbar/Navbar';
 import { FinancialProvider } from './contexts/FinancialContext';
 import { UserProvider } from './contexts/UserContext';
+import { UserContext, FinancialContext } from './contexts/contextRegistry';
 import './App.css';
 import './pages/Page.css'; // Import shared page styles
 import HottestDollarBar from './components/Finance/HottestDollarBar/HottestDollarBar';

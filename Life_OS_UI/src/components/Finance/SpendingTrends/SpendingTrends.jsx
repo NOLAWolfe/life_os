@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import './SpendingTrends.css';
@@ -29,18 +29,21 @@ const SpendingTrends = () => {
             switch (timeRange) {
                 case 'thisMonth':
                     return tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth;
-                case 'lastMonth':
+                case 'lastMonth': {
                     const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
                     const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
                     return tDate.getFullYear() === lastMonthYear && tDate.getMonth() === lastMonth;
-                case 'last30':
+                }
+                case 'last30': {
                     const thirtyDaysAgo = new Date();
                     thirtyDaysAgo.setDate(now.getDate() - 30);
                     return tDate >= thirtyDaysAgo;
-                case 'last90':
+                }
+                case 'last90': {
                     const ninetyDaysAgo = new Date();
                     ninetyDaysAgo.setDate(now.getDate() - 90);
                     return tDate >= ninetyDaysAgo;
+                }
                 case 'ytd':
                     return tDate.getFullYear() === currentYear;
                 case 'all':

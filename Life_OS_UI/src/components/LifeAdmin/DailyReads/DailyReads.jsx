@@ -68,7 +68,6 @@ const DailyReads = () => {
             });
 
             if (res.ok) {
-                const savedRead = await res.json();
                 // Refresh list or append locally
                 fetchReads();
                 setFormData({

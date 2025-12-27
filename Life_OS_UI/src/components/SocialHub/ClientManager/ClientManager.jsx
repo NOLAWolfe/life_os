@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../../../contexts/UserContext'; // For userId injection
+import { useUser } from '../../../hooks/useFinancialData'; // For userId injection
 import './ClientManager.css';
 
 const ClientManager = () => {

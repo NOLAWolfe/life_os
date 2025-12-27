@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import './BudgetVsActuals.css';
 
 const BudgetVsActuals = () => {

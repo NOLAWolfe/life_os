@@ -34,7 +34,6 @@ export const calculatePayoff = (accounts, monthlyExtra = 0, strategy = 'avalanch
 
     let totalMonths = 0;
     let totalInterestPaid = 0;
-    const schedule = [];
     const currentDebts = activeDebts.map((d) => ({
         ...d,
         isStudentLoan: /student|loan|group id/i.test(d.name), // Tiller often groups student loans as 'Group Id'
@@ -72,13 +71,13 @@ export const calculatePayoff = (accounts, monthlyExtra = 0, strategy = 'avalanch
     while (currentDebts.some((d) => d.balance > 0) && totalMonths < 720) {
         totalMonths++;
         let extraLeft = monthlyExtra;
-        let monthlyInterestTotal = 0;
+        let _monthlyInterestTotal = 0;
 
         // 1. Calculate and add interest
         for (const debt of currentDebts) {
             if (debt.balance <= 0) continue;
             const interest = debt.balance * (debt.interestRate / 100 / 12);
-            monthlyInterestTotal += interest;
+            _monthlyInterestTotal += interest;
             totalInterestPaid += interest;
             debt.balance += interest;
         }
