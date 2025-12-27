@@ -158,28 +158,46 @@ export const processIncomeData = (transactions) => {
 
     const dates = transactions.map((t) => new Date(t.date)).filter((d) => !isNaN(d));
     let monthsDivisor = 1;
-    if (dates.length > 1) {
-        const newest = new Date(Math.max(...dates));
+    if (dates.length > 0) {
+        const newest = new Date(); // Use TODAY as the anchor for averaging
         const oldest = new Date(Math.min(...dates));
         const diffInMs = newest - oldest;
         const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+        
+        // Use a minimum of 1 month, otherwise calculate true month count
         monthsDivisor = Math.max(diffInDays / 30.44, 1);
     }
 
     const incomeTransactions = transactions.filter((t) => {
         if (t.type !== 'credit') return false;
-        if (t.isSideHustle) return true;
-        if (t.isLateral) return false;
-        return true;
+        
+        const isLateral = t.isLateral;
+        const isSideHustle = t.isSideHustle;
+        
+        // Treat anything categorized as 'Income' or 'Salary' or 'Paycheck' as income
+        const cat = String(t.category || '').toLowerCase();
+        const isIncomeCat = cat.includes('income') || cat.includes('salary') || cat.includes('paycheck');
+        
+        const shouldInclude = isSideHustle || (isIncomeCat && !isLateral) || (!isLateral);
+        
+        if (!shouldInclude) {
+            console.log('[IncomeProcessing] Excluding Credit:', { 
+                desc: t.name, 
+                cat: t.category, 
+                isLateral, 
+                isSideHustle 
+            });
+        }
+
+        return shouldInclude;
     });
 
     const streamsMap = new Map();
 
     incomeTransactions.forEach((t) => {
         let source = t.category;
-        // Simplify category arrays if present
         if (Array.isArray(source)) source = source[0];
-        if (!source) source = 'Uncategorized Income';
+        if (!source || source === 'Uncategorized') source = 'Other Income';
 
         if (t.isSideHustle) {
             source = 'DJ Business / Side Hustle';
@@ -191,6 +209,7 @@ export const processIncomeData = (transactions) => {
                 total: 0,
                 count: 0,
                 transactions: [],
+                accounts: new Set(),
             });
         }
 
@@ -198,6 +217,7 @@ export const processIncomeData = (transactions) => {
         stream.total += t.amount;
         stream.count += 1;
         stream.transactions.push(t);
+        if (t.accountName) stream.accounts.add(t.accountName);
     });
 
     return Array.from(streamsMap.values())
@@ -205,6 +225,7 @@ export const processIncomeData = (transactions) => {
             ...stream,
             average: stream.total / stream.count,
             monthlyAvg: stream.total / monthsDivisor,
+            primaryAccount: Array.from(stream.accounts)[0] || 'Unknown',
         }))
         .sort((a, b) => b.total - a.total);
 };

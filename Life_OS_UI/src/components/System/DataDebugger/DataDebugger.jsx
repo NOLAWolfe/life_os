@@ -1,9 +1,9 @@
 import React from 'react';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import './DataDebugger.css';
 
 const DataDebugger = () => {
-    const { transactions, debtAccounts, accounts } = useFinancials();
+    const { transactions, debtAccounts } = useFinancials();
     const lateralTxns = transactions.filter((t) => t.isLateral);
 
     return (

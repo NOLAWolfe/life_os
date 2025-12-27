@@ -28,14 +28,14 @@ const ProfessionalHubPage = () => {
     });
     const [viewMode, setViewMode] = useState('board'); // 'list' or 'board'
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
     const loadData = () => {
         adoService.getMyUserStories().then(setUserStories);
         adoService.getMyBugs().then(setBugs);
     };
+
+    useEffect(() => {
+        loadData();
+    }, []);
 
     const handleAnalysis = async (story) => {
         setAnalyzingStoryId(story.id);

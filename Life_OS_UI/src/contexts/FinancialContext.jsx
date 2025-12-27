@@ -1,12 +1,8 @@
-import React, { createContext, useState, useContext, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import tillerService from '../services/tillerService';
+import strategyService from '../services/strategyService';
 import { useAccounts, useTransactions, useDebts } from '../hooks/useFinancialData';
-
-const FinancialContext = createContext();
-
-export const useFinancials = () => {
-    return useContext(FinancialContext);
-};
+import { FinancialContext } from './contextRegistry';
 
 export const FinancialProvider = ({ children }) => {
     const {
@@ -50,9 +46,9 @@ export const FinancialProvider = ({ children }) => {
     /**
      * Master Sync: Triggers React Query refetch for all financial data.
      */
-    const refreshFromDb = async () => {
+    const refreshFromDb = React.useCallback(async () => {
         await Promise.all([refetchAccounts(), refetchTxns(), refetchDebts()]);
-    };
+    }, [refetchAccounts, refetchTxns, refetchDebts]);
 
     // Update income streams and cash flow whenever transactions change
     const incomeStreams = useMemo(() => {
@@ -64,6 +60,23 @@ export const FinancialProvider = ({ children }) => {
         if (transactions.length === 0) return { monthlyIncome: 0, monthlyExpenses: 0, surplus: 0 };
         return tillerService.calculateCashFlow(transactions);
     }, [transactions]);
+
+    const hottestDollar = useMemo(() => {
+        // 1. Get Mapped Bill Averages (from Sorting Hat rules)
+        // We need to pull rules from localStorage here to match the strategy view
+        const savedRules = JSON.parse(localStorage.getItem('paymentFlowRules') || '{}');
+        const savedNodes = JSON.parse(localStorage.getItem('paymentFlowNodes') || '[]');
+        
+        const { totalMonthlyCommitments } = strategyService.calculateNodeStats(
+            savedNodes,
+            accounts,
+            transactions,
+            savedRules,
+            debtAccounts
+        );
+
+        return strategyService.calculateHottestDollar(incomeStreams, totalMonthlyCommitments);
+    }, [incomeStreams, debtAccounts, transactions, accounts]);
 
     const handleBalancesUpload = (data) => {
         setSummaryBalances(data);
@@ -86,6 +99,7 @@ export const FinancialProvider = ({ children }) => {
             transactions,
             incomeStreams,
             cashFlow,
+            hottestDollar,
             categories,
             debtAccounts,
             summaryBalances,
@@ -100,11 +114,13 @@ export const FinancialProvider = ({ children }) => {
             transactions,
             incomeStreams,
             cashFlow,
+            hottestDollar,
             categories,
             debtAccounts,
             summaryBalances,
             loading,
             combinedError,
+            refreshFromDb,
         ]
     );
 

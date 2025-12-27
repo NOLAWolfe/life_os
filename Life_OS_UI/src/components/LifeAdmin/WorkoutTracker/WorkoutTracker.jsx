@@ -95,10 +95,10 @@ const WorkoutTracker = () => {
         if (activeSession) {
             interval = setInterval(() => setTimer((t) => t + 1), 1000);
         } else {
-            setTimer(0);
+            if (timer !== 0) setTimeout(() => setTimer(0), 0);
         }
         return () => clearInterval(interval);
-    }, [activeSession]);
+    }, [activeSession, timer]);
 
     // Format Timer
     const formatTime = (seconds) => {

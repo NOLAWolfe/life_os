@@ -29,7 +29,7 @@ const saveLog = (log) => {
         const history = JSON.parse(localStorage.getItem('life_os_logs') || '[]');
         history.unshift(log);
         localStorage.setItem('life_os_logs', JSON.stringify(history.slice(0, LOG_LIMIT)));
-    } catch (e) {
+    } catch {
         // Silent fail for storage issues
     }
 };

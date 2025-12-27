@@ -25,7 +25,7 @@ const mockEvents = [
 ];
 
 const CalendarComponent = () => {
-    const [events, setEvents] = useState(mockEvents);
+    const [events] = useState(mockEvents);
 
     return (
         <div className="calendar-container">

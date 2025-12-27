@@ -9,7 +9,7 @@ import {
     useEdgesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useFinancials } from '../../../contexts/FinancialContext';
+import { useFinancials } from '../../../hooks/useFinancialData';
 import { getAllBillNodes } from '../../../services/mappingService';
 import strategyService, { STRATEGY_TIERS } from '../../../services/strategyService';
 import { initialNodes, initialEdges } from '../../../services/defaults';
@@ -22,7 +22,7 @@ const nodeTypes = {
     billGroup: BillGroupNode,
 };
 
-const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
+const PaymentFlow = ({ viewMode = 'map', _setViewMode }) => {
     const { transactions, accounts, incomeStreams, debtAccounts } = useFinancials();
 
     // Load Nodes/Edges from LocalStorage or use Default
@@ -59,7 +59,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
             );
             return hasChanges ? syncedNodes : currentNodes;
         });
-    }, [accounts, debtAccounts]);
+    }, [accounts, debtAccounts, setNodes]);
 
     // -- Defensive Adapter: Dynamic Income Streams (Tier 0) --
     // Sync Income Streams into State (preserving position)
@@ -144,7 +144,7 @@ const PaymentFlow = ({ viewMode = 'map', setViewMode }) => {
 
             return hasChanges ? newEdges : currentEdges;
         });
-    }, [incomeStreams]);
+    }, [incomeStreams, setNodes, setEdges]);
 
     // Load rules from localStorage
     const [rules, setRules] = React.useState(() => {

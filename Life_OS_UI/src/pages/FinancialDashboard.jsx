@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { TIERS } from '../contexts/UserContext';
+import { TIERS } from '../services/defaults';
 import FeatureGate from '../components/System/FeatureGate';
+import HottestDollarBar from '../components/Finance/HottestDollarBar/HottestDollarBar';
 import './FinancialDashboard.css';
 
 // Lazy load widgets
@@ -17,6 +18,7 @@ const BankConnection = lazy(() => import('../components/Finance/BankConnection/B
 const TransactionMapper = lazy(
     () => import('../components/Finance/TransactionMapper/TransactionMapper')
 );
+const TransactionList = lazy(() => import('../components/Finance/TransactionList/TransactionList'));
 const DataDebugger = lazy(() => import('../components/System/DataDebugger/DataDebugger'));
 
 // Loading fallback for widgets
@@ -137,19 +139,24 @@ const FinancialDashboard = () => {
                             >
                                 Bank Connect
                             </button>
-                            <button
-                                className={`sub-tab-button ${subTab === 'mapper' ? 'active' : ''}`}
-                                onClick={() => setSubTab('mapper')}
-                            >
-                                🧙‍♂️ Sorting Hat
-                            </button>
-                            <button
-                                className={`sub-tab-button ${subTab === 'debug' ? 'active' : ''}`}
-                                onClick={() => setSubTab('debug')}
-                            >
-                                🕵️ Data Debugger
-                            </button>
-                        </>
+                                                            <button
+                                                                className={`sub-tab-button ${subTab === 'mapper' ? 'active' : ''}`}
+                                                                onClick={() => setSubTab('mapper')}
+                                                            >
+                                                                🧙‍♂️ Sorting Hat
+                                                            </button>
+                                                            <button
+                                                                className={`sub-tab-button ${subTab === 'ledger' ? 'active' : ''}`}
+                                                                onClick={() => setSubTab('ledger')}
+                                                            >
+                                                                🧾 Full Ledger
+                                                            </button>
+                                                            <button
+                                                                className={`sub-tab-button ${subTab === 'debug' ? 'active' : ''}`}
+                                                                onClick={() => setSubTab('debug')}
+                                                            >
+                                                                🕵️ Data Debugger
+                                                            </button>                        </>
                     )}
                 </div>
 
@@ -276,6 +283,11 @@ const FinancialDashboard = () => {
                                         <TransactionMapper />
                                     </div>
                                 )}
+                                {subTab === 'ledger' && (
+                                    <div className="h-full">
+                                        <TransactionList />
+                                    </div>
+                                )}
                                 {subTab === 'debug' && (
                                     <div className="h-full">
                                         <DataDebugger />
@@ -286,6 +298,7 @@ const FinancialDashboard = () => {
                     </Suspense>
                 </div>
             </div>
+            <HottestDollarBar />
         </div>
     );
 };

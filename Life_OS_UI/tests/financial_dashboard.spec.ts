@@ -104,6 +104,6 @@ test.describe('Financial Dashboard - Domain Audit', () => {
         await page.locator('.sub-tab-button').filter({ hasText: 'Data Debugger' }).click();
 
         await expect(page.locator('.data-debugger')).toBeVisible();
-        await expect(page.locator('h2')).toContainText('Data Debugger');
+        await expect(page.locator('.data-debugger h2')).toContainText('Data Debugger');
     });
 });

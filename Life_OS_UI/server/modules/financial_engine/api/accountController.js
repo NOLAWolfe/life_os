@@ -9,7 +9,7 @@ router.get('/', async (req, res, next) => {
     try {
         const accounts = await accountService.getDashboardAccounts();
         res.json(accounts);
-    } catch (error) {
+    } catch {
         next(new AppError('Failed to fetch accounts', 500));
     }
 });
@@ -27,7 +27,7 @@ router.post('/upload', async (req, res, next) => {
 
         const result = await accountService.importTillerAccounts(rawAccounts);
         res.json({ message: 'Import complete', ...result });
-    } catch (error) {
+    } catch {
         next(new AppError('Failed to import accounts', 500));
     }
 });

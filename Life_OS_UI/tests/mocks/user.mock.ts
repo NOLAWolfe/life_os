@@ -1,5 +1,5 @@
 // tests/mocks/user.mock.ts
-import { TIERS } from '../../src/contexts/UserContext';
+import { TIERS } from '../../src/services/defaults';
 
 export const SUPER_ADMIN_USER = {
     id: 'admin-user-123',

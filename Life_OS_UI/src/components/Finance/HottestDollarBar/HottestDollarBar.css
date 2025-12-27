@@ -1,0 +1,74 @@
+.hottest-dollar-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.hottest-dollar-bar.critical {
+    border-top: 2px solid #ef4444;
+}
+
+.hottest-dollar-bar.growth {
+    border-top: 2px solid #22c55e;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-text {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+    animation: pulse 2s infinite;
+}
+
+.critical .pulse-dot {
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+}
+
+.stable .pulse-dot {
+    background: #3b82f6;
+    box-shadow: 0 0 10px #3b82f6;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+.branding .amount {
+    line-height: 1;
+    margin-top: 2px;
+}
+
+/* Adjust layout spacing for the fixed bar */
+body {
+    padding-bottom: 70px;
+}

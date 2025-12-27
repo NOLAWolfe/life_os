@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUser } from '../../../contexts/UserContext';
+import { useUser } from '../../../hooks/useFinancialData';
 import './WidgetGrid.css';
 
 // Widget Imports

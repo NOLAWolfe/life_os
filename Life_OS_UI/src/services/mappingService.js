@@ -61,17 +61,28 @@ export const getOrphanedTransactions = (transactions, currentRules) => {
     // 4. Convert to Array and Score
     // We want high-frequency OR high-value items
     const rankedOrphans = Array.from(groupingMap.values())
-        .map((item) => ({
-            ...item,
-            averageAmount: item.totalAmount / item.count,
-            lastDate: item.dates.sort().pop(),
-            accountList: Array.from(item.accounts),
-            institutionList: Array.from(item.institutions),
-        }))
+        .map((item) => {
+            const count = item.count;
+            const avgAmount = item.totalAmount / count;
+            
+            // Intelligence: Flag as likely bill if it repeats
+            const isLikelyBill = count >= 2;
+
+            return {
+                ...item,
+                averageAmount: avgAmount,
+                lastDate: item.dates.sort().pop(),
+                accountList: Array.from(item.accounts),
+                institutionList: Array.from(item.institutions),
+                isLikelyBill
+            };
+        })
         // Filter out noise: single-time small transactions?
         // Let's keep them but sort them lower.
         .sort((a, b) => {
-            // Sort by occurrence count first, then total value
+            // Priority 1: High probability recurring items
+            if (a.isLikelyBill !== b.isLikelyBill) return b.isLikelyBill ? 1 : -1;
+            // Priority 2: Occurrence count
             if (b.count !== a.count) return b.count - a.count;
             return b.totalAmount - a.totalAmount;
         });

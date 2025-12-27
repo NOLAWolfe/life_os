@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../hooks/useFinancialData';
 import './Page.css';
 
 const TOOLS = [
@@ -70,18 +70,14 @@ const TOOLS = [
 ];
 
 const ToolStorePage = () => {
-    const { user, saveTools, loading: isSaving } = useUser();
+    const { user, saveTools, loading } = useUser();
     const [stagedTools, setStagedTools] = useState([]);
 
     useEffect(() => {
         if (user?.installedTools) {
-            setStagedTools(user.installedTools);
+            setTimeout(() => setStagedTools(user.installedTools), 0);
         }
     }, [user?.installedTools]);
-
-    const currentTools = user?.installedTools || [];
-    // Only show changes if we actually have user data to compare against
-    const hasChanges = user && JSON.stringify([...stagedTools].sort()) !== JSON.stringify([...currentTools].sort());
 
     const handleToggleTool = (toolId) => {
         const isInstalled = stagedTools.includes(toolId);
@@ -102,9 +98,11 @@ const ToolStorePage = () => {
         }
     };
 
+    const hasChanges = JSON.stringify(user?.installedTools || []) !== JSON.stringify(stagedTools);
+    const isSaving = loading;
+
     return (
         <div className="page-container" style={{ padding: '40px' }}>
-            {/* ... Header ... */}
             <div style={{ marginBottom: '40px' }}>
                 <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '10px', fontFamily: 'monospace', letterSpacing: '2px' }}>
                     VANTAGE STORE
@@ -202,8 +200,7 @@ const ToolStorePage = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '20px',
-                    zIndex: 100,
-                    animation: 'fade-in-up 0.3s ease'
+                    zIndex: 100
                 }}>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>You have unsaved changes.</p>
                     <button className="btn-secondary" onClick={handleCancel} disabled={isSaving}>Cancel</button>
@@ -215,6 +212,5 @@ const ToolStorePage = () => {
         </div>
     );
 };
-
 
 export default ToolStorePage;
